@@ -1,0 +1,174 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign In - FitSense{% endblock %}
+
+{% block stylesheets %}
+<style>
+:root {
+    --blue-light: #38BDF8;
+    --violet-light: #A78BFA;
+    --dark-bg: #111318;
+    --dark-card: #1B1E26;
+    --dark-input: #262A35;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A1A1AA;
+    --border-color: #343846;
+    --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.auth-wrapper {
+    width: 100%;
+    max-width: 1100px;
+    height: 640px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--dark-card);
+    border-radius: 22px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+}
+
+.auth-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    text-align: center;
+    padding: 50px;
+    position: relative;
+    background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(167,139,250,0.15));
+}
+
+.auth-left img.hero-img { width: 220px; margin-bottom: 25px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
+
+.auth-left h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.auth-left p { font-size: 15px; color: var(--text-secondary); margin-bottom: 24px; }
+
+.auth-right { padding: 50px; display: flex; flex-direction: column; justify-content: center; }
+
+.form-header h2 { font-size: 34px; margin-bottom: 10px; }
+.form-header p { color: var(--text-secondary); margin-bottom: 35px; }
+
+.form-group { margin-bottom: 22px; }
+.form-group input {
+    width: 100%;
+    padding: 15px 18px;
+    border-radius: 12px;
+    background: var(--dark-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 15px;
+}
+.form-group input:focus {
+    outline: none;
+    border-color: var(--blue-light);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+}
+
+.btn-signin {
+    margin-top: 10px;
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    background: var(--gradient-main);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s;
+}
+.btn-signin:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(56,189,248,.35); }
+
+.signup-link { text-align: center; margin-top: 18px; font-size: 14px; }
+.signup-link a { color: var(--blue-light); text-decoration: none; font-weight: 700; }
+
+/* Back home arrow */
+.back-home {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 14px;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+.back-home:hover { background: rgba(0,0,0,0.5); }
+.back-home svg { width: 16px; height: 16px; fill: var(--text-primary); }
+
+@media (max-width: 900px) {
+    .auth-wrapper { grid-template-columns: 1fr; height: auto; }
+    .auth-left { display: none; }
+    body { overflow: auto; }
+}
+</style>
+{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block body %}
+<div class="auth-wrapper">
+
+    <!-- LEFT -->
+    <div class="auth-left">
+        <a href="{{ path('app_home') }}" class="back-home">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Home
+        </a>
+
+        <img src="/assets/images/sport-hero.png" class="hero-img" alt="Athlete">
+        <h1>Push your limits</h1>
+        <p>Feel the energy. Train smarter. Stay consistent.</p>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="auth-right">
+        <div class="form-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to continue your fitness journey</p>
+        </div>
+
+        <form>
+            <div class="form-group">
+                <input type="email" placeholder="Email address" required>
+            </div>
+
+            <div class="form-group">
+                <input type="password" placeholder="Password" required>
+            </div>
+
+            <button class="btn-signin">Sign In</button>
+        </form>
+
+        <div class="signup-link">
+            You don't have an account? 
+            <a href="{{ path('auth_sign_up') }}">Sign Up</a>
+        </div>
+    </div>
+
+</div>
+{% block footer %}{% endblock %}
+{% endblock %}

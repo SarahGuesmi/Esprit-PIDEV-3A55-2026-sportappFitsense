@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    {% include 'admin/components/sidebar.html.twig' %}
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-y-auto">
+        {% include 'admin/components/navbar.html.twig' %}
+        
+        <main class="p-6">
+            {% block admin_content %}
+            {# Tout le contenu spécifique des pages admin sera injecté ici #}
+            {% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

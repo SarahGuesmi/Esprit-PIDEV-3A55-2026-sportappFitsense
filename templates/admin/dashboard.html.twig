@@ -1,0 +1,26 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block admin_content %}
+<div class="grid gap-6">
+    <!-- Hero Card -->
+    <div class="bg-white border rounded-lg shadow overflow-hidden relative">
+        <div class="h-64 bg-cover bg-center" style="background-image: url('/assets/img/material-persons.jpg');"></div>
+        <div class="p-6 absolute bottom-0 left-0 text-white">
+            <h2 class="text-2xl font-bold">Build Amazing Teams</h2>
+            <p class="text-gray-200">Connect with talent and create inclusive workspaces.</p>
+            <button class="mt-4 bg-gray-800 px-4 py-2 rounded text-white hover:bg-gray-700">Get Started</button>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div id="stats-grid">
+        <!-- On peut injecter les stats via AJAX -->
+    </div>
+
+    <!-- Projects Table -->
+    <div id="projects-table"></div>
+
+    <!-- Charts -->
+    <div id="charts-showcase"></div>
+</div>
+{% endblock %}
