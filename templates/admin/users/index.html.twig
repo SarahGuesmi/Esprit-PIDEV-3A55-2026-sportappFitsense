@@ -1,0 +1,601 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block admin_content %}
+
+<!-- Flash Messages -->
+{% for label, messages in app.flashes %}
+    <div class="mb-6 px-6 py-4 rounded-lg {% if label == 'success' %}bg-green-100 border border-green-400 text-green-700{% else %}bg-red-100 border border-red-400 text-red-700{% endif %}">
+        {% for message in messages %}
+            <div class="flex items-center">
+                <i class="fas {% if label == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} mr-3"></i>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+<div class="space-y-8">
+    <!-- Header with Add Coach Button -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Users Management</h1>
+            <p class="mt-2 text-gray-600">Browse and manage all users in the system</p>
+        </div>
+        <button id="openAddCoachModal" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium shadow-md hover:shadow-lg flex items-center gap-2">
+            <i class="fas fa-plus"></i>
+            Add Coach
+        </button>
+    </div>
+
+    <!-- Search Section -->
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex items-center gap-4">
+            <div class="flex-1">
+                <label for="searchUsers" class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="searchUsers" 
+                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition"
+                        placeholder="Search by name or email..."
+                    >
+                </div>
+            </div>
+            <div class="pt-7">
+                <button id="clearSearch" class="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                    Clear
+                </button>
+            </div>
+        </div>
+        <div id="searchResults" class="mt-3 text-sm text-gray-600"></div>
+    </div>
+
+    <!-- Card Users -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Users table</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AUTHOR</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FUNCTION</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMPLOYED</th>
+                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for user in users %}
+                        <tr class="table-row hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-5 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-full"
+                                             src="https://ui-avatars.com/api/?name={{ user.firstname }}+{{ user.lastname }}&background=random"
+                                             alt="{{ user.firstname }} {{ user.lastname }}">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ user.firstname }} {{ user.lastname }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ user.email }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">
+                                {{ user.roles|join(', ') }}
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">
+                                {{ user.dateCreation ? user.dateCreation|date('d/m/Y') : '—' }}
+                            </td>
+                            <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end gap-2">
+                                    <button 
+                                        class="edit-user-btn px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2"
+                                        data-user-id="{{ user.id }}"
+                                        data-user-firstname="{{ user.firstname }}"
+                                        data-user-lastname="{{ user.lastname }}"
+                                        data-user-email="{{ user.email }}"
+                                        data-user-status="{{ user.accountStatus }}"
+                                        data-user-roles="{{ user.roles|json_encode }}"
+                                    >
+                                        <i class="fas fa-edit"></i>
+                                        Edit
+                                    </button>
+                                    <button 
+                                        class="delete-user-btn px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium flex items-center gap-2"
+                                        data-user-id="{{ user.id }}"
+                                        data-user-name="{{ user.firstname }} {{ user.lastname }}"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                                Aucun utilisateur trouvé
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Coach Modal -->
+<div id="addCoachModal" class="modal">
+    <div class="modal-content max-w-2xl">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-900">Add New Coach</h3>
+            <button id="closeAddCoachModal" class="text-gray-400 hover:text-gray-600 text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="addCoachForm" action="{{ path('admin_users_add_coach') }}" method="POST">
+            <div class="space-y-4">
+                <!-- First Name -->
+                <div>
+                    <label for="firstname" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                    <input 
+                        type="text" 
+                        id="firstname" 
+                        name="firstname" 
+                        required
+                        pattern="[a-zA-Z]+"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Enter first name"
+                    >
+                    <p class="mt-1 text-sm text-gray-500">Letters only, no numbers</p>
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label for="lastname" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                    <input 
+                        type="text" 
+                        id="lastname" 
+                        name="lastname" 
+                        required
+                        pattern="[a-zA-Z]+"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Enter last name"
+                    >
+                    <p class="mt-1 text-sm text-gray-500">Letters only, no numbers</p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="coach@example.com"
+                    >
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required
+                        minlength="6"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Minimum 6 characters"
+                    >
+                    <p class="mt-1 text-sm text-gray-500">Minimum 6 characters</p>
+                </div>
+
+                <!-- Account Status -->
+                <div>
+                    <label for="accountStatus" class="block text-sm font-medium text-gray-700 mb-2">Account Status *</label>
+                    <select 
+                        id="accountStatus" 
+                        name="accountStatus" 
+                        required
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="">Select status...</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 mt-8">
+                <button type="button" id="cancelAddCoach" class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-medium">
+                    Cancel
+                </button>
+                <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium shadow-md">
+                    <i class="fas fa-plus mr-2"></i>
+                    Create Coach
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content max-w-2xl">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-900">Edit User</h3>
+            <button id="closeEditUserModal" class="text-gray-400 hover:text-gray-600 text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="editUserForm" method="POST">
+            <input type="hidden" id="edit_user_id" name="user_id">
+            
+            <div class="space-y-4">
+                <!-- First Name -->
+                <div>
+                    <label for="edit_firstname" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                    <input 
+                        type="text" 
+                        id="edit_firstname" 
+                        name="firstname" 
+                        required
+                        pattern="[a-zA-Z]+"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Enter first name"
+                    >
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label for="edit_lastname" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                    <input 
+                        type="text" 
+                        id="edit_lastname" 
+                        name="lastname" 
+                        required
+                        pattern="[a-zA-Z]+"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Enter last name"
+                    >
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="edit_email" class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                    <input 
+                        type="email" 
+                        id="edit_email" 
+                        name="email" 
+                        required
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="user@example.com"
+                    >
+                </div>
+
+                <!-- Password (Optional) -->
+                <div>
+                    <label for="edit_password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input 
+                        type="password" 
+                        id="edit_password" 
+                        name="password" 
+                        minlength="6"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Leave blank to keep current password"
+                    >
+                    <p class="mt-1 text-sm text-gray-500">Leave blank to keep current password</p>
+                </div>
+
+                <!-- Account Status -->
+                <div>
+                    <label for="edit_accountStatus" class="block text-sm font-medium text-gray-700 mb-2">Account Status *</label>
+                    <select 
+                        id="edit_accountStatus" 
+                        name="accountStatus" 
+                        required
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+
+                <!-- Roles -->
+                <div>
+                    <label for="edit_role" class="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+                    <select 
+                        id="edit_role" 
+                        name="role" 
+                        required
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="ROLE_USER">User</option>
+                        <option value="ROLE_COACH">Coach</option>
+                        <option value="ROLE_ADMIN">Admin</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 mt-8">
+                <button type="button" id="cancelEditUser" class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-medium">
+                    Cancel
+                </button>
+                <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium shadow-md">
+                    <i class="fas fa-save mr-2"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteUserModal" class="modal">
+    <div class="modal-content max-w-md">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-900">Delete User</h3>
+            <button id="closeDeleteUserModal" class="text-gray-400 hover:text-gray-600 text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="mb-6">
+            <p class="text-gray-700">Are you sure you want to delete this user?</p>
+            <p class="mt-2 font-semibold text-gray-900" id="deleteUserName"></p>
+            <p class="mt-2 text-sm text-red-600">This action cannot be undone.</p>
+        </div>
+
+        <form id="deleteUserForm" method="POST">
+            <input type="hidden" id="delete_user_id" name="user_id">
+            
+            <div class="flex justify-end gap-4">
+                <button type="button" id="cancelDeleteUser" class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-medium">
+                    Cancel
+                </button>
+                <button type="submit" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium shadow-md">
+                    <i class="fas fa-trash mr-2"></i>
+                    Confirm Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== Add Coach Modal Controls =====
+    const addCoachModal = document.getElementById('addCoachModal');
+    const openAddCoachBtn = document.getElementById('openAddCoachModal');
+    const closeAddCoachBtn = document.getElementById('closeAddCoachModal');
+    const cancelAddCoachBtn = document.getElementById('cancelAddCoach');
+
+    function openAddCoachModal() {
+        addCoachModal.style.display = 'flex';
+        setTimeout(() => {
+            addCoachModal.classList.add('active');
+        }, 10);
+    }
+
+    function closeAddCoachModal() {
+        addCoachModal.classList.remove('active');
+        setTimeout(() => {
+            addCoachModal.style.display = 'none';
+        }, 300);
+    }
+
+    openAddCoachBtn.addEventListener('click', openAddCoachModal);
+    closeAddCoachBtn.addEventListener('click', closeAddCoachModal);
+    cancelAddCoachBtn.addEventListener('click', closeAddCoachModal);
+
+    // Close on outside click
+    addCoachModal.addEventListener('click', function(e) {
+        if (e.target === addCoachModal) {
+            closeAddCoachModal();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && addCoachModal.style.display !== 'none') {
+            closeAddCoachModal();
+        }
+    });
+
+    // ===== Edit User Modal Controls =====
+    const editUserModal = document.getElementById('editUserModal');
+    const closeEditUserBtn = document.getElementById('closeEditUserModal');
+    const cancelEditUserBtn = document.getElementById('cancelEditUser');
+    const editUserForm = document.getElementById('editUserForm');
+    const editUserBtns = document.querySelectorAll('.edit-user-btn');
+
+    function openEditUserModal(userData) {
+        // Populate form fields
+        document.getElementById('edit_user_id').value = userData.id;
+        document.getElementById('edit_firstname').value = userData.firstname;
+        document.getElementById('edit_lastname').value = userData.lastname;
+        document.getElementById('edit_email').value = userData.email;
+        document.getElementById('edit_accountStatus').value = userData.status;
+        document.getElementById('edit_password').value = ''; // Clear password field
+        
+        // Set role dropdown
+        const roles = JSON.parse(userData.roles);
+        const primaryRole = roles.find(r => r !== 'ROLE_USER') || 'ROLE_USER';
+        document.getElementById('edit_role').value = primaryRole;
+        
+        // Set form action
+        editUserForm.action = `/admin/users/edit/${userData.id}`;
+        
+        // Show modal
+        editUserModal.style.display = 'flex';
+        setTimeout(() => {
+            editUserModal.classList.add('active');
+        }, 10);
+    }
+
+    function closeEditUserModal() {
+        editUserModal.classList.remove('active');
+        setTimeout(() => {
+            editUserModal.style.display = 'none';
+        }, 300);
+    }
+
+    // Attach click handlers to all edit buttons
+    editUserBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userData = {
+                id: this.dataset.userId,
+                firstname: this.dataset.userFirstname,
+                lastname: this.dataset.userLastname,
+                email: this.dataset.userEmail,
+                status: this.dataset.userStatus,
+                roles: this.dataset.userRoles
+            };
+            openEditUserModal(userData);
+        });
+    });
+
+    closeEditUserBtn.addEventListener('click', closeEditUserModal);
+    cancelEditUserBtn.addEventListener('click', closeEditUserModal);
+
+    // Close on outside click
+    editUserModal.addEventListener('click', function(e) {
+        if (e.target === editUserModal) {
+            closeEditUserModal();
+        }
+    });
+
+    // ===== Delete User Modal Controls =====
+    const deleteUserModal = document.getElementById('deleteUserModal');
+    const closeDeleteUserBtn = document.getElementById('closeDeleteUserModal');
+    const cancelDeleteUserBtn = document.getElementById('cancelDeleteUser');
+    const deleteUserForm = document.getElementById('deleteUserForm');
+    const deleteUserBtns = document.querySelectorAll('.delete-user-btn');
+
+    function openDeleteUserModal(userId, userName) {
+        document.getElementById('delete_user_id').value = userId;
+        document.getElementById('deleteUserName').textContent = userName;
+        deleteUserForm.action = `/admin/users/delete/${userId}`;
+        
+        deleteUserModal.style.display = 'flex';
+        setTimeout(() => {
+            deleteUserModal.classList.add('active');
+        }, 10);
+    }
+
+    function closeDeleteUserModal() {
+        deleteUserModal.classList.remove('active');
+        setTimeout(() => {
+            deleteUserModal.style.display = 'none';
+        }, 300);
+    }
+
+    // Attach click handlers to all delete buttons
+    deleteUserBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const userName = this.dataset.userName;
+            openDeleteUserModal(userId, userName);
+        });
+    });
+
+    closeDeleteUserBtn.addEventListener('click', closeDeleteUserModal);
+    cancelDeleteUserBtn.addEventListener('click', closeDeleteUserModal);
+
+    // Close on outside click
+    deleteUserModal.addEventListener('click', function(e) {
+        if (e.target === deleteUserModal) {
+            closeDeleteUserModal();
+        }
+    });
+
+    // Close all modals on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (addCoachModal.style.display !== 'none') {
+                closeAddCoachModal();
+            }
+            if (editUserModal.style.display !== 'none') {
+                closeEditUserModal();
+            }
+            if (deleteUserModal.style.display !== 'none') {
+                closeDeleteUserModal();
+            }
+        }
+    });
+
+    // ===== Search Functionality =====
+    const searchInput = document.getElementById('searchUsers');
+    const clearButton = document.getElementById('clearSearch');
+    const searchResults = document.getElementById('searchResults');
+    const tableRows = document.querySelectorAll('tbody tr');
+    
+    function filterUsers() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        let visibleCount = 0;
+        
+        tableRows.forEach(row => {
+            // Skip the "no users found" row
+            if (row.querySelector('td[colspan]')) {
+                return;
+            }
+            
+            const nameElement = row.querySelector('.text-sm.font-medium.text-gray-900');
+            const emailElement = row.querySelector('.text-sm.text-gray-500');
+            
+            if (nameElement && emailElement) {
+                const name = nameElement.textContent.toLowerCase();
+                const email = emailElement.textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // Update search results text
+        if (searchTerm) {
+            searchResults.textContent = `Showing ${visibleCount} user(s) matching "${searchTerm}"`;
+        } else {
+            searchResults.textContent = '';
+        }
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', filterUsers);
+    
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        filterUsers();
+        searchInput.focus();
+    });
+    
+    // Allow Enter key to trigger search (though it's already live)
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            filterUsers();
+        }
+    });
+});
+</script>
+{% endblock %}

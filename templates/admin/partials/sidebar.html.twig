@@ -1,17 +1,65 @@
-<aside class="w-60 bg-white flex flex-col border-r">
-    <div class="p-6">
-        <h1 class="text-lg font-semibold">FitSense Admin</h1>
+<aside class="sidebar fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full bg-gray-900 text-white">
+    <div class="h-full flex flex-col">
+        <!-- Header -->
+        <div class="p-6 pb-4 border-b border-gray-800">
+            <h1 class="text-2xl font-bold">Material Shadcn</h1>
+        </div>
+
+        <!-- Navigation principale -->
+        <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+            <a href="{{ path('admin_dashboard') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
+                <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                Dashboard
+            </a>
+
+            <a href="{{ path('admin_users_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'admin_users' ? 'active' : '' }}">
+                <i class="fas fa-users w-5 mr-3"></i>
+                Users
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-table w-5 mr-3"></i>
+                Tables
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-bell w-5 mr-3"></i>
+                Notifications
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-credit-card w-5 mr-3"></i>
+                Subscriptions
+            </a>
+        </nav>
+
+        <!-- Section AUTH PAGES -->
+        <div class="px-3 py-6 border-t border-gray-800">
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">AUTH PAGES</p>
+            <a href="{{ path('auth_sign_in') }}" class="sidebar-link">
+                <i class="fas fa-sign-in-alt w-5 mr-3"></i>
+                Sign In
+            </a>
+            <a href="{{ path('auth_sign_up') }}" class="sidebar-link">
+                <i class="fas fa-user-plus w-5 mr-3"></i>
+                Sign Up
+            </a>
+        </div>
+
+        <!-- Documentation -->
+        <div class="px-3 py-3 border-t border-gray-800">
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-book w-5 mr-3"></i>
+                Documentation
+            </a>
+        </div>
+
+        <!-- Logout -->
+        <div class="p-3 border-t border-gray-800 mt-auto">
+            <a href="#" class="sidebar-link logout-link text-red-400 hover:text-red-300">
+                <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                Logout
+            </a>
+        </div>
     </div>
-    <nav class="flex-1 p-4 space-y-2">
-        <a href="{{ path('admin_dashboard') }}" class="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-gray-100">
-            <svg class="mr-3 w-4 h-4"><path d="..."/> {# Icon Dashboard #}
-            Dashboard
-        </a>
-        {# Ajoute autres liens : Profile, Tables (pour users), etc. #}
-        <a href="{{ path('admin_users_list') }}" class="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-gray-100">
-            <svg class="mr-3 w-4 h-4"><path d="..."/> {# Icon Table #}
-            Gestion Users
-        </a>
-        {# Auth pages si besoin #}
-    </nav>
 </aside>

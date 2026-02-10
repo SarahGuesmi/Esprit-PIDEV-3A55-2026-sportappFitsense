@@ -33,31 +33,17 @@ class AuthController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Définition des champs invisibles
-            $user->setRoles(['ROLE_USER']);
-            $user->setAccountStatus('active');
-            $user->setDateCreation(new \DateTimeImmutable());
+    // ... set roles, hash, persist, flush ...
 
-            // Hash du mot de passe
-            $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
-            $user->setPassword($hashedPassword);
+    // On laisse le LISTENER décider de la redirection
+    // (pas de set target_path ici → sinon il override le listener)
 
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            // Set target path for redirection after auto-login
-            $request->getSession()->set(
-                '_security.main.target_path',
-                $this->generateUrl('profile_setup_height')
-            );
-
-            // Auto-login the user
-            return $userAuthenticator->authenticateUser(
-                $user,
-                $authenticator,          // ← now matches the variable name
-                $request
-            );
-        }
+    return $userAuthenticator->authenticateUser(
+        $user,
+        $authenticator,
+        $request
+    );
+}
 
         return $this->render('auth/sign-up.html.twig', [
             'form' => $form->createView(),
@@ -67,15 +53,15 @@ class AuthController extends AbstractController
     // =========================
     // SIGN IN (LOGIN)
     // =========================
-    #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
+  #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
 public function signIn(AuthenticationUtils $authUtils): Response
 {
+    // On ne gère plus le POST ici
     return $this->render('auth/sign-in.html.twig', [
         'last_username' => $authUtils->getLastUsername(),
         'error' => $authUtils->getLastAuthenticationError(),
     ]);
 }
-
 
     // =========================
     // LOGOUT
