@@ -1,0 +1,17 @@
+<aside class="w-60 bg-white flex flex-col border-r">
+    <div class="p-6">
+        <h1 class="text-lg font-semibold">FitSense Admin</h1>
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+        <a href="{{ path('admin_dashboard') }}" class="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-gray-100">
+            <svg class="mr-3 w-4 h-4"><path d="..."/> {# Icon Dashboard #}
+            Dashboard
+        </a>
+        {# Ajoute autres liens : Profile, Tables (pour users), etc. #}
+        <a href="{{ path('admin_users_list') }}" class="flex items-center px-3 py-2 text-sm rounded-lg hover:bg-gray-100">
+            <svg class="mr-3 w-4 h-4"><path d="..."/> {# Icon Table #}
+            Gestion Users
+        </a>
+        {# Auth pages si besoin #}
+    </nav>
+</aside>

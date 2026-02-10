@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Your Fitness Strategy - FitSense{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --blue-light: #38BDF8;
+        --violet-light: #A78BFA;
+        --dark-bg: #111318;
+        --dark-card: #1B1E26;
+        --dark-input: #262A35;
+        --text-primary: #FFFFFF;
+        --text-secondary: #A1A1AA;
+        --border-color: #343846;
+        --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+    }
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--dark-bg);
+        color: var(--text-primary);
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        overflow: hidden;
+    }
+    .setup-card {
+        max-width: 620px;
+        width: 90%;
+        background: var(--dark-card);
+        padding: 40px 30px;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        text-align: center;
+    }
+    h2 {
+        font-size: 28px;
+        margin-bottom: 8px;
+        background: var(--gradient-main);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 15px;
+        margin-bottom: 32px;
+    }
+    .objectives-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin: 24px 0 48px;
+    }
+    .objective-card {
+        background: var(--dark-input);
+        border: 2px solid transparent;
+        border-radius: 20px;
+        padding: 32px 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    .objective-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(167,139,250,0.2);
+    }
+    .objective-card.active {
+        background: var(--gradient-main);
+        border: none;
+        color: #000;
+        transform: translateY(-8px);
+        box-shadow: 0 16px 40px rgba(56,189,248,0.4);
+    }
+    .objective-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+    .objective-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .objective-desc {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    .btn-continue {
+        width: 100%;
+        padding: 16px;
+        background: #DFFF00;
+        color: #000;
+        font-size: 16px;
+        font-weight: 700;
+        border: none;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+    .btn-continue:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(223,255,0,0.35);
+    }
+    @media (max-width: 600px) {
+        .objectives-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+{% block header %}{% endblock %}
+<div class="setup-card">
+    <h2>Your Fitness Strategy</h2>
+   
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+    <div class="objectives-grid">
+        <label class="objective-card" for="{{ form.objectives.children[0].vars.id }}">
+            <div class="objective-icon">🔥</div>
+            <div class="objective-title">Weight Loss</div>
+            <div class="objective-desc">Burn fat & get lean</div>
+            {{ form_widget(form.objectives.children[0], {'attr': {'style': 'display:none;'}}) }}
+        </label>
+
+        <label class="objective-card" for="{{ form.objectives.children[1].vars.id }}">
+            <div class="objective-icon">💪</div>
+            <div class="objective-title">Muscle Gain</div>
+            <div class="objective-desc">Build strength & mass</div>
+            {{ form_widget(form.objectives.children[1], {'attr': {'style': 'display:none;'}}) }}
+        </label>
+
+        <label class="objective-card" for="{{ form.objectives.children[2].vars.id }}">
+            <div class="objective-icon">🏃</div>
+            <div class="objective-title">Endurance</div>
+            <div class="objective-desc">Stamina & heart health</div>
+            {{ form_widget(form.objectives.children[2], {'attr': {'style': 'display:none;'}}) }}
+        </label>
+
+        <label class="objective-card" for="{{ form.objectives.children[3].vars.id }}">
+            <div class="objective-icon">😊</div>
+            <div class="objective-title">Well-being</div>
+            <div class="objective-desc">Flexibility & stress relief</div>
+            {{ form_widget(form.objectives.children[3], {'attr': {'style': 'display:none;'}}) }}
+        </label>
+    </div>
+
+    <button type="submit" class="btn-continue">Continue →</button>
+    {{ form_end(form) }}
+</div>
+
+<script>
+    document.querySelectorAll('.objective-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                card.classList.toggle('active', checkbox.checked);
+            }
+        });
+    });
+</script>
+{% block footer %}{% endblock %}
+{% endblock %}

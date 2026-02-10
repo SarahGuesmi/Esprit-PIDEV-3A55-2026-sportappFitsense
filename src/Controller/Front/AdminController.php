@@ -8,15 +8,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AdminController extends AbstractController
 {
-    #[Route('/admin', name: 'admin_dashboard')]
-    public function index(): Response
-    {
-        return $this->render('admin/dashboard.html.twig');
+   #[Route('/admin', name: 'admin_dashboard')]
+public function index(): Response
+{
+    return $this->render('admin/base_admin.html.twig'); // Ou une page spécifique
+}
     }
 
-    #[Route('/admin/add-user', name: 'admin_add_user')]
-    public function addUser(): Response
-    {
-        return $this->render('admin/add_user.html.twig');
-    }
-}

@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Set Your Height - FitSense{% endblock %}
+
+{% block stylesheets %}
+
+<style>
+    /* Copy all CSS from your sign-up page's stylesheets block here */
+    :root {
+        --blue-light: #38BDF8;
+        --violet-light: #A78BFA;
+        --dark-bg: #111318;
+        --dark-card: #1B1E26;
+        --dark-input: #262A35;
+        --text-primary: #FFFFFF;
+        --text-secondary: #A1A1AA;
+        --border-color: #343846;
+        --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+    }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--dark-bg); color: var(--text-primary); height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    /* ... (paste the rest of the sign-up CSS here, including media queries) */
+
+    /* Additional for this page */
+    .setup-card { max-width: 500px; background: var(--dark-card); padding: 40px; border-radius: 20px; text-align: center; }
+    .input-group { display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 48px; font-weight: bold; margin: 20px 0; }
+    .input-group button { background: var(--dark-input); border: none; color: white; font-size: 32px; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; }
+    .slider { margin: 20px 0; }
+    .slider input[type="range"] { width: 100%; height: 4px; background: var(--border-color); appearance: none; }
+    .slider input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; background: var(--violet-light); border-radius: 50%; }
+    .units { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+    .units button { background: var(--dark-input); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; color: white; cursor: pointer; }
+    .units button.active { background: var(--gradient-main); border: none; }
+    .btn-continue { width: 100%; padding: 15px; background: #DFFF00; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block body %}
+{% block header %}{% endblock %}
+
+<div class="setup-card">
+    <h2>What is your Height?</h2>
+    <p>Height is a key factor in calculating your BMI and daily caloric needs.</p>
+    {{ form_start(form) }}
+    {{ form_widget(form.height, {'attr': {'type': 'hidden', 'id': 'hidden-height'}}) }}
+    {{ form_widget(form.unit_height, {'attr': {'type': 'hidden', 'id': 'hidden-unit'}}) }}
+    <div class="input-group">
+        <button type="button" onclick="changeValue(-1)">-</button>
+        <div id="display-value">170</div>
+        <span id="display-unit">cm</span>
+        <button type="button" onclick="changeValue(1)">+</button>
+    </div>
+    <div class="slider">
+        <input type="range" id="slider" min="100" max="250" step="1" value="170" oninput="updateFromSlider(this.value)">
+    </div>
+    <div class="units">
+        <button class="active" onclick="switchUnit('cm')">CM</button>
+        <button onclick="switchUnit('ft')">FT</button>
+    </div>
+    <button type="submit" class="btn-continue">Save and Continue →</button>
+    {{ form_end(form) }}
+</div>
+<script>
+    let currentValue = 170;
+    let currentUnit = 'cm';
+    let minVal = 100, maxVal = 250, stepVal = 1;
+
+    function updateDisplay() {
+        document.getElementById('display-value').textContent = currentValue.toFixed(currentUnit === 'cm' ? 0 : 2);
+        document.getElementById('display-unit').textContent = currentUnit;
+        document.getElementById('slider').value = currentValue;
+        document.getElementById('slider').min = minVal;
+        document.getElementById('slider').max = maxVal;
+        document.getElementById('slider').step = stepVal;
+        document.getElementById('hidden-height').value = currentValue;
+        document.getElementById('hidden-unit').value = currentUnit;
+    }
+
+    function changeValue(delta) {
+        currentValue = Math.min(Math.max(currentValue + delta * stepVal, minVal), maxVal);
+        updateDisplay();
+    }
+
+    function updateFromSlider(value) {
+        currentValue = parseFloat(value);
+        updateDisplay();
+    }
+
+    function switchUnit(unit) {
+        if (unit === currentUnit) return;
+        if (unit === 'ft') {
+            currentValue /= 30.48; // cm to ft
+            minVal = 3.28; maxVal = 8.2; stepVal = 0.01;
+        } else {
+            currentValue *= 30.48; // ft to cm
+            minVal = 100; maxVal = 250; stepVal = 1;
+        }
+        currentUnit = unit;
+        document.querySelectorAll('.units button').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.units button[onclick="switchUnit('${unit}')"]`).classList.add('active');
+        updateDisplay();
+    }
+
+    updateDisplay(); // Initial
+</script>
+{% block footer %}{% endblock %}
+{% endblock %}

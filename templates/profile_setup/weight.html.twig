@@ -1,0 +1,235 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Set Your Weight - FitSense{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --blue-light: #38BDF8;
+        --violet-light: #A78BFA;
+        --dark-bg: #111318;
+        --dark-card: #1B1E26;
+        --dark-input: #262A35;
+        --text-primary: #FFFFFF;
+        --text-secondary: #A1A1AA;
+        --border-color: #343846;
+        --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+    }
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--dark-bg);
+        color: var(--text-primary);
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        overflow: hidden;
+    }
+    .setup-card {
+        max-width: 500px;
+        width: 90%;
+        background: var(--dark-card);
+        padding: 40px 30px;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        text-align: center;
+    }
+    h2 {
+        font-size: 28px;
+        margin-bottom: 12px;
+        background: var(--gradient-main);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        margin-bottom: 32px;
+        line-height: 1.5;
+    }
+    .input-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        font-size: 56px;
+        font-weight: 700;
+        margin: 32px 0 24px;
+    }
+    .input-group button {
+        background: var(--dark-input);
+        border: none;
+        color: var(--text-primary);
+        font-size: 36px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .input-group button:hover {
+        background: var(--violet-light);
+        transform: scale(1.1);
+    }
+    #display-value {
+        min-width: 120px;
+    }
+    .slider {
+        margin: 24px 0 32px;
+    }
+    .slider input[type="range"] {
+        width: 100%;
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+        appearance: none;
+        outline: none;
+    }
+    .slider input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        background: var(--gradient-main);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 12px rgba(167,139,250,0.5);
+    }
+    .units {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+    .units button {
+        background: var(--dark-input);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 12px 28px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+    .units button.active {
+        background: var(--gradient-main);
+        border: none;
+        color: #000;
+        box-shadow: 0 0 20px rgba(56,189,248,0.4);
+    }
+    .btn-continue {
+        width: 100%;
+        padding: 16px;
+        background: #DFFF00; /* your yellow from example */
+        color: #000;
+        font-size: 16px;
+        font-weight: 700;
+        border: none;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+    .btn-continue:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(223,255,0,0.35);
+    }
+    @media (max-width: 480px) {
+        .input-group { font-size: 48px; gap: 16px; }
+        .input-group button { width: 50px; height: 50px; font-size: 30px; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+{% block header %}{% endblock %}
+<div class="setup-card">
+    <h2>What is your Weight?</h2>
+    <p>Tracking your weight helps monitor progress and adjust your fitness plan.</p>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    {{ form_widget(form.weight, {'attr': {'type': 'hidden', 'id': 'hidden-weight'}}) }}
+    {{ form_widget(form.unit_weight, {'attr': {'type': 'hidden', 'id': 'hidden-unit'}}) }}
+
+    <div class="input-group">
+        <button type="button" onclick="changeValue(-1)">−</button>
+        <div id="display-value">75</div>
+        <span id="display-unit">kg</span>
+        <button type="button" onclick="changeValue(1)">+</button>
+    </div>
+
+    <div class="slider">
+        <input type="range" id="slider" min="30" max="200" step="1" value="75" oninput="updateFromSlider(this.value)">
+    </div>
+
+    <div class="units">
+        <button class="active" onclick="switchUnit('kg')">KG</button>
+        <button onclick="switchUnit('lbs')">LBS</button>
+    </div>
+
+    <button type="submit" class="btn-continue">Save and Continue →</button>
+    {{ form_end(form) }}
+</div>
+
+<script>
+    let currentValue = 75;
+    let currentUnit = 'kg';
+    let minVal = 30;
+    let maxVal = 200;
+    let stepVal = 1;
+
+    const displayValue = document.getElementById('display-value');
+    const displayUnit = document.getElementById('display-unit');
+    const slider = document.getElementById('slider');
+    const hiddenWeight = document.getElementById('hidden-weight');
+    const hiddenUnit = document.getElementById('hidden-unit');
+
+    function updateDisplay() {
+        displayValue.textContent = currentUnit === 'kg' 
+            ? Math.round(currentValue) 
+            : currentValue.toFixed(1);
+        displayUnit.textContent = currentUnit;
+        slider.value = currentValue;
+        slider.min = minVal;
+        slider.max = maxVal;
+        slider.step = stepVal;
+        hiddenWeight.value = currentValue.toFixed(2);
+        hiddenUnit.value = currentUnit;
+    }
+
+    function changeValue(delta) {
+        currentValue += delta * stepVal;
+        currentValue = Math.max(minVal, Math.min(maxVal, currentValue));
+        updateDisplay();
+    }
+
+    function updateFromSlider(val) {
+        currentValue = parseFloat(val);
+        updateDisplay();
+    }
+
+    function switchUnit(unit) {
+        if (unit === currentUnit) return;
+
+        if (unit === 'lbs') {
+            currentValue = currentValue / 0.453592; // kg → lbs
+            minVal = 66;
+            maxVal = 440;
+            stepVal = 0.1;
+        } else {
+            currentValue = currentValue * 0.453592; // lbs → kg
+            minVal = 30;
+            maxVal = 200;
+            stepVal = 1;
+        }
+
+        currentUnit = unit;
+        document.querySelectorAll('.units button').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        updateDisplay();
+    }
+
+    updateDisplay(); // init
+</script>
+{% block footer %}{% endblock %}
+{% endblock %}

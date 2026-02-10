@@ -151,17 +151,16 @@ body {
             <p>Sign in to continue your fitness journey</p>
         </div>
 
-        <form>
-            <div class="form-group">
-                <input type="email" placeholder="Email address" required>
-            </div>
-
-            <div class="form-group">
-                <input type="password" placeholder="Password" required>
-            </div>
-
-            <button class="btn-signin">Sign In</button>
-        </form>
+        <form method="post">
+    {# Pas de form Symfony ici, car Security gère #}
+    <input type="email" name="_username" placeholder="Email address" value="{{ last_username }}" required>
+    <input type="password" name="_password" placeholder="Password" required>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+    <button class="btn-signin">Sign In</button>
+</form>
+{% if error %}
+    <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+{% endif %}
 
         <div class="signup-link">
             You don't have an account? 

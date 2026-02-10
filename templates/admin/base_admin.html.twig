@@ -1,19 +1,22 @@
 {% extends 'base.html.twig' %}
 
-{% block body %}
-<div class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
-    {% include 'admin/components/sidebar.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/style.css') }}"> {# Ajoute CSS du template #}
+{% endblock %}
 
-    <!-- Main content -->
-    <div class="flex-1 flex flex-col overflow-y-auto">
-        {% include 'admin/components/navbar.html.twig' %}
-        
-        <main class="p-6">
-            {% block admin_content %}
-            {# Tout le contenu spécifique des pages admin sera injecté ici #}
-            {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/admin/js/script.js') }}"></script> {# Ajoute JS #}
+{% endblock %}
+
+{% block body %}
+    {% include 'admin/partials/navbar.html.twig' %}
+    <div class="flex">
+        {% include 'admin/partials/sidebar.html.twig' %}
+        <main class="flex-1 p-6">
+            {% block admin_content %}{% endblock %}
         </main>
     </div>
-</div>
+    {% include 'admin/partials/footer.html.twig' %}
 {% endblock %}
