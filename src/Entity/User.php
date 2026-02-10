@@ -44,28 +44,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $dateCreation = null;
 
-    /**
-     * @var Collection<int, EtatMental>
-     */
-    #[ORM\OneToMany(targetEntity: EtatMental::class, mappedBy: 'user')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: EtatMental::class)]
     private Collection $etatMentals;
 
-    public function __construct()
-    {
-        $this->etatMentals = new ArrayCollection();
-    }
-    
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfilePhysique::class, cascade: ['remove'])]
     private Collection $profilesPhysiques;
 
     public function __construct()
     {
+        $this->etatMentals = new ArrayCollection();
         $this->profilesPhysiques = new ArrayCollection();
     }
 
     // -------------------------
     // Getters & Setters
     // -------------------------
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,10 +84,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // Only add ROLE_USER if no other roles are assigned
+
         if (empty($roles)) {
             $roles[] = 'ROLE_USER';
         }
+
         return array_unique($roles);
     }
 
@@ -116,7 +111,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials()
     {
-        // Clear temporary sensitive data if needed
+        // If you store temporary sensitive data, clear it here
     }
 
     public function getFirstname(): ?string
@@ -163,7 +158,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-<<<<<<< HEAD
     /**
      * @return Collection<int, EtatMental>
      */
@@ -172,7 +166,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->etatMentals;
     }
 
-    public function addEtatMental(EtatMental $etatMental): static
+    public function addEtatMental(EtatMental $etatMental): self
     {
         if (!$this->etatMentals->contains($etatMental)) {
             $this->etatMentals->add($etatMental);
@@ -182,20 +176,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function removeEtatMental(EtatMental $etatMental): static
+    public function removeEtatMental(EtatMental $etatMental): self
     {
         if ($this->etatMentals->removeElement($etatMental)) {
-            // set the owning side to null (unless already changed)
             if ($etatMental->getUser() === $this) {
                 $etatMental->setUser(null);
             }
         }
 
         return $this;
-=======
+    }
+
     public function getProfilesPhysiques(): Collection
     {
         return $this->profilesPhysiques;
->>>>>>> b868e309c18d7f08ca32c2ab5918dfbcba5cf790
     }
 }
