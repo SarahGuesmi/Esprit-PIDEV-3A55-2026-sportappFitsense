@@ -1,26 +1,77 @@
 {% extends 'admin/base_admin.html.twig' %}
 
 {% block admin_content %}
-<div class="grid gap-6">
-    <!-- Hero Card -->
-    <div class="bg-white border rounded-lg shadow overflow-hidden relative">
-        <div class="h-64 bg-cover bg-center" style="background-image: url('/assets/img/material-persons.jpg');"></div>
-        <div class="p-6 absolute bottom-0 left-0 text-white">
-            <h2 class="text-2xl font-bold">Build Amazing Teams</h2>
-            <p class="text-gray-200">Connect with talent and create inclusive workspaces.</p>
-            <button class="mt-4 bg-gray-800 px-4 py-2 rounded text-white hover:bg-gray-700">Get Started</button>
+
+<div class="space-y-8">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p class="mt-2 text-gray-600">Welcome to the admin panel</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Total Users Card -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Users</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ userCount ?? 0 }}</p>
+                </div>
+                <div class="bg-indigo-100 rounded-full p-3">
+                    <i class="fas fa-users text-indigo-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Sessions Card -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Active Sessions</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">24</p>
+                </div>
+                <div class="bg-green-100 rounded-full p-3">
+                    <i class="fas fa-chart-line text-green-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Card -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Notifications</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">12</p>
+                </div>
+                <div class="bg-yellow-100 rounded-full p-3">
+                    <i class="fas fa-bell text-yellow-600 text-2xl"></i>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div id="stats-grid">
-        <!-- On peut injecter les stats via AJAX -->
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{{ path('admin_users_index') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                <i class="fas fa-users text-indigo-600 text-xl mr-3"></i>
+                <span class="font-medium text-gray-900">Manage Users</span>
+            </a>
+            <a href="#" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                <i class="fas fa-table text-indigo-600 text-xl mr-3"></i>
+                <span class="font-medium text-gray-900">View Tables</span>
+            </a>
+            <a href="#" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                <i class="fas fa-cog text-indigo-600 text-xl mr-3"></i>
+                <span class="font-medium text-gray-900">Settings</span>
+            </a>
+            <a href="#" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                <i class="fas fa-chart-bar text-indigo-600 text-xl mr-3"></i>
+                <span class="font-medium text-gray-900">Reports</span>
+            </a>
+        </div>
     </div>
-
-    <!-- Projects Table -->
-    <div id="projects-table"></div>
-
-    <!-- Charts -->
-    <div id="charts-showcase"></div>
 </div>
 {% endblock %}

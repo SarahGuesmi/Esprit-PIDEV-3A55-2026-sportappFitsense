@@ -55,6 +55,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->etatMentals = new ArrayCollection();
     }
     
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfilePhysique::class, cascade: ['remove'])]
+    private Collection $profilesPhysiques;
+
+    public function __construct()
+    {
+        $this->profilesPhysiques = new ArrayCollection();
+    }
 
     // -------------------------
     // Getters & Setters
@@ -83,8 +90,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        // Only add ROLE_USER if no other roles are assigned
+        if (empty($roles)) {
+            $roles[] = 'ROLE_USER';
+        }
         return array_unique($roles);
     }
 
@@ -154,6 +163,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+<<<<<<< HEAD
     /**
      * @return Collection<int, EtatMental>
      */
@@ -182,5 +192,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+=======
+    public function getProfilesPhysiques(): Collection
+    {
+        return $this->profilesPhysiques;
+>>>>>>> b868e309c18d7f08ca32c2ab5918dfbcba5cf790
     }
 }

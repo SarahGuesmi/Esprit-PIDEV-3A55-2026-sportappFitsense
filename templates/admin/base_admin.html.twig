@@ -1,22 +1,190 @@
 {% extends 'base.html.twig' %}
 
-{% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/style.css') }}"> {# Ajoute CSS du template #}
+{% block title %}Material Shadcn - Admin{% endblock %}
+
+{% block header %}
+    {# Override to hide the Training Studio header in admin pages #}
 {% endblock %}
 
-{% block javascripts %}
+{% block stylesheets %}
     {{ parent() }}
-    <script src="{{ asset('assets/admin/js/script.js') }}"></script> {# Ajoute JS #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --indigo-600: #4f46e5;
+            --green-500: #10b981;
+        }
+
+        body.admin-theme {
+            background: var(--gray-50);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--gray-900);
+        }
+
+        .sidebar {
+            background: var(--gray-900);
+            color: white;
+            width: 280px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #d1d5db;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .sidebar-link:hover {
+            background: #374151;
+            color: white;
+        }
+
+        .sidebar-link.active {
+            background: var(--indigo-600);
+            color: white;
+            font-weight: 500;
+        }
+
+        .navbar {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .table-row:hover {
+            background-color: var(--gray-100);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal .max-w-2xl {
+            max-width: 42rem;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
-    {% include 'admin/partials/navbar.html.twig' %}
-    <div class="flex">
+    <div class="admin-theme">
+        <!-- Sidebar -->
         {% include 'admin/partials/sidebar.html.twig' %}
-        <main class="flex-1 p-6">
-            {% block admin_content %}{% endblock %}
-        </main>
+
+        <!-- Main content area with margin for sidebar -->
+        <div class="lg:ml-64 flex flex-col h-screen">
+            <!-- Navbar -->
+            {% include 'admin/partials/navbar.html.twig' %}
+
+            <!-- Contenu principal -->
+            <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50">
+                {% block admin_content %}{% endblock %}
+            </main>
+        </div>
     </div>
-    {% include 'admin/partials/footer.html.twig' %}
+
+    <!-- Modal Logout – TOUJOURS CACHÉ AU DÉPART -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Déconnexion</h3>
+            <p class="text-gray-600 mb-8">Êtes-vous sûr de vouloir vous déconnecter ?</p>
+            <div class="flex justify-end gap-4">
+                <button id="cancelLogout" class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-medium">
+                    Annuler
+                </button>
+                <a href="{{ path('app_logout') }}" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium shadow-md hover:shadow-red-200" style="background-color: #dc2626; color: white;">
+                    Confirmer
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script corrigé – ouvre UNIQUEMENT au clic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('logoutModal');
+
+            // FORCER le masquage au chargement
+            modal.style.display = 'none';
+
+            // Trouver TOUS les liens Logout
+            const logoutLinks = document.querySelectorAll('.logout-link');
+
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                });
+            });
+
+            // Bouton Annuler
+            document.getElementById('cancelLogout')?.addEventListener('click', function () {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+
+            // Clic extérieur = fermer
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            // Échap = fermer
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.style.display !== 'none') {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    </script>
 {% endblock %}
