@@ -68,18 +68,14 @@ class AuthController extends AbstractController
     // SIGN IN (LOGIN)
     // =========================
     #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
-    public function signIn(AuthenticationUtils $authUtils): Response
-    {
-        // Si déjà connecté → redirection
-        if ($this->getUser()) {
-            return $this->redirectToRoute('dashboard');
-        }
+public function signIn(AuthenticationUtils $authUtils): Response
+{
+    return $this->render('auth/sign-in.html.twig', [
+        'last_username' => $authUtils->getLastUsername(),
+        'error' => $authUtils->getLastAuthenticationError(),
+    ]);
+}
 
-        return $this->render('auth/sign-in.html.twig', [
-            'last_username' => $authUtils->getLastUsername(),
-            'error' => $authUtils->getLastAuthenticationError(),
-        ]);
-    }
 
     // =========================
     // LOGOUT
