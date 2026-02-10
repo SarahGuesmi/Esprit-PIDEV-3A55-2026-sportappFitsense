@@ -43,6 +43,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $dateCreation = null;
+
+    /**
+     * @var Collection<int, EtatMental>
+     */
+    #[ORM\OneToMany(targetEntity: EtatMental::class, mappedBy: 'user')]
+    private Collection $etatMentals;
+
+    public function __construct()
+    {
+        $this->etatMentals = new ArrayCollection();
+    }
     
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfilePhysique::class, cascade: ['remove'])]
     private Collection $profilesPhysiques;
@@ -152,8 +163,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+<<<<<<< HEAD
+    /**
+     * @return Collection<int, EtatMental>
+     */
+    public function getEtatMentals(): Collection
+    {
+        return $this->etatMentals;
+    }
+
+    public function addEtatMental(EtatMental $etatMental): static
+    {
+        if (!$this->etatMentals->contains($etatMental)) {
+            $this->etatMentals->add($etatMental);
+            $etatMental->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtatMental(EtatMental $etatMental): static
+    {
+        if ($this->etatMentals->removeElement($etatMental)) {
+            // set the owning side to null (unless already changed)
+            if ($etatMental->getUser() === $this) {
+                $etatMental->setUser(null);
+            }
+        }
+
+        return $this;
+=======
     public function getProfilesPhysiques(): Collection
     {
         return $this->profilesPhysiques;
+>>>>>>> b868e309c18d7f08ca32c2ab5918dfbcba5cf790
     }
 }

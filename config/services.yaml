@@ -12,7 +12,6 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-
     App\EventListener\AuthenticationSuccessListener:
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }

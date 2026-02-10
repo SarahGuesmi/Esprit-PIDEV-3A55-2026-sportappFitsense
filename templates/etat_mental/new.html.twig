@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mental Assessment - FitSense{% endblock %}
+
+{% block stylesheets %}
+<style>
+:root {
+    --blue-light: #38BDF8;
+    --violet-light: #A78BFA;
+    --dark-bg: #111318;
+    --dark-card: #1B1E26;
+    --dark-input: #262A35;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A1A1AA;
+    --border-color: #343846;
+    --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.setup-card {
+    max-width: 620px;
+    width: 100%;
+    background: var(--dark-card);
+    padding: 48px 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+h2 {
+    font-size: 32px;
+    margin-bottom: 12px;
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    text-align: center;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-bottom: 40px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.form-group {
+    margin-bottom: 32px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+select.form-control {
+    width: 100%;
+    background-color: var(--dark-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23A1A1AA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 20px;
+}
+
+select.form-control:focus {
+    border-color: var(--blue-light);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.btn-continue {
+    width: 100%;
+    padding: 18px;
+    background: #DFFF00;
+    color: #000;
+    font-size: 17px;
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    margin-top: 24px;
+}
+
+.btn-continue:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(223,255,0,0.35);
+}
+
+</style>
+{% endblock %}
+
+{% block body %}
+{% block header %}{% endblock %}
+<div class="setup-card">
+    <h2>Mental Health Assessment</h2>
+    <p class="subtitle">
+        Answer these 5 questions to assess your current mental state
+    </p>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+    <div class="form-group">
+        {{ form_label(form.mood) }}
+        {{ form_widget(form.mood, {'attr': {'class': 'form-control'}}) }}
+    </div>
+
+    <div class="form-group">
+        {{ form_label(form.stressLevel) }}
+        {{ form_widget(form.stressLevel, {'attr': {'class': 'form-control'}}) }}
+    </div>
+
+    <div class="form-group">
+        {{ form_label(form.sleepQuality) }}
+        {{ form_widget(form.sleepQuality, {'attr': {'class': 'form-control'}}) }}
+    </div>
+
+    <div class="form-group">
+        {{ form_label(form.motivation) }}
+        {{ form_widget(form.motivation, {'attr': {'class': 'form-control'}}) }}
+    </div>
+
+    <div class="form-group">
+        {{ form_label(form.mentalFatigue) }}
+        {{ form_widget(form.mentalFatigue, {'attr': {'class': 'form-control'}}) }}
+    </div>
+
+    <button type="submit" class="btn-continue">Calculate my score →</button>
+
+    {{ form_end(form) }}
+</div>
+{% block footer %}{% endblock %}
+{% endblock %}
