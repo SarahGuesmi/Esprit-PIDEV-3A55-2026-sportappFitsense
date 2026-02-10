@@ -33,17 +33,30 @@ class AuthController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-    // ... set roles, hash, persist, flush ...
+            // Encode the password
+            $user->setPassword(
+                $passwordHasher->hashPassword(
+                    $user,
+                    $form->get('password')->getData()
+                )
+            );
 
-    // On laisse le LISTENER décider de la redirection
-    // (pas de set target_path ici → sinon il override le listener)
+            $user->setRoles(['ROLE_USER']);
+            $user->setAccountStatus('active'); // Default status
+            $user->setDateCreation(new \DateTimeImmutable());
 
-    return $userAuthenticator->authenticateUser(
-        $user,
-        $authenticator,
-        $request
-    );
-}
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            // On laisse le LISTENER décider de la redirection
+            // (pas de set target_path ici → sinon il override le listener)
+
+            return $userAuthenticator->authenticateUser(
+                $user,
+                $authenticator,
+                $request
+            );
+        }
 
         return $this->render('auth/sign-up.html.twig', [
             'form' => $form->createView(),
