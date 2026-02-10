@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Entity\ProfilePhysique;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,8 +24,10 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'auth_sign_in'; // <-- route de ton AuthController
 
-    public function __construct(private UrlGeneratorInterface $urlGenerator)
-    {
+    public function __construct(
+        private UrlGeneratorInterface $urlGenerator,
+        private EntityManagerInterface $entityManager
+    ) {
     }
 
     public function authenticate(Request $request): Passport
@@ -52,12 +56,23 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($targetPath);
         }
 
-        // redirection par rôle
+        // Get the authenticated user
         $user = $token->getUser();
+        
+        // redirection par rôle (admin first)
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
         }
 
+        // Check if user has a profile
+        $profile = $this->entityManager->getRepository(ProfilePhysique::class)->findOneBy(['user' => $user]);
+        
+        if (!$profile) {
+            // User doesn't have a profile, redirect to profile setup
+            return new RedirectResponse($this->urlGenerator->generate('profile_setup_height'));
+        }
+
+        // User has a profile, redirect to dashboard
         return new RedirectResponse($this->urlGenerator->generate('dashboard'));
     }
 

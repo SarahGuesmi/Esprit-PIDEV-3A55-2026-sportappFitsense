@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -41,6 +43,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $dateCreation = null;
+
+    /**
+     * @var Collection<int, EtatMental>
+     */
+    #[ORM\OneToMany(targetEntity: EtatMental::class, mappedBy: 'user')]
+    private Collection $etatMentals;
+
+    public function __construct()
+    {
+        $this->etatMentals = new ArrayCollection();
+    }
     
 
     // -------------------------
@@ -138,6 +151,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDateCreation(\DateTimeImmutable $dateCreation): self
     {
         $this->dateCreation = $dateCreation;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtatMental>
+     */
+    public function getEtatMentals(): Collection
+    {
+        return $this->etatMentals;
+    }
+
+    public function addEtatMental(EtatMental $etatMental): static
+    {
+        if (!$this->etatMentals->contains($etatMental)) {
+            $this->etatMentals->add($etatMental);
+            $etatMental->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtatMental(EtatMental $etatMental): static
+    {
+        if ($this->etatMentals->removeElement($etatMental)) {
+            // set the owning side to null (unless already changed)
+            if ($etatMental->getUser() === $this) {
+                $etatMental->setUser(null);
+            }
+        }
+
         return $this;
     }
 }
