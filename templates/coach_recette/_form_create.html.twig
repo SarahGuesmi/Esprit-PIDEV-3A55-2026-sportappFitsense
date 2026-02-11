@@ -1,0 +1,102 @@
+{# FORM AJOUT RECETTE #}
+<div class="form-card" id="new-recipe">
+  <div class="form-title">+ Create New Recipe</div>
+
+  {{ form_start(form) }}
+
+  <div class="form-grid">
+    <div>
+      {{ form_label(form.title) }}
+      {{ form_widget(form.title) }}
+      <div class="errors">{{ form_errors(form.title) }}</div>
+    </div>
+
+    <div>
+      {{ form_label(form.typeMeal) }}
+      {{ form_widget(form.typeMeal) }}
+      <div class="errors">{{ form_errors(form.typeMeal) }}</div>
+    </div>
+
+    <div>
+      {{ form_label(form.kcal) }}
+      {{ form_widget(form.kcal) }}
+      <div class="errors">{{ form_errors(form.kcal) }}</div>
+    </div>
+
+    <div>
+      {{ form_label(form.proteins) }}
+      {{ form_widget(form.proteins) }}
+      <div class="errors">{{ form_errors(form.proteins) }}</div>
+    </div>
+
+    <div>
+      {{ form_label(form.imageFile) }}
+      {{ form_widget(form.imageFile) }}
+      <div class="help">JPG / PNG / WEBP — max 3MB</div>
+      <div class="errors">{{ form_errors(form.imageFile) }}</div>
+    </div>
+
+    <div style="grid-column: 1 / -1;">
+      {{ form_label(form.description) }}
+      {{ form_widget(form.description) }}
+      <div class="errors">{{ form_errors(form.description) }}</div>
+    </div>
+
+    <div style="grid-column: 1 / -1;">
+      {{ form_label(form.ingredients) }}
+      {{ form_widget(form.ingredients) }}
+      <div class="errors">{{ form_errors(form.ingredients) }}</div>
+    </div>
+
+    <div style="grid-column: 1 / -1;">
+      {{ form_label(form.preparation) }}
+      {{ form_widget(form.preparation) }}
+      <div class="errors">{{ form_errors(form.preparation) }}</div>
+    </div>
+
+    {# OBJECTIFS (cards) #}
+    <div style="grid-column: 1 / -1;">
+      <label style="font-weight:900; letter-spacing:.04em;">Objectives for this recipe</label>
+
+      <div class="objectives-grid" id="objectivesGrid">
+        {% for child in form.objectifs %}
+          {% set label = child.vars.label %}
+          {% set icon = '🎯' %}
+          {% set desc = '' %}
+
+          {% if label == 'Weight Loss' %}
+            {% set icon = '🔥' %}
+            {% set desc = 'Burn fat & get lean' %}
+          {% elseif label == 'Muscle Gain' %}
+            {% set icon = '💪' %}
+            {% set desc = 'Build strength & mass' %}
+          {% elseif label == 'Endurance' %}
+            {% set icon = '🏃' %}
+            {% set desc = 'Stamina & heart health' %}
+          {% elseif label == 'Well-being' %}
+            {% set icon = '😊' %}
+            {% set desc = 'Flexibility & stress relief' %}
+          {% endif %}
+
+          <label class="objective-card">
+            <div class="objective-icon">{{ icon }}</div>
+            <div>
+              <div class="objective-title">{{ label }}</div>
+              <div class="objective-desc">{{ desc }}</div>
+            </div>
+            {{ form_widget(child, {'attr': {'style': 'display:none;'}}) }}
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="errors">{{ form_errors(form.objectifs) }}</div>
+      <div class="help">Choisis au moins un objectif.</div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-green" type="submit">Save Recipe</button>
+  </div>
+
+  {{ form_end(form) }}
+</div>

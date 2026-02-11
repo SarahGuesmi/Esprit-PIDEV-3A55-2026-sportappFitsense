@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coach Recipes</title>
+
+  <link rel="stylesheet" href="{{ asset('assets/css/coach_recette.css') }}">
+</head>
+
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo-dot"></div>
+      <div class="brand-text">
+        <div class="brand-name">FITSENSE NUTRITION</div>
+        <h1>Fuel Your Progress</h1>
+      </div>
+    </div>
+  </div>
+
+  {% for msg in app.flashes('success') %}
+    <div class="flash-success">{{ msg }}</div>
+  {% endfor %}
+
+  {% include 'coach_recette/_form_create.html.twig' with { form: form } %}
+  {% include 'coach_recette/_filters.html.twig' with { q: q|default(''), kcal: kcal|default(''), proteins: proteins|default('') } %}
+  {% include 'coach_recette/_grid.html.twig' with { recipes: recipes } %}
+  {% include 'coach_recette/_modal.html.twig' %}
+
+</div>
+
+<script src="{{ asset('assets/js/coach_recette.js') }}"></script>
+</body>
+</html>
