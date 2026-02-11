@@ -1,0 +1,44 @@
+{# GRID RECIPES #}
+<div class="grid">
+  {% for r in recipes %}
+    {% set imgUrl = r.image ? asset('uploads/recipes/' ~ r.image) : 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=60' %}
+
+    <div class="card js-open-modal"
+         data-id="{{ r.id }}"
+         data-title="{{ r.title|e('html_attr') }}"
+         data-description="{{ (r.description ?? '')|e('html_attr') }}"
+         data-kcal="{{ r.kcal ?? '' }}"
+         data-proteins="{{ r.proteins ?? '' }}"
+         data-type="{{ r.typeMeal ?? '' }}"
+         data-ingredients="{{ (r.ingredients ?? '')|e('html_attr') }}"
+         data-preparation="{{ (r.preparation ?? '')|e('html_attr') }}"
+         data-image="{{ imgUrl }}"
+         data-update-url="{{ path('coach_recette_update', {id: r.id}) }}"
+         data-delete-url="{{ path('coach_recette_delete', {id: r.id}) }}"
+         data-update-token="{{ csrf_token('upd_recipe_' ~ r.id) }}"
+         data-delete-token="{{ csrf_token('del_recipe_' ~ r.id) }}"
+    >
+      <div class="card-media">
+        <img src="{{ imgUrl }}" alt="recipe image">
+        <div class="media-gradient"></div>
+        <div class="badge">{{ r.typeMeal }}</div>
+      </div>
+
+      <div class="card-body">
+        <div class="card-title">{{ r.title }}</div>
+        <div class="card-sub">{{ r.description ? r.description : 'Light meal for optimal progress.' }}</div>
+
+        <div class="card-footer">
+          <div class="meta">
+            <span class="pill">🔥 {{ r.kcal }} KCAL</span>
+            {% if r.proteins is not null %}
+              <span class="pill">💪 {{ r.proteins }} g</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty">No recipes yet. Create one using the form above.</div>
+  {% endfor %}
+</div>
