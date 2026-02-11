@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ isEdit ? 'Modifier Exercice' : 'Créer Exercice' }} - FitSense
+{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <h1>{{ isEdit ? 'Modifier Exercice' : 'Créer Exercice' }}</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    {{ form_start(form) }}
+        {{ form_row(form.nom) }}
+        {{ form_row(form.type) }}
+        {{ form_row(form.duree) }}
+        {{ form_row(form.description) }}
+
+        <button class="btn btn-primary mt-3">
+            {{ isEdit ? 'Enregistrer les modifications' : 'Créer Exercice' }}
+        </button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('coach_exercise_list') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+</div>
+{% endblock %}

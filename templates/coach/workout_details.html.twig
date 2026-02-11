@@ -1,0 +1,35 @@
+{# templates/coach/workout_details.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails - {{ workout.nom }}{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+  <a href="{{ path('coach_workout_catalog') }}" class="btn btn-outline-secondary mb-3">← Retour</a>
+
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h3 class="mb-0">{{ workout.nom }}</h3>
+    </div>
+
+    <div class="card-body">
+      <p><strong>Durée:</strong> {{ workout.duree }} min</p>
+      <p><strong>Niveau:</strong> {{ workout.niveau }}</p>
+      <p><strong>Description:</strong> {{ workout.description|default('Aucune description') }}</p>
+
+      <hr>
+
+      <h5>Exercices ({{ workout.exercises|length }})</h5>
+      {% if workout.exercises is empty %}
+        <p class="text-muted">Aucun exercice.</p>
+      {% else %}
+        <ul>
+          {% for ex in workout.exercises %}
+            <li>{{ ex.nom }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
