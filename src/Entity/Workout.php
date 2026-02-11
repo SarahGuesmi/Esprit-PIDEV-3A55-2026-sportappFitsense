@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkoutRepository::class)]
 class Workout
@@ -16,23 +17,45 @@ class Workout
     #[ORM\Column]
     private ?int $id = null;
 
+    // ================= Nom =================
+    #[Assert\NotBlank(message: "Le nom est obligatoire.")]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: "Le nom doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "Le nom ne peut pas dépasser {{ limit }} caractères."
+    )]
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
+    // ================= Niveau =================
+    #[Assert\NotBlank(message: "Le niveau est obligatoire.")]
     #[ORM\Column(length: 50)]
     private ?string $niveau = null;
 
+    // ================= Durée =================
+    #[Assert\NotBlank(message: "La durée est obligatoire.")]
+    #[Assert\Positive(message: "La durée doit être un nombre positif.")]
     #[ORM\Column]
     private ?int $duree = null;
 
+    // ================= Description =================
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     // ================= Exercises =================
+    #[Assert\Count(
+        min: 1,
+        minMessage: "Vous devez sélectionner au moins un exercice."
+    )]
     #[ORM\ManyToMany(targetEntity: Exercise::class, inversedBy: 'workouts')]
     private Collection $exercises;
 
-    // ================= Objectifs (ManyToMany) =================
+    // ================= Objectifs =================
+    #[Assert\Count(
+        min: 1,
+        minMessage: "Vous devez sélectionner au moins un objectif."
+    )]
     #[ORM\ManyToMany(targetEntity: ObjectifSportif::class, inversedBy: 'workouts')]
     #[ORM\JoinTable(name: 'workout_objectif')]
     private Collection $objectifs;
@@ -75,11 +98,11 @@ class Workout
         return $this->duree;
     }
 
-    public function setDuree(int $duree): static
-    {
-        $this->duree = $duree;
-        return $this;
-    }
+   public function setDuree(?int $duree): static
+{
+    $this->duree = $duree;
+    return $this;
+}
 
     public function getDescription(): ?string
     {
@@ -113,26 +136,25 @@ class Workout
     }
 
     // ================= Objectifs =================
-        public function getObjectifs(): Collection
-        {
-            return $this->objectifs;
-        }
+    public function getObjectifs(): Collection
+    {
+        return $this->objectifs;
+    }
 
-        public function addObjectif(ObjectifSportif $objectif): static
-        {
-            if (!$this->objectifs->contains($objectif)) {
-                $this->objectifs->add($objectif);
-                $objectif->addWorkout($this); // synchronisation inverse
-            }
-            return $this;
+    public function addObjectif(ObjectifSportif $objectif): static
+    {
+        if (!$this->objectifs->contains($objectif)) {
+            $this->objectifs->add($objectif);
+            $objectif->addWorkout($this);
         }
+        return $this;
+    }
 
-        public function removeObjectif(ObjectifSportif $objectif): static
-        {
-            if ($this->objectifs->removeElement($objectif)) {
-                $objectif->removeWorkout($this);
-            }
-            return $this;
+    public function removeObjectif(ObjectifSportif $objectif): static
+    {
+        if ($this->objectifs->removeElement($objectif)) {
+            $objectif->removeWorkout($this);
         }
-
+        return $this;
+    }
 }
