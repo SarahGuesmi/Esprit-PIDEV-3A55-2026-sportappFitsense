@@ -16,21 +16,4 @@ class HomeController extends AbstractController
   {
     return $this->render('home/index.html.twig');
   }
-  #[Route('/coach/questionnaires', name: 'coach_questionnaires')]
-  public function coachQuestionnaires(EntityManagerInterface $em, Request $request): Response
-  {
-    $search = $request->query->get('search', '');
-    $repository = $em->getRepository(Questionnaire::class);
-
-    if (!empty($search)) {
-      $questionnaires = $repository->findByUserNameLike($search);
-    } else {
-      $questionnaires = $repository->findAll();
-    }
-
-    return $this->render('coach/questionnaires.html.twig', [
-      'questionnaires' => $questionnaires,
-      'search' => $search,
-    ]);
-  }
 }

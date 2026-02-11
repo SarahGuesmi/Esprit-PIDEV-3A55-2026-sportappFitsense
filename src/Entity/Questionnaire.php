@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -10,14 +12,41 @@ class Questionnaire
 {
     #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'integer')]
     private ?int $id = null;
-
+ 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: Workout::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Workout $workout = null;
+    #[ORM\ManyToMany(targetEntity: Workout::class)]
+    #[ORM\JoinTable(name: 'questionnaire_workout')]
+    private Collection $workouts;
+
+    public function __construct()
+    {
+        $this->workouts = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, Workout>
+     */
+    public function getWorkouts(): Collection
+    {
+        return $this->workouts;
+    }
+
+    public function addWorkout(Workout $workout): self
+    {
+        if (!$this->workouts->contains($workout)) {
+            $this->workouts->add($workout);
+        }
+        return $this;
+    }
+
+    public function removeWorkout(Workout $workout): self
+    {
+        $this->workouts->removeElement($workout);
+        return $this;
+    }
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $noteGlobale = null;
@@ -52,11 +81,68 @@ class Questionnaire
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $titre = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private array $options = [];
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $coach = null;
+
+    #[ORM\Column(type: 'string', length: 20, options: ['default' => 'response'])]
+    private string $type = 'response';
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $dateSoumission = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $userName = null;
+
+    public function getTitre(): ?string
+    {
+        return $this->titre;
+    }
+
+    public function setTitre(?string $titre): self
+    {
+        $this->titre = $titre;
+        return $this;
+    }
+
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    public function setOptions(array $options): self
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    public function getCoach(): ?User
+    {
+        return $this->coach;
+    }
+
+    public function setCoach(?User $coach): self
+    {
+        $this->coach = $coach;
+        return $this;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
 
     // Getters and Setters
 
@@ -76,16 +162,6 @@ class Questionnaire
         return $this;
     }
 
-    public function getWorkout(): ?Workout
-    {
-        return $this->workout;
-    }
-
-    public function setWorkout(?Workout $workout): self
-    {
-        $this->workout = $workout;
-        return $this;
-    }
 
     public function getNoteGlobale(): ?int
     {
