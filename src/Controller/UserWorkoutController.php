@@ -4,7 +4,7 @@
 namespace App\Controller;
 
 use App\Repository\WorkoutRepository;
-use App\Repository\ObjectifRepository;
+use App\Repository\ObjectifSportifRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -57,7 +57,7 @@ class UserWorkoutController extends AbstractController
     #[Route('/workouts/filter/{objectifId}', name: 'user_workouts_by_objectif')]
     public function workoutsByObjectif(
         int $objectifId,
-        ObjectifRepository $objectifRepository,
+        ObjectifSportifRepository $objectifRepository,
         WorkoutRepository $workoutRepository
     ): Response {
         $objectif = $objectifRepository->find($objectifId);

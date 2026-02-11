@@ -16,6 +16,37 @@ class WorkoutRepository extends ServiceEntityRepository
         parent::__construct($registry, Workout::class);
     }
 
+    /**
+     * Finds workouts that match the objectives of a given user.
+     */
+    public function findByUserObjectifs(User $user): array
+    {
+        $objectifs = $user->getObjectifs();
+        if ($objectifs->isEmpty()) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('w')
+            ->innerJoin('w.objectifs', 'o')
+            ->andWhere('o.id IN (:objectifs)')
+            ->setParameter('objectifs', $objectifs)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Finds workouts for a specific objective.
+     */
+    public function findByObjectif($objectif): array
+    {
+        return $this->createQueryBuilder('w')
+            ->innerJoin('w.objectifs', 'o')
+            ->andWhere('o.id = :objectif')
+            ->setParameter('objectif', $objectif)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Workout[] Returns an array of Workout objects
     //     */

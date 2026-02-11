@@ -191,4 +191,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->profilesPhysiques;
     }
+
+    /**
+     * Helper method to get the user's sports objectives from their physical profile.
+     * @return Collection<int, ObjectifSportif>
+     */
+    public function getObjectifs(): Collection
+    {
+        $profile = $this->profilesPhysiques->first();
+        return $profile ? $profile->getObjectifs() : new ArrayCollection();
+    }
+
+    /**
+     * Checks if the user has at least one objective matching the given workout.
+     */
+    public function hasMatchingObjectif(Workout $workout): bool
+    {
+        $userObjectifs = $this->getObjectifs();
+        foreach ($workout->getObjectifs() as $workoutObjectif) {
+            if ($userObjectifs->contains($workoutObjectif)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

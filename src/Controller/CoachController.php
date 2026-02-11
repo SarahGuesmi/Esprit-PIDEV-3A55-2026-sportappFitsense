@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Exercise;
 use App\Entity\Workout;
+use App\Entity\ObjectifSportif;
 use App\Form\ExerciseType;
 use App\Form\WorkoutType;
 use App\Repository\ExerciseRepository;
