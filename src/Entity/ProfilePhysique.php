@@ -23,7 +23,7 @@ class ProfilePhysique
     #[ORM\Column(type:"string", length:10, nullable:true)]
     private ?string $gender = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'profilesPhysiques')]
     #[ORM\JoinColumn(nullable:false)]
     private ?User $user = null;
 
