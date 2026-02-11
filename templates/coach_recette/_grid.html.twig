@@ -13,6 +13,7 @@
          data-ingredients="{{ (r.ingredients ?? '')|e('html_attr') }}"
          data-preparation="{{ (r.preparation ?? '')|e('html_attr') }}"
          data-image="{{ imgUrl }}"
+         data-objectifs="{{ r.objectifs|json_encode|e('html_attr') }}"
          data-update-url="{{ path('coach_recette_update', {id: r.id}) }}"
          data-delete-url="{{ path('coach_recette_delete', {id: r.id}) }}"
          data-update-token="{{ csrf_token('upd_recipe_' ~ r.id) }}"
@@ -26,6 +27,15 @@
 
       <div class="card-body">
         <div class="card-title text-white">{{ r.title }}</div>
+        
+        <div class="flex flex-wrap gap-1 mb-2">
+          {% for obj in r.objectifs %}
+            <span class="text-[10px] px-2 py-0.5 bg-gray-800 text-gray-400 rounded-md border border-gray-700 uppercase font-bold tracking-tighter">
+              {{ obj|replace({'_': ' '}) }}
+            </span>
+          {% endfor %}
+        </div>
+
         <div class="card-sub">{{ r.description ? r.description : 'Light meal for optimal progress.' }}</div>
 
         <div class="card-footer">

@@ -12,6 +12,7 @@
           <div class="edit-field w-full hidden">
             <label class="block text-xs font-bold text-gray-400 mb-1">Title</label>
             <input type="text" name="title" form="updateForm" id="fTitle" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            <div class="errors text-red-500 text-xs mt-1" id="f-error-title"></div>
           </div>
         </div>
 
@@ -21,15 +22,21 @@
           <span id="mTypeChip" class="chip px-3 py-1 bg-gray-800 rounded-lg text-gray-400 text-xs font-bold border border-gray-700">🍽️ type</span>
         </div>
 
+        <div id="mObjectifsContainer" class="view-field flex flex-wrap gap-2 mb-4">
+          <!-- JS will fill this -->
+        </div>
+
         <!-- Edit Meta -->
         <div class="edit-field grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 hidden">
           <div>
             <label class="block text-xs font-bold text-gray-400 mb-1">Kcal</label>
             <input type="number" min="0" name="kcal" form="updateForm" id="fKcal" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            <div class="errors text-red-500 text-xs mt-1" id="f-error-kcal"></div>
           </div>
            <div>
             <label class="block text-xs font-bold text-gray-400 mb-1">Proteins (g)</label>
             <input type="number" min="0" name="proteins" form="updateForm" id="fProteins" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+            <div class="errors text-red-500 text-xs mt-1" id="f-error-proteins"></div>
           </div>
            <div>
             <label class="block text-xs font-bold text-gray-400 mb-1">Meal Type</label>
@@ -39,6 +46,7 @@
                 <option value="DINNER">DINNER</option>
                 <option value="SNACK">SNACK</option>
             </select>
+            <div class="errors text-red-500 text-xs mt-1" id="f-error-typeMeal"></div>
           </div>
         </div>
       </div>
@@ -60,6 +68,7 @@
           <label class="block text-xs font-bold text-gray-400 mb-1">Change Image</label>
           <input type="file" name="imageFile" form="updateForm" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-gray-400">
           <div class="text-[10px] text-gray-500 mt-1">JPG / PNG / WEBP — max 3MB</div>
+          <div class="errors text-red-500 text-xs mt-1" id="f-error-imageFile"></div>
         </div>
       </div>
 
@@ -71,6 +80,7 @@
           
           <div class="edit-field hidden">
             <textarea name="description" form="updateForm" id="fDescription" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
+            <div class="errors text-red-500 text-xs mt-1" id="f-error-description"></div>
           </div>
         </div>
 
@@ -82,6 +92,7 @@
           <div class="edit-field hidden">
             <textarea name="ingredients" form="updateForm" id="fIngredients" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
              <div class="text-[10px] text-gray-500 mt-1">One ingredient per line</div>
+             <div class="errors text-red-500 text-xs mt-1" id="f-error-ingredients"></div>
           </div>
         </div>
 
@@ -93,11 +104,32 @@
           <div class="edit-field hidden">
             <textarea name="preparation" form="updateForm" id="fPreparation" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
              <div class="text-[10px] text-gray-500 mt-1">One step per line</div>
+             <div class="errors text-red-500 text-xs mt-1" id="f-error-preparation"></div>
           </div>
         </div>
 
+        <!-- Edit Objectives -->
+        <div class="edit-field modal-section hidden">
+          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-3">Objectives</h3>
+          <div class="grid grid-cols-2 gap-3" id="fObjectifsGrid">
+            {% set availableObjs = {
+              'WEIGHT_LOSS': 'Weight Loss',
+              'MUSCLE_GAIN': 'Muscle Gain',
+              'ENDURANCE': 'Endurance',
+              'WELL_BEING': 'Well-being'
+            } %}
+            {% for val, label in availableObjs %}
+              <label class="flex items-center gap-2 p-3 bg-gray-900 border border-gray-700 rounded-xl cursor-pointer hover:border-blue-500 transition-colors">
+                <input type="checkbox" name="objectifs[]" value="{{ val }}" form="updateForm" class="obj-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-500 focus:ring-blue-500">
+                <span class="text-xs text-gray-300">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          <div class="errors text-red-500 text-xs mt-1" id="f-error-objectifs"></div>
+        </div>
+
         <!-- Forms -->
-        <form id="updateForm" method="post" enctype="multipart/form-data" style="display:none;">
+        <form id="updateForm" method="post" enctype="multipart/form-data" style="display:none;" class="recipe-ajax-form">
           <input type="hidden" name="_token" id="updToken">
         </form>
 
