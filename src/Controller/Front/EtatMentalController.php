@@ -12,6 +12,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class EtatMentalController extends AbstractController
 {
+    #[Route('/etat-mental', name: 'etat_mental_index')]
+    public function index(\App\Repository\EtatMentalRepository $repo): Response
+    {
+        $user = $this->getUser();
+        $evaluations = $repo->findBy(['user' => $user], ['createdAt' => 'DESC']);
+
+        return $this->render('etat_mental/index.html.twig', [
+            'evaluations' => $evaluations,
+        ]);
+    }
+
     #[Route('/etat-mental/new', name: 'etat_mental_new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {

@@ -1,0 +1,56 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block coach_content %}
+    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700 mb-8">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
+
+        <div class="relative">
+            <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                Coach Dashboard
+            </h1>
+            <p class="text-gray-400 ml-6">Welcome back, Coach! Here's your overview.</p>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Users Stat -->
+        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-purple-500/30 transition shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-purple-500/10 rounded-xl">
+                    <i class="fas fa-users text-purple-400 text-xl"></i>
+                </div>
+                <!-- Placeholder for actual count -->
+                <span class="text-xs font-semibold px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg">+12%</span>
+            </div>
+            <h3 class="text-gray-400 text-sm font-medium">Total Clients</h3>
+            <p class="text-2xl font-bold text-white mt-1">--</p>
+        </div>
+
+        <!-- Workouts Stat -->
+        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-blue-500/30 transition shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-blue-500/10 rounded-xl">
+                    <i class="fas fa-dumbbell text-blue-400 text-xl"></i>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-blue-500/10 text-blue-400 rounded-lg">Active</span>
+            </div>
+            <h3 class="text-gray-400 text-sm font-medium">Workout Plans</h3>
+            <p class="text-2xl font-bold text-white mt-1">--</p>
+        </div>
+
+        <!-- Mental Health Stat -->
+        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-pink-500/30 transition shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-pink-500/10 rounded-xl">
+                    <i class="fas fa-brain text-pink-400 text-xl"></i>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-pink-500/10 text-pink-400 rounded-lg">New</span>
+            </div>
+            <h3 class="text-gray-400 text-sm font-medium">Mental Health Logs</h3>
+            <p class="text-2xl font-bold text-white mt-1">--</p>
+        </div>
+    </div>
+{% endblock %}

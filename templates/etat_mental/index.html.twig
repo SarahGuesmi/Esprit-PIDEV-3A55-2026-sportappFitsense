@@ -1,0 +1,111 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}FitSense - Mental Health History{% endblock %}
+
+{% block user_page_title %}Mental Health{% endblock %}
+{% block user_page_subtitle %}Your wellbeing track{% endblock %}
+
+{% block user_content %}
+    <div class="space-y-6">
+        <!-- Header Card -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
+
+            <div class="relative flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                        <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                        Mental Health History
+                    </h1>
+                    <p class="text-gray-400 ml-6">Monitor your mental wellbeing over time</p>
+                </div>
+                <a href="{{ path('etat_mental_new') }}" class="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/50 hover:transform hover:scale-105">
+                    <i class="fas fa-plus"></i>
+                    Add Mental Health
+                </a>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-gray-700">
+            <div class="relative p-6 border-b border-gray-700/50 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-3">
+                    <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                    Your Evaluations
+                </h2>
+            </div>
+
+            <div class="relative overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700/50">
+                    <thead class="bg-gray-900/50 backdrop-blur">
+                        <tr>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Stress</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Sleep</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Mood</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Motivation</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Score</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-5 text-right text-xs font-bold text-gray-300 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700/50 backdrop-blur">
+                        {% for etat in evaluations %}
+                            <tr class="table-row hover:bg-purple-500/5 transition-all duration-200 group">
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-white">
+                                    {{ etat.createdAt|date('d/m/Y H:i') }}
+                                </td>
+                                <td class="px-6 py-5 text-center whitespace-nowrap">
+                                    <span class="text-sm text-gray-300">{{ etat.stressLevel }}/5</span>
+                                </td>
+                                <td class="px-6 py-5 text-center whitespace-nowrap">
+                                    <span class="text-sm text-gray-300">{{ etat.sleepQuality }}/5</span>
+                                </td>
+                                <td class="px-6 py-5 text-center whitespace-nowrap">
+                                    <span class="text-sm text-gray-300">{{ etat.mood }}/5</span>
+                                </td>
+                                <td class="px-6 py-5 text-center whitespace-nowrap">
+                                    <span class="text-sm text-gray-300">{{ etat.motivation }}/5</span>
+                                </td>
+                                <td class="px-6 py-5 text-center whitespace-nowrap">
+                                    <span class="text-sm font-bold text-purple-400">{{ etat.totalScore }}</span>
+                                </td>
+                                <td class="px-6 py-5 text-center whitespace-nowrap">
+                                    {% if etat.status == 'Good' %}
+                                        <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-green-500/20 text-green-300 border border-green-500/40">Good</span>
+                                    {% elseif etat.status == 'Moderate' %}
+                                        <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">Moderate</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-red-500/20 text-red-300 border border-red-500/40">Low</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{{ path('etat_mental_result', {'id': etat.id}) }}" class="text-purple-400 hover:text-purple-300 transition">
+                                        <i class="fas fa-eye mr-1"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="px-6 py-20 text-center">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur rounded-2xl p-8 mb-4 border border-gray-700">
+                                            <i class="fas fa-brain text-gray-500 text-5xl"></i>
+                                        </div>
+                                        <h3 class="text-xl font-semibold text-gray-300 mb-2">No evaluations found</h3>
+                                        <p class="text-gray-500 mb-6">You haven't tracked your mental health yet.</p>
+                                        <a href="{{ path('etat_mental_new') }}" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg">
+                                            Take your first assessment
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

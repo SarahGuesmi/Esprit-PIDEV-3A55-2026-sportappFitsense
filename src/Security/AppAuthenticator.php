@@ -59,6 +59,10 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
         }
 
+        if (in_array('ROLE_COACH', $user->getRoles(), true)) {
+            return new RedirectResponse($this->urlGenerator->generate('coach_dashboard'));
+        }
+
         // Check if user has a profile
         $profile = $this->entityManager->getRepository(ProfilePhysique::class)->findOneBy(['user' => $user]);
         

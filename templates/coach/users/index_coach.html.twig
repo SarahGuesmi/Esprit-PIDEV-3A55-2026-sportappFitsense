@@ -1,0 +1,247 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block coach_content %}
+    <div class="space-y-6">
+        <!-- Header -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
+
+            <div class="relative flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                        <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                        User Management
+                    </h1>
+                    <p class="text-gray-400 ml-6">View all users in the system</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Filter Section -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-700">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/30 rounded-full blur-3xl"></div>
+
+            <div class="relative flex flex-col md:flex-row gap-4">
+                <!-- Search -->
+                <div class="flex-1">
+                    <label for="searchUsers" class="block text-sm font-medium text-gray-300 mb-2">Search Users</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-500 group-focus-within:text-purple-400 transition"></i>
+                        </div>
+                        <input
+                            type="text"
+                            id="searchUsers"
+                            class="block w-full pl-12 pr-4 py-3.5 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition"
+                            placeholder="Search by name or email..."
+                        >
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex gap-2 items-end">
+                    <div>
+                        <label for="filterStatus" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                        <select
+                            id="filterStatus"
+                            class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                        >
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filterRole" class="block text-sm font-medium text-gray-300 mb-2">Role</label>
+                        <select
+                            id="filterRole"
+                            class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                        >
+                            <option value="">All</option>
+                            <option value="ROLE_USER">User</option>
+                            <option value="ROLE_COACH">Coach</option>
+                            <option value="ROLE_ADMIN">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Clear -->
+                <div class="pt-7">
+                    <button id="clearSearch" class="px-6 py-3.5 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-xl text-gray-300 hover:text-white hover:border-purple-500 transition font-medium">
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <div id="searchResults" class="relative mt-3 text-sm text-gray-400"></div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-gray-700">
+            <div class="relative p-6 border-b border-gray-700/50">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-3">
+                    <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                    Users List
+                </h2>
+            </div>
+
+            <div class="relative overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700/50">
+                    <thead class="bg-gray-900/50 backdrop-blur">
+                        <tr>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user text-purple-400"></i>
+                                    User
+                                </div>
+                            </th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-briefcase text-purple-400"></i>
+                                    Function
+                                </div>
+                            </th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-toggle-on text-purple-400"></i>
+                                    Status
+                                </div>
+                            </th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar text-purple-400"></i>
+                                    Date creation
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700/50 backdrop-blur">
+                        {% for user in users %}
+                            <tr class="table-row hover:bg-purple-500/5 transition-all duration-200 group">
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-11 w-11">
+                                            <img class="h-11 w-11 rounded-xl ring-2 ring-purple-500/30 group-hover:ring-purple-500/50 transition"
+                                                 src="https://ui-avatars.com/api/?name={{ user.firstname }}+{{ user.lastname }}&background=7c3aed&color=fff"
+                                                 alt="{{ user.firstname }} {{ user.lastname }}">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-semibold text-white group-hover:text-purple-300 transition">
+                                                {{ user.firstname }} {{ user.lastname }}
+                                            </div>
+                                            <div class="text-sm text-gray-400">
+                                                {{ user.email }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-300 border border-purple-500/40 backdrop-blur">
+                                        {{ user.roles|join(', ') }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    {% if user.accountStatus == 'active' %}
+                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-500/20 text-green-300 border border-green-500/40">
+                                            Active
+                                        </span>
+                                    {% elseif user.accountStatus == 'inactive' %}
+                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/20 text-red-300 border border-red-500/40">
+                                            Inactive
+                                        </span>
+                                    {% else %}
+                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">
+                                            Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-300">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-clock text-gray-500 text-xs"></i>
+                                        {{ user.dateCreation ? user.dateCreation|date('d/m/Y') : '—' }}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-20 text-center">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur rounded-2xl p-8 mb-4 border border-gray-700">
+                                            <i class="fas fa-users text-gray-500 text-5xl"></i>
+                                        </div>
+                                        <h3 class="text-xl font-semibold text-gray-300 mb-2">No users found</h3>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Filtering (Copied from Admin but simplified for read-only) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput   = document.getElementById('searchUsers');
+            const filterStatus  = document.getElementById('filterStatus');
+            const filterRole    = document.getElementById('filterRole');
+            const clearButton   = document.getElementById('clearSearch');
+            const searchResults = document.getElementById('searchResults');
+            const tableRows     = document.querySelectorAll('tbody tr');
+
+            function filterUsers() {
+                if (!searchInput || !filterStatus || !filterRole) return;
+
+                const searchTerm   = searchInput.value.toLowerCase().trim();
+                const statusFilter = filterStatus.value.trim();
+                const roleFilter   = filterRole.value.trim();
+
+                let visibleCount = 0;
+
+                tableRows.forEach(row => {
+                    if (row.querySelector('td[colspan]')) return;
+
+                    const nameEl   = row.querySelector('.text-sm.font-semibold.text-white');
+                    const emailEl  = row.querySelector('.text-sm.text-gray-400');
+                    const roleEl   = row.querySelector('td:nth-child(2) span');
+                    const statusEl = row.querySelector('td:nth-child(3) span');
+
+                    const name   = (nameEl?.textContent   || '').toLowerCase().trim();
+                    const email  = (emailEl?.textContent  || '').toLowerCase().trim();
+                    const role   = (roleEl?.textContent   || '').toLowerCase().trim();
+                    let   status = (statusEl?.textContent || '').toLowerCase().trim();
+
+                    const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+                    const matchesRole   = !roleFilter || role.includes(roleFilter.toLowerCase());
+                    let matchesStatus = !statusFilter || (status === statusFilter);
+
+                    if (matchesSearch && matchesStatus && matchesRole) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (searchTerm || statusFilter || roleFilter) {
+                    searchResults.innerHTML = `<i class="fas fa-search mr-2"></i>Showing ${visibleCount} user(s)`;
+                } else {
+                    searchResults.textContent = '';
+                }
+            }
+
+            searchInput?.addEventListener('input',   filterUsers);
+            filterStatus?.addEventListener('change', filterUsers);
+            filterRole?.addEventListener('change',   filterUsers);
+            clearButton?.addEventListener('click', () => {
+                if (searchInput) searchInput.value = '';
+                if (filterStatus) filterStatus.value = '';
+                if (filterRole) filterRole.value = '';
+                filterUsers();
+                searchInput?.focus();
+            });
+        });
+    </script>
+{% endblock %}
