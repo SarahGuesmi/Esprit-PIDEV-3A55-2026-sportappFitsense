@@ -48,6 +48,14 @@ class AuthController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
+            // Create admin notification
+            $notification = new \App\Entity\Notification();
+            $notification->setMessage("New athlete registered: " . $user->getFirstname() . " " . $user->getLastname());
+            $notification->setType('registration');
+            $notification->setRelatedUser($user);
+            $entityManager->persist($notification);
+            $entityManager->flush();
+
             // On laisse le LISTENER décider de la redirection
             // (pas de set target_path ici → sinon il override le listener)
 

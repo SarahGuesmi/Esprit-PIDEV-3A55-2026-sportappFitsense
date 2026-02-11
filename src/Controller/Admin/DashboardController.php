@@ -132,37 +132,58 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/users/activate/{id}', name: 'admin_users_activate')]
-public function activateUser(int $id, EntityManagerInterface $em): Response
-{
-    $user = $em->getRepository(User::class)->find($id);
+    public function activateUser(int $id, EntityManagerInterface $em): Response
+    {
+        $user = $em->getRepository(User::class)->find($id);
 
-    if (!$user) {
-        $this->addFlash('error', 'User not found!');
+        if (!$user) {
+            $this->addFlash('error', 'User not found!');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        $user->setAccountStatus('active');
+        $em->flush();
+
+        $this->addFlash('success', 'User activated successfully!');
         return $this->redirectToRoute('admin_users_index');
     }
 
-    $user->setAccountStatus('active');
-    $em->flush();
+    #[Route('/users/deactivate/{id}', name: 'admin_users_deactivate')]
+    public function deactivateUser(int $id, EntityManagerInterface $em): Response
+    {
+        $user = $em->getRepository(User::class)->find($id);
 
-    $this->addFlash('success', 'User activated successfully!');
-    return $this->redirectToRoute('admin_users_index');
-}
+        if (!$user) {
+            $this->addFlash('error', 'User not found!');
+            return $this->redirectToRoute('admin_users_index');
+        }
 
-#[Route('/users/deactivate/{id}', name: 'admin_users_deactivate')]
-public function deactivateUser(int $id, EntityManagerInterface $em): Response
-{
-    $user = $em->getRepository(User::class)->find($id);
+        $user->setAccountStatus('inactive'); 
+        $em->flush();
 
-    if (!$user) {
-        $this->addFlash('error', 'User not found!');
+        $this->addFlash('success', 'User deactivated successfully!');
         return $this->redirectToRoute('admin_users_index');
     }
 
-    $user->setAccountStatus('inactive'); 
-    $em->flush();
+    #[Route('/notifications', name: 'admin_notifications')]
+    public function notifications(EntityManagerInterface $em): Response
+    {
+        $notifications = $em->getRepository(\App\Entity\Notification::class)
+            ->findBy([], ['createdAt' => 'DESC']);
 
-    $this->addFlash('success', 'User deactivated successfully!');
-    return $this->redirectToRoute('admin_users_index');
-}
+        return $this->render('admin/notifications/index.html.twig', [
+            'notifications' => $notifications,
+        ]);
+    }
 
+    #[Route('/notifications/mark-read/{id}', name: 'admin_notifications_mark_read')]
+    public function markNotificationRead(int $id, EntityManagerInterface $em): Response
+    {
+        $notification = $em->getRepository(\App\Entity\Notification::class)->find($id);
+        if ($notification) {
+            $notification->setIsRead(true);
+            $em->flush();
+        }
+        return $this->redirectToRoute('admin_notifications');
+    }
 }

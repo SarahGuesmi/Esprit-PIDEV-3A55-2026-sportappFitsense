@@ -25,9 +25,14 @@
                 Users
             </a>
 
-            <a href="#" class="sidebar-link">
+            <a href="{{ path('coach_workout_catalog') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'coach_workout_catalog' ? 'active' : '' }}">
                 <i class="fas fa-dumbbell w-5 mr-3"></i>
                 Workouts
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-question-circle w-5 mr-3"></i>
+                Quiz
             </a>
 
             <a href="{{ path('coach_mental_health_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'coach_mental_health_index' ? 'active' : '' }}">

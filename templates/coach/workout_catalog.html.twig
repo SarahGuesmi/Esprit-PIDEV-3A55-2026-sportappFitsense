@@ -1,35 +1,11 @@
-{% extends 'base.html.twig' %}
+{% extends 'coach/base_coach.html.twig' %}
 
 {% block title %}Workout Catalog - FitSense{% endblock %}
 
 {% block stylesheets %}
-<script src="https://cdn.tailwindcss.com"></script>
+    {{ parent() }}
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-}
-
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: #000000;
-    color: #FFFFFF;
-    min-height: 100vh;
-}
-
-.gradient-text {
-    background: linear-gradient(135deg, #22C55E, #84CC16);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.gradient-btn {
-    background: linear-gradient(135deg, #22C55E, #84CC16);
-}
 
 .card-hover {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -194,43 +170,36 @@ body {
 .selected-badge button:hover {
     opacity: 0.7;
 }
+
+/* Custom button color */
+.btn-create-workout {
+    background: linear-gradient(135deg, #22C55E, #84CC16);
+    color: black !important;
+}
 </style>
 {% endblock %}
 
-{# Override header block to remove navigation #}
-{% block header %}{% endblock %}
-{% block navigation %}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block menu %}{% endblock %}
-
-{% block body %}
-<div class="min-h-screen bg-black text-white">
+{% block coach_content %}
+<div class="space-y-8">
     
-    <!-- Top Header Bar -->
-    <div class="border-b border-gray-900">
-        <div class="max-w-[1400px] mx-auto px-8 py-4">
-            <div class="flex items-center justify-between">
-                <!-- Logo -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-lime-500 rounded-lg flex items-center justify-center font-black text-black text-xl">
-                        F6
-                    </div>
-                    <span class="text-xl font-bold tracking-tight">FITSENSE</span>
-                </div>
+    <!-- Top Bar -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tight leading-tight">
+                Workout Catalog
+            </h1>
+            <p class="text-gray-400 mt-2 text-lg">Browse and manage your official training routines.</p>
+        </div>
 
-                <!-- Action Buttons -->
-                <div class="flex items-center gap-3">
-                    <a href="{{ path('coach_exercise_list') }}" 
-                       class="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-lg font-semibold text-sm transition-all border border-gray-800">
-                        Manage Exercises
-                    </a>
-                    <a href="{{ path('coach_workout_create') }}" 
-                       class="px-6 py-2.5 gradient-btn rounded-lg font-bold text-sm text-black shadow-lg hover:shadow-xl transition-all {{ exerciseCount == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                       {% if exerciseCount == 0 %}onclick="return false;"{% endif %}>
-                        + Create Workout
-                    </a>
-                </div>
-            </div>
+        <div class="flex items-center gap-4">
+            <a href="{{ path('coach_exercise_list') }}" 
+               class="px-5 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold text-sm transition-all border border-gray-700 shadow-lg">
+                <i class="fas fa-list-ul mr-2"></i> Manage Exercises
+            </a>
+            <a href="{{ path('coach_workout_create') }}" 
+               class="px-6 py-3 btn-create-workout rounded-xl font-bold text-sm shadow-xl hover:shadow-green-500/20 transition-all">
+                <i class="fas fa-plus mr-2"></i> Create Workout
+            </a>
         </div>
     </div>
 
@@ -522,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentSearch = '';
 
     // Toggle dropdown
-    dropdownButton.addEventListener('click', function(e) {
+    dropdownButton?.addEventListener('click', function(e) {
         e.stopPropagation();
         dropdownMenu.classList.toggle('hidden');
         dropdownIcon.style.transform = dropdownMenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
@@ -530,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
-        if (!dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
+        if (dropdownMenu && !dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
             dropdownMenu.classList.add('hidden');
             dropdownIcon.style.transform = 'rotate(0deg)';
         }
@@ -561,6 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update selected tags display
     function updateSelectedTags() {
+        if (!selectedTags) return;
         selectedTags.innerHTML = '';
         
         selectedObjectives.forEach(obj => {
@@ -580,6 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update dropdown label
     function updateDropdownLabel() {
+        if (!dropdownLabel) return;
         if (selectedObjectives.length === 0) {
             dropdownLabel.textContent = 'Filter by objectives';
             dropdownLabel.classList.add('text-gray-400');
@@ -668,16 +639,13 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Responsive Styles -->
 <style>
 @media (max-width: 1024px) {
-    .max-w-\[1400px\] { padding-left: 1rem; padding-right: 1rem; }
     .flex.gap-4.items-start { flex-direction: column; }
     .dropdown-container { width: 100%; }
 }
 
 @media (max-width: 768px) {
-    .card-hover > div:first-child { flex-direction: column; align-items: flex-start; }
-    .card-hover .flex.items-center.gap-3.ml-4 { margin-left: 0; margin-top: 1rem; width: 100%; justify-content: space-between; }
+    .workout-card > div:first-child { flex-direction: column; align-items: flex-start; }
+    .workout-card .flex.items-center.gap-3.ml-4 { margin-left: 0; margin-top: 1rem; width: 100%; justify-content: space-between; }
 }
 </style>
 {% endblock %}
-
-{% block footer %}{% endblock %}
