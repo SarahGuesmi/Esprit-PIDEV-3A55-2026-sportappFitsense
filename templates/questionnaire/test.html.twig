@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/questionnaire.css') }}">
+{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5 questionnaire-page">
+    <div class="container-xl"> {# container plus large pour plus de width #}
+        <div class="row justify-content-center">
+            <div class="col-lg-10"> {# col plus large pour plus de contenu #}
+
+                <div class="card questionnaire-card shadow-lg">
+
+                    {# HEADER #}
+                    <div class="questionnaire-header text-center">
+                        <h1>📊 Feedback Post-Séance</h1>
+                        <p>⏱️ 2 minutes chrono — ton avis = notre upgrade 🚀</p>
+                    </div>
+
+                    {{ form_start(form, {
+                        'attr': {
+                            'class': 'card-body p-5',
+                            'novalidate': ''
+                        }
+                    }) }}
+
+                    {# FORM ERRORS #}
+                    {{ form_errors(form) }}
+
+                    {# PROGRESS BAR #}
+                    <div class="progress mb-5">
+                        <div class="progress-bar" style="width: 70%"></div>
+                    </div>
+
+                    {# 1️⃣ SATISFACTION #}
+                    <section class="question-section">
+                        <div class="section-title">
+                            <span class="badge">1</span>
+                            Satisfaction globale
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                {{ form_label(form.noteGlobale) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.noteGlobale) }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.satisfaction) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.satisfaction) }}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {# 2️⃣ INTENSITÉ #}
+                    <section class="question-section">
+                        <div class="section-title">
+                            <span class="badge">2</span>
+                            Intensité & contenu
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                {{ form_label(form.intensite) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.intensite) }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_label(form.exercicesCompris) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.exercicesCompris) }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_label(form.duree) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.duree) }}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {# 3️⃣ RESSENTI #}
+                    <section class="question-section">
+                        <div class="section-title">
+                            <span class="badge">3</span>
+                            Ressenti physique & mental
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                {{ form_label(form.ressentiPhysique) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.ressentiPhysique) }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_label(form.stress) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.stress) }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_label(form.motivation) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.motivation) }}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {# 4️⃣ PROGRESSION #}
+                    <section class="question-section">
+                        <div class="section-title">
+                            <span class="badge">4</span>
+                            Progression
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                {{ form_label(form.progression) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.progression) }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.rapprocheObjectifs) }}
+                                <div class="d-flex flex-column gap-5">
+                                    {{ form_widget(form.rapprocheObjectifs) }}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {# 5️⃣ COMMENTAIRES #}
+                    <section class="question-section">
+                        <div class="section-title">
+                            <span class="badge">5</span>
+                            💬 Commentaires libres
+                        </div>
+                        <div class="row">
+                            <div class="col-12">{{ form_widget(form.commentaire) }}</div>
+                        </div>
+                    </section>
+
+                    {# SUBMIT #}
+                    <div class="text-center mt-5">
+                        {{ form_row(form.submit, {
+                            'attr': {
+                                'class': 'btn btn-primary btn-lg px-5 rounded-pill shadow'
+                            }
+                        }) }}
+                    </div>
+
+                    {{ form_end(form) }}
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

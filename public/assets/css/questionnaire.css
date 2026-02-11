@@ -1,0 +1,384 @@
+/* ============================= */
+/* FITSENSE – DARK QUESTIONNAIRE */
+/* ============================= */
+
+:root {
+    --bg-main: #0b0b0b;
+    --bg-card: #151515;
+    --bg-soft: #1e1e1e;
+    --primary: #c7f000; /* vert fluo */
+    --text-main: #ffffff;
+    --text-muted: #a1a1a1;
+    --border-soft: #262626;
+}
+
+/* PAGE BACKGROUND */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+}
+
+/* CARD */
+.questionnaire-card {
+    background-color: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-soft);
+    padding: 2rem;
+}
+
+/* HEADER */
+.questionnaire-header h1 {
+    color: var(--text-main);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.questionnaire-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+/* QUESTION SECTIONS */
+.question-section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: var(--bg-soft);
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.question-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* SECTION TITLE */
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-title .badge {
+    background-color: var(--primary);
+    color: #000;
+    font-weight: 700;
+    border-radius: 50%;
+    min-width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* FORM CONTROLS */
+.form-label {
+    font-weight: 500;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    background-color: var(--bg-soft);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-control:focus {
+    background-color: var(--bg-soft);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(199, 240, 0, 0.15);
+    color: var(--text-main);
+}
+
+/* ✅ RADIO SUR LA MÊME LIGNE + RADIO À GAUCHE */
+.form-check {
+    display: flex !important;           /* Ligne unique */
+    align-items: center;                /* Centre vertical */
+    gap: 0.75rem;                       /* Espace radio ↔ texte */
+    background-color: var(--bg-soft);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;                /* Espacement vertical réduit */
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.form-check:hover {
+    border-color: var(--primary);
+}
+
+/* Radio button */
+.form-check-input {
+    margin-right: 0.5rem;
+    margin-left: 0 !important;          /* Supprime marge gauche Bootstrap */
+    flex-shrink: 0;                     /* Ne rétrécit pas */
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Label à droite du radio */
+.form-check-label {
+    margin-bottom: 0 !important;        /* Pas de marge bas */
+    color: var(--text-muted);
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;                           /* Prend l'espace restant */
+}
+
+/* État sélectionné */
+.form-check:has(.form-check-input:checked) {
+    background-color: rgba(199, 240, 0, 0.08);
+    border-color: var(--primary);
+}
+
+.form-check:has(.form-check-input:checked) .form-check-label {
+    color: var(--text-main);
+}
+
+/* TEXTAREA */
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* PROGRESS BAR */
+.progress {
+    background-color: var(--bg-soft);
+    border-radius: 10px;
+    height: 8px;
+}
+
+.progress-bar {
+    background-color: var(--primary);
+    border-radius: 10px;
+}
+
+/* BUTTON */
+.btn {
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    border-radius: 999px;
+    padding: 0.75rem 3rem;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #000;
+}
+
+.btn-primary:hover {
+    background-color: #d4ff00;
+    border-color: #d4ff00;
+}
+
+/* RESPONSIVE : petites écrans */
+@media (max-width: 768px) {
+    .form-check {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* ================================= */
+/* QUESTIONNAIRE SUCCESS - DARK MODE */
+/* ================================= */
+
+.questionnaire-page {
+    background:
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        var(--bg-main);
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ANIMATIONS PARTICULES */
+.questionnaire-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, #10b981, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(16,185,129,0.6), transparent),
+        radial-gradient(1px 1px at 90px 40px, rgba(16,185,129,0.8), transparent),
+        radial-gradient(1px 1px at 130px 80px, #10b981, transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: float 20s ease-in-out infinite;
+    opacity: 0.1;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-20px) rotate(120deg); }
+    66% { transform: translateY(-10px) rotate(240deg); }
+}
+
+/* CARD */
+.questionnaire-success-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 24px;
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(16, 185, 129, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: translateY(0);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
+}
+
+.questionnaire-success-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981, transparent, #10b981);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.questionnaire-success-card:hover {
+    transform: translateY(-8px);
+    box-shadow:
+        0 35px 70px -12px rgba(0, 0, 0, 0.8),
+        0 0 0 1px #10b981,
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* ICON */
+.success-icon {
+    position: relative;
+}
+
+.success-icon i {
+    filter: drop-shadow(0 0 20px #10b981);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px #10b981);
+        transform: scale(1);
+    }
+    50% {
+        filter: drop-shadow(0 0 40px #10b981);
+        transform: scale(1.05);
+    }
+}
+
+/* TYPO */
+.card-title {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+}
+
+.card-text {
+    color: #b3b3b3;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto 2rem;
+}
+
+/* BUTTON */
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #059669 100%);
+    border: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.5);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .questionnaire-success-card {
+        margin: 1rem;
+        border-radius: 20px;
+    }
+
+    .card-body {
+        padding: 2rem 1.5rem !important;
+    }
+}
+
+/* SCROLLBAR CUSTOM */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 4px;
+}
