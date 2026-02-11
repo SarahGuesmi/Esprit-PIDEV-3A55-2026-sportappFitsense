@@ -1,0 +1,243 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FitSense - Coach{% endblock %}
+
+{% block header %}
+    {# Override to hide the Training Studio header in coach pages #}
+{% endblock %}
+
+{% block footer %}
+    {# Override to hide the footer in coach pages #}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --blue-light: #38BDF8;
+            --violet-light: #A78BFA;
+            --dark-bg: #111318;
+            --dark-card: #1B1E26;
+            --dark-input: #262A35;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A1A1AA;
+            --border-color: #343846;
+            --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+        }
+
+        body.admin-theme {
+            background: var(--dark-bg);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #1B1E26 0%, #111318 100%);
+            color: white;
+            width: 280px;
+            border-right: 1px solid #343846;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.25rem;
+            color: #A1A1AA;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            margin: 0.25rem 0.75rem;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38BDF8;
+            transform: translateX(4px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #38BDF8, #A78BFA);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .sidebar-link i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, #1B1E26 0%, #262A35 100%);
+            border-bottom: 1px solid #343846;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-row:hover {
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1B1E26, #262A35);
+            border: 1px solid #343846;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            color: var(--text-primary);
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #343846;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38BDF8;
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #38BDF8, #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="admin-theme">
+        <!-- Sidebar -->
+        {% include 'coach/partials/sidebar_coach.html.twig' %}
+
+        <!-- Main content area with margin for sidebar -->
+        <div class="lg:ml-64 flex flex-col h-screen">
+            <!-- Navbar -->
+            {% embed 'admin/partials/navbar.html.twig' with {'role_label': 'Coach'} %}
+                {% block page_title %}Coach Panel{% endblock %}
+                {% block page_subtitle %}Manage your athletes{% endblock %}
+            {% endembed %}
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-6 lg:p-8" style="background: var(--dark-bg);">
+                {% block coach_content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <div class="text-center mb-6">
+                <div class="bg-red-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-sign-out-alt text-red-400 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">Sign Out</h3>
+                <p class="text-gray-400">Are you sure you want to sign out?</p>
+            </div>
+            <div class="flex gap-3">
+                <button id="cancelLogout" class="flex-1 px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">
+                    Cancel
+                </button>
+                <a href="{{ path('app_logout') }}" class="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition font-semibold shadow-lg hover:shadow-red-500/50 text-center">
+                    Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('logoutModal');
+
+            // Force hide on load
+            modal.style.display = 'none';
+
+            // Find all logout links
+            const logoutLinks = document.querySelectorAll('.logout-link');
+
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                });
+            });
+
+            // Cancel button
+            document.getElementById('cancelLogout')?.addEventListener('click', function () {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+
+            // Click outside to close
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            // ESC key to close
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.style.display !== 'none') {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    </script>
+{% endblock %}
