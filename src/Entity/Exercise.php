@@ -21,8 +21,9 @@ class Exercise
     #[ORM\Column(length: 255)]
     private ?string $type = null;
 
-    #[ORM\Column]
-    private ?int $duree = null;
+#[ORM\Column(type: 'integer', nullable: true)]
+private ?int $duree = null;
+
 
     #[ORM\Column(length: 255)]
     private ?string $description = null;
@@ -65,16 +66,17 @@ class Exercise
         return $this;
     }
 
-    public function getDuree(): ?int
-    {
-        return $this->duree;
-    }
+        public function getDuree(): ?int
+        {
+            return $this->duree;
+        }
 
-    public function setDuree(int $duree): static
-    {
-        $this->duree = $duree;
-        return $this;
-    }
+        public function setDuree(?int $duree): self
+        {
+            $this->duree = $duree;
+            return $this;
+        }
+
 
     public function getDescription(): ?string
     {

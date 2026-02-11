@@ -1,11 +1,35 @@
-{% extends 'coach/base_coach.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Workout Catalog - FitSense{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #000000;
+    color: #FFFFFF;
+    min-height: 100vh;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #22C55E, #84CC16);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gradient-btn {
+    background: linear-gradient(135deg, #22C55E, #84CC16);
+}
 
 .card-hover {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -171,35 +195,124 @@
     opacity: 0.7;
 }
 
-/* Custom button color */
-.btn-create-workout {
-    background: linear-gradient(135deg, #22C55E, #84CC16);
-    color: black !important;
+/* Confirmation Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.2s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: #0D0D0D;
+    border: 1px solid #1F1F1F;
+    border-radius: 16px;
+    max-width: 450px;
+    width: 90%;
+    padding: 2rem;
+    transform: scale(0.95);
+    animation: scaleIn 0.2s forwards;
+}
+
+@keyframes scaleIn {
+    to { transform: scale(1); }
+}
+
+.modal-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 0.875rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.modal-btn-cancel {
+    background: #1F1F1F;
+    color: #FFFFFF;
+}
+
+.modal-btn-cancel:hover {
+    background: #2D2D2D;
+}
+
+.modal-btn-delete {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: #FFFFFF;
+}
+
+.modal-btn-delete:hover {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 </style>
 {% endblock %}
 
-{% block coach_content %}
-<div class="space-y-8">
-    
-    <!-- Top Bar -->
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div>
-            <h1 class="text-4xl font-black text-white tracking-tight leading-tight">
-                Workout Catalog
-            </h1>
-            <p class="text-gray-400 mt-2 text-lg">Browse and manage your official training routines.</p>
-        </div>
+{# Override header block to remove navigation #}
+{% block header %}{% endblock %}
+{% block navigation %}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block menu %}{% endblock %}
 
-        <div class="flex items-center gap-4">
-            <a href="{{ path('coach_exercise_list') }}" 
-               class="px-5 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold text-sm transition-all border border-gray-700 shadow-lg">
-                <i class="fas fa-list-ul mr-2"></i> Manage Exercises
-            </a>
-            <a href="{{ path('coach_workout_create') }}" 
-               class="px-6 py-3 btn-create-workout rounded-xl font-bold text-sm shadow-xl hover:shadow-green-500/20 transition-all">
-                <i class="fas fa-plus mr-2"></i> Create Workout
-            </a>
+{% block body %}
+<div class="min-h-screen bg-black text-white">
+    
+    <!-- Top Header Bar -->
+    <div class="border-b border-gray-900">
+        <div class="max-w-[1400px] mx-auto px-8 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-lime-500 rounded-lg flex items-center justify-center font-black text-black text-xl">
+                        F6
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">FITSENSE</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-3">
+                    <a href="{{ path('coach_exercise_list') }}" 
+                       class="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-lg font-semibold text-sm transition-all border border-gray-800">
+                        Manage Exercises
+                    </a>
+                    <a href="{{ path('coach_workout_create') }}" 
+                       class="px-6 py-2.5 gradient-btn rounded-lg font-bold text-sm text-black shadow-lg hover:shadow-xl transition-all {{ exerciseCount == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                       {% if exerciseCount == 0 %}onclick="return false;"{% endif %}>
+                        + Create Workout
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -417,9 +530,10 @@
 
                                 <form method="post" 
                                       action="{{ path('coach_workout_delete', {id: workout.id}) }}"
-                                      onsubmit="return confirm('Delete this workout?');">
-                                    <button type="submit" 
-                                            class="w-11 h-11 bg-red-500/10 hover:bg-red-500/20 rounded-xl flex items-center justify-center transition-all border border-red-500/20">
+                                      class="delete-form"
+                                      data-workout-name="{{ workout.nom }}">
+                                    <button type="button"
+                                            class="delete-btn w-11 h-11 bg-red-500/10 hover:bg-red-500/20 rounded-xl flex items-center justify-center transition-all border border-red-500/20">
                                         <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -470,6 +584,25 @@
     </div>
 </div>
 
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-icon">
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-center text-white mb-2">Delete Workout?</h3>
+        <p class="text-gray-400 text-center text-sm">
+            Are you sure you want to delete "<span id="workoutNameModal" class="text-white font-semibold"></span>"? This action cannot be undone.
+        </p>
+        <div class="modal-buttons">
+            <button id="cancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+            <button id="confirmBtn" class="modal-btn modal-btn-delete">Delete</button>
+        </div>
+    </div>
+</div>
+
 <!-- JavaScript for Search and Multi-Select Filter -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -487,11 +620,60 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedTags = document.getElementById('selectedTags');
     const dropdownItems = document.querySelectorAll('.dropdown-item');
     
+    // Modal elements
+    const confirmModal = document.getElementById('confirmModal');
+    const workoutNameModal = document.getElementById('workoutNameModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    let currentForm = null;
+    
     let selectedObjectives = [];
     let currentSearch = '';
 
+    // Delete confirmation modal
+    const deleteForms = document.querySelectorAll('.delete-form');
+    deleteForms.forEach(form => {
+        const deleteBtn = form.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentForm = form;
+            const workoutName = form.dataset.workoutName;
+            workoutNameModal.textContent = workoutName;
+            confirmModal.classList.remove('hidden');
+        });
+    });
+
+    // Cancel deletion
+    cancelBtn.addEventListener('click', function() {
+        confirmModal.classList.add('hidden');
+        currentForm = null;
+    });
+
+    // Confirm deletion
+    confirmBtn.addEventListener('click', function() {
+        if (currentForm) {
+            currentForm.submit();
+        }
+    });
+
+    // Close modal on overlay click
+    confirmModal.addEventListener('click', function(e) {
+        if (e.target === confirmModal) {
+            confirmModal.classList.add('hidden');
+            currentForm = null;
+        }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) {
+            confirmModal.classList.add('hidden');
+            currentForm = null;
+        }
+    });
+
     // Toggle dropdown
-    dropdownButton?.addEventListener('click', function(e) {
+    dropdownButton.addEventListener('click', function(e) {
         e.stopPropagation();
         dropdownMenu.classList.toggle('hidden');
         dropdownIcon.style.transform = dropdownMenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
@@ -499,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
-        if (dropdownMenu && !dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
+        if (!dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
             dropdownMenu.classList.add('hidden');
             dropdownIcon.style.transform = 'rotate(0deg)';
         }
@@ -530,7 +712,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update selected tags display
     function updateSelectedTags() {
-        if (!selectedTags) return;
         selectedTags.innerHTML = '';
         
         selectedObjectives.forEach(obj => {
@@ -550,7 +731,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update dropdown label
     function updateDropdownLabel() {
-        if (!dropdownLabel) return;
         if (selectedObjectives.length === 0) {
             dropdownLabel.textContent = 'Filter by objectives';
             dropdownLabel.classList.add('text-gray-400');
@@ -639,13 +819,16 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Responsive Styles -->
 <style>
 @media (max-width: 1024px) {
+    .max-w-\[1400px\] { padding-left: 1rem; padding-right: 1rem; }
     .flex.gap-4.items-start { flex-direction: column; }
     .dropdown-container { width: 100%; }
 }
 
 @media (max-width: 768px) {
-    .workout-card > div:first-child { flex-direction: column; align-items: flex-start; }
-    .workout-card .flex.items-center.gap-3.ml-4 { margin-left: 0; margin-top: 1rem; width: 100%; justify-content: space-between; }
+    .card-hover > div:first-child { flex-direction: column; align-items: flex-start; }
+    .card-hover .flex.items-center.gap-3.ml-4 { margin-left: 0; margin-top: 1rem; width: 100%; justify-content: space-between; }
 }
 </style>
 {% endblock %}
+
+{% block footer %}{% endblock %}
