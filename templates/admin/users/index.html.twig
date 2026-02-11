@@ -486,15 +486,30 @@ if (statusFilter) {
             function openModal(modal) {
                 if (!modal) return;
                 modal.classList.remove('hidden');
-                modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('active'), 20);
+                // Force reflow
+                void modal.offsetWidth;
+                
+                modal.classList.remove('opacity-0', 'scale-95');
+                modal.classList.add('active'); // Keep for compatibility if used elsewhere
+                
+                // Also handle inner content
+                const content = modal.querySelector('.modal-content');
+                if (content) {
+                    content.classList.remove('opacity-0', 'scale-95');
+                }
             }
 
             function closeModal(modal) {
                 if (!modal) return;
+                modal.classList.add('opacity-0', 'scale-95');
                 modal.classList.remove('active');
+                
+                const content = modal.querySelector('.modal-content');
+                if (content) {
+                    content.classList.add('opacity-0', 'scale-95');
+                }
+
                 setTimeout(() => {
-                    modal.style.display = 'none';
                     modal.classList.add('hidden');
                 }, 300);
             }
