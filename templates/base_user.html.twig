@@ -1,14 +1,40 @@
-{% extends 'base.html.twig' %}
-
-{% block title %}FitSense - User Portal{% endblock %}
-
-{% block header %}{% endblock %}
-{% block footer %}{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FitSense - User{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            bg: '#0B0C10',
+                            card: '#1B1E26',
+                            input: '#262A35'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         :root {
             --blue-light: #38BDF8;
@@ -19,31 +45,33 @@
             --text-primary: #FFFFFF;
             --text-secondary: #A1A1AA;
             --border-color: #343846;
+            --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
         }
-
         body {
-            background: var(--dark-bg);
+            background-color: var(--dark-bg);
             color: var(--text-primary);
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
-
         .glass-card {
             background: rgba(27, 30, 38, 0.7);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 1.5rem;
         }
-
+        
+        /* Sidebar Styling (Matched to Coach) */
         .sidebar {
             background: linear-gradient(180deg, #1B1E26 0%, #111318 100%);
-            border-right: 1px solid var(--border-color);
+            color: white;
+            /* Width handled by tailwind w-64 (256px) vs coach 280px. Keeping w-64 for layout consistency unless requested */
+            border-right: 1px solid #343846;
         }
 
         .sidebar-link {
             display: flex;
             align-items: center;
             padding: 0.875rem 1.25rem;
-            color: var(--text-secondary);
+            color: #A1A1AA;
             border-radius: 0.75rem;
             transition: all 0.3s;
             margin: 0.25rem 0.75rem;
@@ -51,7 +79,7 @@
 
         .sidebar-link:hover {
             background: rgba(56, 189, 248, 0.1);
-            color: var(--blue-light);
+            color: #38BDF8;
             transform: translateX(4px);
         }
 
@@ -62,86 +90,112 @@
             box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
         }
 
-        .table-row:hover {
-            background-color: rgba(56, 189, 248, 0.05);
+        .sidebar-link i {
+            width: 24px;
+            margin-right: 12px;
         }
 
-        /* Scrollbar styling */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
-            width: 10px;
+            width: 8px;
         }
-
         ::-webkit-scrollbar-track {
-            background: var(--dark-bg);
+            background: #111;
         }
-
         ::-webkit-scrollbar-thumb {
-            background: #343846;
-            border-radius: 5px;
+            background: #333;
+            border-radius: 4px;
         }
-
         ::-webkit-scrollbar-thumb:hover {
-            background: #38BDF8;
+            background: #444;
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #38BDF8, #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
     </style>
-{% endblock %}
+    
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="antialiased text-gray-100 bg-gray-900">
 
-{% block body %}
-    <!-- Sidebar -->
-    {% include 'partials/sidebaruser.html.twig' %}
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        {% include 'partials/sidebaruser.html.twig' %}
 
-    <!-- Main Content Area -->
-    <div class="lg:ml-64 min-h-screen flex flex-col">
-        <!-- Navbar -->
-        {% embed 'admin/partials/navbar.html.twig' with {
-            'role_label': 'Member'
-        } %}
-            {% block page_title %}{% block user_page_title %}Dashboard{% endblock %}{% endblock %}
-            {% block page_subtitle %}{% block user_page_subtitle %}Personal training portal{% endblock %}{% endblock %}
-        {% endembed %}
+        <!-- Main Content -->
+        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden lg:ml-64 transition-all duration-300">
+            
+            <!-- Mobile Header -->
+            <header class="flex items-center justify-between p-4 lg:hidden border-b border-gray-800 bg-gray-900/95 backdrop-blur z-30 sticky top-0">
+                <div class="font-heading font-bold text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">FitSense</div>
+                <button id="mobile-menu-btn" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </header>
 
-        <main class="p-6 lg:p-8 flex-1">
-            {% block user_content %}{% endblock %}
-        </main>
-    </div>
+            <!-- Main padding wrapper -->
+            <main class="w-full flex-grow p-6 lg:p-8">
+                <!-- Page Header (Optional Block) -->
+                <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-heading font-bold text-white">{% block user_page_title %}{% endblock %}</h1>
+                        <p class="text-gray-400 mt-1">{% block user_page_subtitle %}{% endblock %}</p>
+                    </div>
+                    <div>
+                        {% block user_page_actions %}{% endblock %}
+                    </div>
+                </div>
 
-    <!-- Global Logout Modal -->
-    <div id="logoutModal" class="modal fixed inset-0 z-50 bg-black/80 backdrop-blur items-center justify-center" style="display: none;">
-        <div class="glass-card p-8 max-w-sm w-full mx-4 text-center transform scale-90 active-modal:scale-100 transition-transform">
-            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-sign-out-alt text-red-500 text-2xl"></i>
-            </div>
-            <h3 class="text-2xl font-bold mb-2">Logout</h3>
-            <p class="text-gray-400 mb-8">Are you sure you want to exit the platform?</p>
-            <div class="flex gap-4">
-                <button id="cancelLogout" class="flex-1 py-3 bg-gray-800 rounded-xl font-bold hover:bg-gray-700 transition">Cancel</button>
-                <a href="{{ path('app_logout') }}" class="flex-1 py-3 bg-red-600 rounded-xl font-bold hover:bg-red-700 transition">Logout</a>
-            </div>
+                <!-- Content -->
+                {% block user_content %}
+                    {% block body %}{% endblock %}
+                {% endblock %}
+            </main>
         </div>
     </div>
 
+    <!-- Mobile Sidebar Overlay (if needed for JS toggle) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden glass-card backdrop-blur-sm opacity-0 transition-opacity"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const logoutLinks = document.querySelectorAll('.logout-link');
-            const logoutModal = document.getElementById('logoutModal');
-            const cancelLogout = document.getElementById('cancelLogout');
+        // Simple Mobile Sidebar Toggle
+        const btn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
-            logoutLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (logoutModal) logoutModal.style.display = 'flex';
-                });
+        if(btn && sidebar) {
+            btn.addEventListener('click', () => {
+                const isClosed = sidebar.classList.contains('-translate-x-full');
+                if(isClosed) {
+                    sidebar.classList.remove('-translate-x-full');
+                    if(overlay) {
+                        overlay.classList.remove('hidden');
+                        setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                    }
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    if(overlay) {
+                        overlay.classList.add('opacity-0');
+                        setTimeout(() => overlay.classList.add('hidden'), 300);
+                    }
+                }
             });
-
-            if (cancelLogout && logoutModal) {
-                cancelLogout.addEventListener('click', () => {
-                    logoutModal.style.display = 'none';
-                });
-                
-                logoutModal.addEventListener('click', (e) => {
-                    if(e.target === logoutModal) logoutModal.style.display = 'none';
-                });
-            }
-        });
+        }
+        
+        if(overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            });
+        }
     </script>
-{% endblock %}
+    
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

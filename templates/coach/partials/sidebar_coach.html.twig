@@ -30,7 +30,7 @@
                 Workouts
             </a>
 
-            <a href="#" class="sidebar-link">
+            <a href="{{ path('coach_questionnaires') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'coach_questionnaires' ? 'active' : '' }}">
                 <i class="fas fa-question-circle w-5 mr-3"></i>
                 Quiz
             </a>
@@ -39,11 +39,22 @@
                 <i class="fas fa-brain w-5 mr-3"></i>
                 Mental Health
             </a>
+
+            <div class="space-y-1">
+                <a href="{{ path('coach_recette') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'coach_recette' ? 'active' : '' }}">
+                    <i class="fas fa-utensils w-5 mr-3"></i>
+                    Nutrition
+                </a>
+                <a href="{{ path('coach_nutrition_consumption') }}" class="sidebar-link ml-6 text-sm {{ app.request.attributes.get('_route') == 'coach_nutrition_consumption' ? 'active' : '' }}" style="padding-top: 0.5rem; padding-bottom: 0.5rem; opacity: 0.8;">
+                    <i class="fas fa-history w-4 mr-2"></i>
+                    Meal Logs
+                </a>
+            </div>
         </nav>
 
         <!-- Logout -->
         <div class="p-3 border-t border-gray-700 mb-32">
-            <a href="#" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
+            <a href="{{ path('app_logout') }}" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
                 <i class="fas fa-sign-out-alt w-5 mr-3"></i>
                 Logout
             </a>

@@ -1,0 +1,58 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block title %}Meal Consumption Logs - Coach{% endblock %}
+
+{% block coach_content %}
+<div class="mb-8">
+    <h2 class="text-3xl font-bold gradient-text">Meal Tracking Logs</h2>
+    <p class="text-gray-400">Review recipes marked as made by users</p>
+</div>
+
+<div class="glass-card overflow-hidden border border-white/10">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 uppercase text-xs font-bold tracking-wider text-gray-400">
+                    <th class="px-6 py-4">User</th>
+                    <th class="px-6 py-4">Total Calories</th>
+                    <th class="px-6 py-4">Total Protein</th>
+                    <th class="px-6 py-4 text-right">Recipes Consumed</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+            <tbody class="divide-y divide-white/5">
+                {% for stat in stats %}
+                <tr class="hover:bg-white/5 transition group cursor-pointer" onclick="window.location='{{ path('coach_user_consumption_details', {'userId': stat.userId}) }}'">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-white">
+                                {{ stat.firstname|first|upper }}{{ stat.lastname|first|upper }}
+                            </div>
+                            <div>
+                                <div class="font-bold text-white group-hover:text-blue-400 transition">{{ stat.firstname }} {{ stat.lastname }}</div>
+                                <div class="text-xs text-gray-500">{{ stat.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-blue-400 font-bold">🔥 {{ stat.totalKcal|number_format(0, '.', ',') }} KCAL</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-purple-400 font-bold">💪 {{ stat.totalProteins|number_format(0, '.', ',') }} g</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="px-3 py-1 bg-white/10 rounded-lg text-sm font-bold text-white">{{ stat.recipeCount }}</span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-gray-500 italic">
+                        No consumption data available yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

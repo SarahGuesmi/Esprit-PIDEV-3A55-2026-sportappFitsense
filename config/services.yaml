@@ -1,4 +1,8 @@
 # config/services.yaml
+parameters:
+    consumption_upload_dir: '%kernel.project_dir%/public/uploads/consumption'
+    recipes_upload_dir: '%kernel.project_dir%/public/uploads/recipes'
+
 services:
     _defaults:
         autowire: true

@@ -50,10 +50,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfilePhysique::class, cascade: ['remove'])]
     private Collection $profilesPhysiques;
 
+    #[ORM\OneToMany(mappedBy: 'coach', targetEntity: RecetteNutritionnelle::class, cascade: ['remove'])]
+    private Collection $recettes;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: RecetteConsommee::class, orphanRemoval: true)]
+    private Collection $recettesConsommees;
+
     public function __construct()
     {
         $this->etatMentals = new ArrayCollection();
         $this->profilesPhysiques = new ArrayCollection();
+        $this->recettes = new ArrayCollection();
+        $this->recettesConsommees = new ArrayCollection();
     }
 
     // -------------------------
@@ -214,5 +222,65 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             }
         }
         return false;
+    }
+
+    /**
+     * @return Collection<int, RecetteNutritionnelle>
+     */
+    public function getRecettes(): Collection
+    {
+        return $this->recettes;
+    }
+
+    public function addRecette(RecetteNutritionnelle $recette): self
+    {
+        if (!$this->recettes->contains($recette)) {
+            $this->recettes->add($recette);
+            $recette->setCoach($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecette(RecetteNutritionnelle $recette): self
+    {
+        if ($this->recettes->removeElement($recette)) {
+            // set the owning side to null (unless already changed)
+            if ($recette->getCoach() === $this) {
+                $recette->setCoach(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RecetteConsommee>
+     */
+    public function getRecettesConsommees(): Collection
+    {
+        return $this->recettesConsommees;
+    }
+
+    public function addRecettesConsommee(RecetteConsommee $recettesConsommee): static
+    {
+        if (!$this->recettesConsommees->contains($recettesConsommee)) {
+            $this->recettesConsommees->add($recettesConsommee);
+            $recettesConsommee->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecettesConsommee(RecetteConsommee $recettesConsommee): static
+    {
+        if ($this->recettesConsommees->removeElement($recettesConsommee)) {
+            // set the owning side to null (unless already changed)
+            if ($recettesConsommee->getUser() === $this) {
+                $recettesConsommee->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

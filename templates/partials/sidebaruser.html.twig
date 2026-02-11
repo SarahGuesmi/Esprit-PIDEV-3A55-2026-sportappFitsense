@@ -14,12 +14,12 @@
         </div>
 
         <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-            <a href="{{ path('dashboard_user')|default('#') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'dashboard_user' ? 'active' : '' }}">
+            <a href="{{ path('dashboard_user') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'dashboard_user' ? 'active' : '' }}">
                 <i class="fas fa-tachometer-alt w-5 mr-3"></i>
                 Dashboard
             </a>
 
-            <a href="#" class="sidebar-link {{ app.request.attributes.get('_route') == 'workouts' ? 'active' : '' }}">
+            <a href="{{ path('user_my_workouts') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_my_workouts' ? 'active' : '' }}">
                 <i class="fas fa-dumbbell w-5 mr-3"></i>
                 Workouts
             </a>
@@ -29,7 +29,7 @@
                 Mental Health
             </a>
 
-            <a href="#" class="sidebar-link {{ app.request.attributes.get('_route') == 'nutrition' ? 'active' : '' }}">
+            <a href="{{ path('user_nutrition') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_nutrition' ? 'active' : '' }}">
                 <i class="fas fa-utensils w-5 mr-3"></i>
                 Nutrition
             </a>
@@ -46,7 +46,7 @@
 
         <!-- Logout -->
         <div class="p-3 border-t border-gray-700 mt-auto">
-            <a href="#" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
+            <a href="{{ path('app_logout') }}" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
                 <i class="fas fa-sign-out-alt w-5 mr-3"></i>
                 Logout
             </a>
