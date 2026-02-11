@@ -1,0 +1,540 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Questionnaires - Coach{% endblock %}
+{% block header %}{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/questionnaire.css') }}">
+    <style>
+/* ================================= */
+/* COACH QUESTIONNAIRES - DARK MODE */
+/* ================================= */
+
+.questionnaires-page {
+    background: #0b0b0b;
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.questionnaires-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* HEADER */
+.questionnaires-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.questionnaires-header h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.questionnaires-header p {
+    color: #b3b3b3;
+    font-size: 1.125rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* STATISTICS CARDS */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981, transparent, #10b981);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3);
+}
+
+.stat-card.total { border-color: rgba(16, 185, 129, 0.4); }
+.stat-card.today { border-color: rgba(199, 240, 0, 0.4); }
+.stat-card.week { border-color: rgba(59, 130, 246, 0.4); }
+.stat-card.attention { border-color: rgba(239, 68, 68, 0.4); }
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card.total .stat-number { color: #10b981; }
+.stat-card.today .stat-number { color: #c7f000; }
+.stat-card.week .stat-number { color: #3b82f6; }
+.stat-card.attention .stat-number { color: #ef4444; }
+
+.stat-label {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* QUESTIONNAIRES LIST */
+.questionnaires-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.questionnaire-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.questionnaire-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.questionnaire-header {
+    padding: 1.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.questionnaire-header:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.questionnaire-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #34d399);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.user-details h5 {
+    margin: 0;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.user-details p {
+    margin: 0;
+    color: #b3b3b3;
+    font-size: 0.9rem;
+}
+
+.questionnaire-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.rating-badge {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.date-badge {
+    color: #b3b3b3;
+    font-size: 0.9rem;
+}
+
+.toggle-icon {
+    color: #10b981;
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.questionnaire-card.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.questionnaire-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.questionnaire-card.expanded .questionnaire-details {
+    max-height: 1000px;
+}
+
+.questionnaire-content {
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.feedback-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.feedback-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #10b981;
+}
+
+.feedback-item h6 {
+    margin: 0 0 0.5rem 0;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.feedback-item p {
+    margin: 0;
+    color: #b3b3b3;
+    font-size: 0.9rem;
+}
+
+.comment-section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #c7f000;
+}
+
+.comment-section h6 {
+    margin: 0 0 0.5rem 0;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.comment-section p {
+    margin: 0;
+    color: #b3b3b3;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* EMPTY STATE */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #b3b3b3;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #10b981;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .questionnaires-container {
+        padding: 0 0.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .questionnaire-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .questionnaire-meta {
+        justify-content: center;
+    }
+
+    .feedback-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* SEARCH FORM */
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin-top: -1rem;
+    margin-bottom: 2rem;
+}
+
+.search-form {
+    width: 100%;
+    max-width: 600px;
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 50px;
+    padding: 0.5rem;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
+}
+
+.search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 50px 0 0 50px;
+}
+
+.search-input::placeholder {
+    color: #b3b3b3;
+}
+
+.search-button {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0 50px 50px 0;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
+.clear-search {
+    color: #ef4444;
+    text-decoration: none;
+    margin-left: 1rem;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.clear-search:hover {
+    color: #dc2626;
+}
+
+/* ANIMATIONS */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.questionnaire-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.questionnaire-card:nth-child(1) { animation-delay: 0.1s; }
+.questionnaire-card:nth-child(2) { animation-delay: 0.2s; }
+.questionnaire-card:nth-child(3) { animation-delay: 0.3s; }
+.questionnaire-card:nth-child(4) { animation-delay: 0.4s; }
+.questionnaire-card:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="questionnaires-page">
+    <div class="questionnaires-container">
+        <!-- Header -->
+        <div class="questionnaires-header">
+            <h1>📋 Gestion des Questionnaires</h1>
+            <p>Consultez et analysez les retours détaillés de vos clients après leurs séances d'entraînement.</p>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-container">
+            <form class="search-form" method="get" action="{{ path('coach_questionnaires') }}">
+                <div class="search-input-group">
+                    <input type="text" name="search" class="search-input" placeholder="Rechercher par nom d'utilisateur..." value="{{ search }}">
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i>
+                        Rechercher
+                    </button>
+                </div>
+                {% if search %}
+                    <a href="{{ path('coach_questionnaires') }}" class="clear-search">
+                        <i class="fas fa-times"></i> Effacer la recherche
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-number">{{ questionnaires|length }}</div>
+                <div class="stat-label">Total Questionnaires</div>
+            </div>
+            <div class="stat-card today">
+                <div class="stat-number">{{ questionnaires|filter(q => q.dateSoumission.format('Y-m-d') == 'now'|date('Y-m-d'))|length }}</div>
+                <div class="stat-label">Aujourd'hui</div>
+            </div>
+            <div class="stat-card week">
+                <div class="stat-number">{{ questionnaires|filter(q => q.dateSoumission >= 'now'|date_modify('-7 days'))|length }}</div>
+                <div class="stat-label">Cette Semaine</div>
+            </div>
+            <div class="stat-card attention">
+                <div class="stat-number">{{ questionnaires|filter(q => q.noteGlobale < 7)|length }}</div>
+                <div class="stat-label">À Surveiller</div>
+            </div>
+        </div>
+
+        <!-- Questionnaires List -->
+        {% if questionnaires|length > 0 %}
+            <div class="questionnaires-list">
+                {% for questionnaire in questionnaires %}
+                    <div class="questionnaire-card" data-id="{{ questionnaire.id }}">
+                        <div class="questionnaire-header" onclick="toggleQuestionnaire({{ questionnaire.id }})">
+                            <div class="questionnaire-info">
+                                <div class="user-avatar">
+                                    {{ questionnaire.user.firstname|first|upper ~ questionnaire.user.lastname|first|upper }}
+                                </div>
+                                <div class="user-details">
+                                    <h5>{{ questionnaire.userName }}</h5>
+                                    <p>{{ questionnaire.workout.nom }}</p>
+                                </div>
+                            </div>
+                            <div class="questionnaire-meta">
+                                <div class="rating-badge">
+                                    ⭐ {{ questionnaire.noteGlobale }}/10
+                                </div>
+                                <div class="date-badge">
+                                    {{ questionnaire.dateSoumission|date('d/m/Y H:i') }}
+                                </div>
+                                <div class="toggle-icon">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="questionnaire-details">
+                            <div class="questionnaire-content">
+                                <div class="feedback-grid">
+                                    <div class="feedback-item">
+                                        <h6>Satisfaction</h6>
+                                        <p>{{ questionnaire.satisfaction }}/10</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Intensité</h6>
+                                        <p>{{ questionnaire.intensite }}</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Exercices Compris</h6>
+                                        <p>{{ questionnaire.exercicesCompris }}</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Durée</h6>
+                                        <p>{{ questionnaire.duree }}</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Ressenti Physique</h6>
+                                        <p>{{ questionnaire.ressentiPhysique }}</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Stress</h6>
+                                        <p>{{ questionnaire.stress }}</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Motivation</h6>
+                                        <p>{{ questionnaire.motivation }}</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Progression</h6>
+                                        <p>{{ questionnaire.progression }}</p>
+                                    </div>
+                                    <div class="feedback-item">
+                                        <h6>Rapproche Objectifs</h6>
+                                        <p>{{ questionnaire.rapprocheObjectifs }}/10</p>
+                                    </div>
+                                </div>
+                                {% if questionnaire.commentaire %}
+                                    <div class="comment-section">
+                                        <h6>💬 Commentaire</h6>
+                                        <p>{{ questionnaire.commentaire }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>Aucun questionnaire trouvé</h3>
+                <p>Les questionnaires soumis par vos clients apparaîtront ici.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleQuestionnaire(id) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    card.classList.toggle('expanded');
+}
+</script>
+{% endblock %}
