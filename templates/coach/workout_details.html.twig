@@ -1,35 +1,166 @@
-{# templates/coach/workout_details.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Détails - {{ workout.nom }}{% endblock %}
+{% block title %}{{ workout.nom }}{% endblock %}
+
+{% block header %}{% endblock %}
+{% block navigation %}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+    }
+
+    body {
+        background: radial-gradient(circle at top, #0F172A, #000);
+        color: white;
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+
+
+    .details-wrapper {
+        max-width: 950px;
+        margin: 4rem auto;
+        padding: 2.5rem;
+        background: linear-gradient(145deg, #0D0D0D, #111);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: #1F1F1F;
+        border-radius: 0.8rem;
+        text-decoration: none;
+        color: white;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .back-btn:hover {
+        background: #2A2A2A;
+        transform: translateX(-3px);
+    }
+
+    h1 {
+        font-size: 2.4rem;
+        font-weight: 900;
+        margin: 2rem 0 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .description {
+        color: #9CA3AF;
+        margin-bottom: 1.5rem;
+    }
+
+    .badges {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #22C55E, #16A34A);
+        color: black;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+    }
+
+    .exercise-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .exercise-card {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(145deg, #111, #0F0F0F);
+        border-radius: 1rem;
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .exercise-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(34,197,94,0.5);
+        box-shadow: 0 10px 30px rgba(34,197,94,0.15);
+    }
+
+    .exercise-name {
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .exercise-index {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        font-size: 0.8rem;
+        color: #22C55E;
+        font-weight: 700;
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container py-4">
-  <a href="{{ path('coach_workout_catalog') }}" class="btn btn-outline-secondary mb-3">← Retour</a>
+<div class="details-wrapper">
 
-  <div class="card shadow-sm">
-    <div class="card-header">
-      <h3 class="mb-0">{{ workout.nom }}</h3>
+    <a href="{{ path('coach_workout_catalog') }}" class="back-btn">
+        ← Retour au catalogue
+    </a>
+
+    <h1>{{ workout.nom }}</h1>
+
+    <p class="description">
+        {{ workout.description ?: 'Aucune description disponible pour ce workout.' }}
+    </p>
+
+    <div class="badges">
+        <span class="badge">{{ workout.duree }} min</span>
+        <span class="badge">{{ workout.niveau }}</span>
     </div>
 
-    <div class="card-body">
-      <p><strong>Durée:</strong> {{ workout.duree }} min</p>
-      <p><strong>Niveau:</strong> {{ workout.niveau }}</p>
-      <p><strong>Description:</strong> {{ workout.description|default('Aucune description') }}</p>
-
-      <hr>
-
-      <h5>Exercices ({{ workout.exercises|length }})</h5>
-      {% if workout.exercises is empty %}
-        <p class="text-muted">Aucun exercice.</p>
-      {% else %}
-        <ul>
-          {% for ex in workout.exercises %}
-            <li>{{ ex.nom }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
+    <div class="section-title">
+        Exercices ({{ workout.exercises|length }})
     </div>
-  </div>
+
+    {% if workout.exercises is empty %}
+        <p style="color:#6B7280;">Aucun exercice inclus dans ce workout.</p>
+    {% else %}
+        <div class="exercise-grid">
+            {% for exercise in workout.exercises %}
+                <div class="exercise-card">
+                    <div class="exercise-name">
+                        {{ exercise.nom }}
+                    </div>
+                    <div class="exercise-index">
+                        #{{ loop.index }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
 </div>
 {% endblock %}

@@ -1,28 +1,176 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}
-    {{ isEdit ? 'Modifier Exercice' : 'Créer Exercice' }} - FitSense
+    {{ isEdit ? 'Edit Exercise' : 'Create Exercise' }} - FitSense
 {% endblock %}
 
+{% block stylesheets %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #000;
+    color: #fff;
+}
+
+.gradient-btn {
+    background: linear-gradient(135deg, #22C55E, #84CC16);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: #0D0D0D;
+    border: 1px solid #1F1F1F;
+    border-radius: 12px;
+    color: #fff;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #22C55E;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.15);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #D1D5DB;
+    margin-bottom: .5rem;
+    display: block;
+    text-transform: uppercase;
+}
+
+.form-group { margin-bottom: 1.5rem; }
+
+.form-error {
+    color: #EF4444;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.error {
+    border-color: #EF4444 !important;
+}
+</style>
+{% endblock %}
+
+{% block header %}{% endblock %}
+{% block navigation %}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block menu %}{% endblock %}
+{% block footer %}{% endblock %}
+
 {% block body %}
-<div class="container py-5">
-    <h1>{{ isEdit ? 'Modifier Exercice' : 'Créer Exercice' }}</h1>
+<div class="min-h-screen bg-black">
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
+    <div class="max-w-[900px] mx-auto px-6 py-10">
 
-    {{ form_start(form) }}
-        {{ form_row(form.nom) }}
-        {{ form_row(form.type) }}
-        {{ form_row(form.duree) }}
-        {{ form_row(form.description) }}
+        <h1 class="text-4xl font-black mb-2">
+            {{ isEdit ? 'Edit Exercise' : 'Create Exercise' }}
+        </h1>
+        <p class="text-gray-500 mb-8">
+            {{ isEdit ? 'Modify the exercise details below' : 'Fill in the form below to create a new exercise' }}
+        </p>
 
-        <button class="btn btn-primary mt-3">
-            {{ isEdit ? 'Enregistrer les modifications' : 'Créer Exercice' }}
-        </button>
-    {{ form_end(form) }}
+        <!-- 🔴 GLOBAL ALERT -->
+        <div id="formAlert" class="hidden mb-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-6 py-4">
+            <strong class="block mb-1">⚠️ Missing required fields</strong>
+            Please fill in all required fields before submitting the form.
+        </div>
 
-    <a href="{{ path('coach_exercise_list') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+        <div class="bg-[#0D0D0D] border border-gray-800 rounded-2xl p-8">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'exerciseForm'}}) }}
+
+            <!-- Name -->
+            <div class="form-group">
+                <label class="form-label">Exercise Name *</label>
+                {{ form_widget(form.nom, {'attr': {'class': 'form-input required'}}) }}
+                {% if form.nom.vars.errors|length %}
+                    <span class="form-error">{{ form.nom.vars.errors[0].message }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Type -->
+            <div class="form-group">
+                <label class="form-label">Exercise Type *</label>
+                {{ form_widget(form.type, {'attr': {'class': 'form-select required'}}) }}
+                {% if form.type.vars.errors|length %}
+                    <span class="form-error">{{ form.type.vars.errors[0].message }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Duration -->
+            <div class="form-group">
+                <label class="form-label">Duration (seconds) *</label>
+                {{ form_widget(form.duree, {
+                    'attr': {
+                        'class': 'form-input required',
+                        'min': 1,
+                        'max': 3600
+                    }
+                }) }}
+                {% if form.duree.vars.errors|length %}
+                    <span class="form-error">{{ form.duree.vars.errors[0].message }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                {{ form_widget(form.description, {'attr': {'class': 'form-textarea'}}) }}
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="flex-1 gradient-btn text-black font-bold py-3 rounded-xl">
+                    {{ isEdit ? 'Save Changes' : 'Create Exercise' }}
+                </button>
+                <a href="{{ path('coach_exercise_list') }}"
+                   class="flex-1 text-center py-3 bg-gray-900 rounded-xl border border-gray-800">
+                    Cancel
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
 </div>
+
+<!-- ✅ VALIDATION JS -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('exerciseForm');
+    const alertBox = document.getElementById('formAlert');
+    const requiredFields = form.querySelectorAll('.required');
+
+    form.addEventListener('submit', (e) => {
+        let hasError = false;
+        alertBox.classList.add('hidden');
+
+        requiredFields.forEach(field => {
+            field.classList.remove('error');
+
+            if (!field.value || field.value.trim() === '') {
+                field.classList.add('error');
+                hasError = true;
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            alertBox.classList.remove('hidden');
+            alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+});
+</script>
 {% endblock %}

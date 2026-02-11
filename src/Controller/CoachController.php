@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Exercise;
 use App\Entity\Workout;
+use App\Entity\ObjectifSportif; 
 use App\Form\ExerciseType;
 use App\Form\WorkoutType;
 use App\Repository\ExerciseRepository;
@@ -133,37 +134,36 @@ class CoachController extends AbstractController
 
     // ==================== WORKOUT MANAGEMENT ====================
     
-    #[Route('/workout/create', name: 'coach_workout_create')]
-    public function workoutCreate(
-        Request $request,
-        EntityManagerInterface $em,
-        ExerciseRepository $exerciseRepository
-    ): Response {
-        // Vérifier qu'il y a au moins un exercice
-        $exerciseCount = $exerciseRepository->count([]);
+ #[Route('/workout/create', name: 'coach_workout_create')]
+public function workoutCreate(
+    Request $request,
+    EntityManagerInterface $em,
+    ExerciseRepository $exerciseRepository
+): Response {
+    $exerciseCount = $exerciseRepository->count([]);
 
-        if ($exerciseCount === 0) {
-            $this->addFlash('warning', 'Vous devez créer au moins un exercice avant de créer un workout.');
-            return $this->redirectToRoute('coach_exercise_create');
-        }
-
-        $workout = new Workout();
-        $form = $this->createForm(WorkoutType::class, $workout);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($workout);
-            $em->flush();
-
-            $this->addFlash('success', 'Workout créé avec succès !');
-            return $this->redirectToRoute('coach_workout_catalog');
-        }
-
-        return $this->render('coach/workout_form.html.twig', [
-            'form' => $form->createView(),
-            'isEdit' => false,
-        ]);
+    if ($exerciseCount === 0) {
+        $this->addFlash('warning', 'Vous devez créer au moins un exercice avant de créer un workout.');
+        return $this->redirectToRoute('coach_exercise_create');
     }
+
+    $workout = new Workout();
+    $form = $this->createForm(WorkoutType::class, $workout);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $em->persist($workout);
+        $em->flush();
+
+        $this->addFlash('success', 'Workout créé avec succès !');
+        return $this->redirectToRoute('coach_workout_catalog');
+    }
+
+    return $this->render('coach/workout_form.html.twig', [
+        'form' => $form->createView(),
+        'isEdit' => false,
+    ]);
+}
 
     #[Route('/workout/{id}/edit', name: 'coach_workout_edit')]
     public function workoutEdit(
