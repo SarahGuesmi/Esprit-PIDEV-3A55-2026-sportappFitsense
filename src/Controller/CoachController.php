@@ -83,6 +83,15 @@ class CoachController extends AbstractController
             $em->persist($exercise);
             $em->flush();
             
+            // Create admin notification
+            $coach = $this->getUser();
+            $notification = new \App\Entity\Notification();
+            $notification->setMessage("Coach " . $coach->getFirstname() . " " . $coach->getLastname() . " created a new exercise: " . $exercise->getNom());
+            $notification->setType('exercise_creation');
+            // relatedUser is not strictly required here as it's for system alerts, but we can set it if helpful
+            $em->persist($notification);
+            $em->flush();
+
             $this->addFlash('success', 'Exercice créé avec succès !');
             
             return $this->redirectToRoute('coach_exercise_list');
@@ -154,6 +163,14 @@ class CoachController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($workout);
+            $em->flush();
+
+            // Create admin notification
+            $coach = $this->getUser();
+            $notification = new \App\Entity\Notification();
+            $notification->setMessage("Coach " . $coach->getFirstname() . " " . $coach->getLastname() . " created a new workout: " . $workout->getTitre());
+            $notification->setType('workout_creation');
+            $em->persist($notification);
             $em->flush();
 
             $this->addFlash('success', 'Workout créé avec succès !');
