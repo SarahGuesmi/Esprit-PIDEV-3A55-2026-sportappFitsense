@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const mKcalChip = document.getElementById('mKcalChip');
   const mProtChip = document.getElementById('mProtChip');
   const mTypeChip = document.getElementById('mTypeChip');
+  const mObjectifsContainer = document.getElementById('mObjectifsContainer');
   const mIngredientsList = document.getElementById('mIngredientsList');
   const mPreparationList = document.getElementById('mPreparationList');
 
@@ -100,6 +101,23 @@ document.addEventListener('DOMContentLoaded', () => {
         mPreparationList.appendChild(li);
       });
     }
+
+    // Objectives
+    const cardObjectifs = JSON.parse(data.objectifs || '[]');
+    if (mObjectifsContainer) {
+      mObjectifsContainer.innerHTML = '';
+      cardObjectifs.forEach(obj => {
+        const span = document.createElement('span');
+        span.className = 'text-[10px] px-2 py-1 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20 uppercase font-bold tracking-wider';
+        span.textContent = obj.replace('_', ' ');
+        mObjectifsContainer.appendChild(span);
+      });
+    }
+
+    // Prefill Objectives Checkboxes
+    document.querySelectorAll('.obj-checkbox').forEach(cb => {
+      cb.checked = cardObjectifs.includes(cb.value);
+    });
 
     // Forms
     if (updateForm && data.updateUrl) updateForm.action = data.updateUrl;
@@ -186,6 +204,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (targetId === 'kcalRange') applyKcal(val);
       if (targetId === 'protRange') applyProt(val);
+    });
+  });
+
+  // ============================
+  // 4) AJAX FORM SUBMISSION
+  // ============================
+  function clearErrors(form) {
+    form.querySelectorAll('.errors').forEach(div => {
+      div.textContent = '';
+    });
+  }
+
+  function showErrors(form, errors) {
+    const isModalForm = form.classList.contains('recipe-ajax-form') && form.id === 'updateForm';
+    const prefix = isModalForm ? 'f-error-' : 'error-';
+
+    for (const [field, message] of Object.entries(errors)) {
+      const errorDiv = document.getElementById(prefix + field);
+      if (errorDiv) {
+        errorDiv.textContent = message;
+      } else {
+        // Fallback for fields that might not have a prefixed ID in both places
+        const alternativeErrorDiv = document.getElementById('error-' + field);
+        if (alternativeErrorDiv) alternativeErrorDiv.textContent = message;
+      }
+    }
+  }
+
+  document.querySelectorAll('.recipe-ajax-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors(form);
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+      }
+
+      const formData = new FormData(form);
+      const url = form.action || window.location.href;
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Success! Reload to see changes in grid
+          window.location.reload(); 
+        } else {
+          showErrors(form, result.errors || {});
+        }
+      } catch (err) {
+        console.error('Submission error:', err);
+        // If it's a redirect or non-json, we might want to reload or show error
+        // But our controller returns JSON for XHR.
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
+        }
+      }
     });
   });
 

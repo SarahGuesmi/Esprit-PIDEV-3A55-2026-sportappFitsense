@@ -27,14 +27,33 @@ class RecetteUserController extends AbstractController
         $kcal = ($kcal !== null && $kcal !== '') ? (int) $kcal : null;
         $proteins = ($proteins !== null && $proteins !== '') ? (int) $proteins : null;
 
-        // Search
-        $recipes = $repo->searchForAll($q ?: null, $kcal, $proteins);
+        // Personalised Filtering by User Objectives
+        $user = $this->getUser();
+        $userCodes = [];
+        if ($user instanceof \App\Entity\User) {
+            $mapping = [
+                'Weight Loss' => 'WEIGHT_LOSS',
+                'Muscle Gain' => 'MUSCLE_GAIN',
+                'Endurance'   => 'ENDURANCE',
+                'Well-being'  => 'WELL_BEING',
+            ];
+            foreach ($user->getObjectifs() as $obj) {
+                $name = $obj->getName();
+                if (isset($mapping[$name])) {
+                    $userCodes[] = $mapping[$name];
+                }
+            }
+        }
+
+        // Search with personalised filters
+        $recipes = $repo->searchForAll($q ?: null, $kcal, $proteins, $userCodes);
 
         return $this->render('front/recette/index.html.twig', [
             'recipes' => $recipes,
             'q' => $q,
             'kcal' => $kcal,
             'proteins' => $proteins,
+            'userObjectifs' => $userCodes,
         ]);
     }
 

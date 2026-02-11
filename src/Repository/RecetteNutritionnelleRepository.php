@@ -36,10 +36,20 @@ class RecetteNutritionnelleRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function searchForAll(?string $q, ?int $kcal, ?int $proteins)
+    public function searchForAll(?string $q, ?int $kcal, ?int $proteins, array $objectifs = [])
     {
         $qb = $this->createQueryBuilder('r')
             ->orderBy('r.id', 'DESC');
+
+        if (!empty($objectifs)) {
+            $orX = $qb->expr()->orX();
+            foreach ($objectifs as $i => $code) {
+                // Filter JSON array by checking the presence of the code string
+                $orX->add("r.objectifs LIKE :obj_$i");
+                $qb->setParameter("obj_$i", '%"' . $code . '"%');
+            }
+            $qb->andWhere($orX);
+        }
 
         if ($q) {
             $qb->andWhere('LOWER(r.title) LIKE :q OR LOWER(r.description) LIKE :q')

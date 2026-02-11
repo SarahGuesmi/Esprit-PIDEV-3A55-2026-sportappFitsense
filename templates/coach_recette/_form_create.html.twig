@@ -2,56 +2,56 @@
 <div class="form-card" id="new-recipe">
   <div class="form-title">+ Create New Recipe</div>
 
-  {{ form_start(form) }}
+  {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'recipe-ajax-form', 'class': 'recipe-ajax-form'}}) }}
 
   <div class="form-grid">
     <div>
       {{ form_label(form.title) }}
       {{ form_widget(form.title) }}
-      <div class="errors">{{ form_errors(form.title) }}</div>
+      <div class="errors" id="error-title">{{ form_errors(form.title) }}</div>
     </div>
 
     <div>
       {{ form_label(form.typeMeal) }}
       {{ form_widget(form.typeMeal) }}
-      <div class="errors">{{ form_errors(form.typeMeal) }}</div>
+      <div class="errors" id="error-typeMeal">{{ form_errors(form.typeMeal) }}</div>
     </div>
 
     <div>
       {{ form_label(form.kcal) }}
       {{ form_widget(form.kcal) }}
-      <div class="errors">{{ form_errors(form.kcal) }}</div>
+      <div class="errors" id="error-kcal">{{ form_errors(form.kcal) }}</div>
     </div>
 
     <div>
       {{ form_label(form.proteins) }}
       {{ form_widget(form.proteins) }}
-      <div class="errors">{{ form_errors(form.proteins) }}</div>
+      <div class="errors" id="error-proteins">{{ form_errors(form.proteins) }}</div>
     </div>
 
     <div>
       {{ form_label(form.imageFile) }}
       {{ form_widget(form.imageFile) }}
       <div class="help">JPG / PNG / WEBP — max 3MB</div>
-      <div class="errors">{{ form_errors(form.imageFile) }}</div>
+      <div class="errors" id="error-imageFile">{{ form_errors(form.imageFile) }}</div>
     </div>
 
     <div style="grid-column: 1 / -1;">
       {{ form_label(form.description) }}
       {{ form_widget(form.description) }}
-      <div class="errors">{{ form_errors(form.description) }}</div>
+      <div class="errors" id="error-description">{{ form_errors(form.description) }}</div>
     </div>
 
     <div style="grid-column: 1 / -1;">
       {{ form_label(form.ingredients) }}
       {{ form_widget(form.ingredients) }}
-      <div class="errors">{{ form_errors(form.ingredients) }}</div>
+      <div class="errors" id="error-ingredients">{{ form_errors(form.ingredients) }}</div>
     </div>
 
     <div style="grid-column: 1 / -1;">
       {{ form_label(form.preparation) }}
       {{ form_widget(form.preparation) }}
-      <div class="errors">{{ form_errors(form.preparation) }}</div>
+      <div class="errors" id="error-preparation">{{ form_errors(form.preparation) }}</div>
     </div>
 
     {# OBJECTIFS (cards) #}
@@ -89,7 +89,7 @@
         {% endfor %}
       </div>
 
-      <div class="errors">{{ form_errors(form.objectifs) }}</div>
+      <div class="errors" id="error-objectifs">{{ form_errors(form.objectifs) }}</div>
       <div class="help">Choisis au moins un objectif.</div>
     </div>
   </div>

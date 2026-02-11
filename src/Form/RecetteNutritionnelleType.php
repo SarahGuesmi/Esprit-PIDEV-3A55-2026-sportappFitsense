@@ -20,7 +20,7 @@ class RecetteNutritionnelleType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Recipe name',
-                'required' => true,
+                'required' => false,
                 'attr' => ['placeholder' => 'Ex: Chicken Salad'],
             ])
 
@@ -48,19 +48,19 @@ class RecetteNutritionnelleType extends AbstractType
 
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
-                'required' => true,
+                'required' => false,
                 'attr' => ['rows' => 3],
             ])
 
             ->add('ingredients', TextareaType::class, [
                 'label' => 'Ingredients',
-                'required' => true,
+                'required' => false,
                 'attr' => ['rows' => 4],
             ])
 
             ->add('preparation', TextareaType::class, [
                 'label' => 'Preparation',
-                'required' => true,
+                'required' => false,
                 'attr' => ['rows' => 5],
             ])
 
@@ -87,7 +87,7 @@ class RecetteNutritionnelleType extends AbstractType
                 ],
                 'multiple' => true,
                 'expanded' => true,
-                'required' => true,
+                'required' => false,
             ])
         ;
     }

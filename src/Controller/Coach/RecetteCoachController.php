@@ -27,56 +27,58 @@ class RecetteCoachController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        // ✅ Filters (GET)
         $q = trim((string) $request->query->get('q', ''));
-
-        // ✅ IMPORTANT: définir $objectif pour éviter Undefined variable
-        $objectif = $request->query->get('objectif'); // peut être null
-
+        $objectif = $request->query->get('objectif');
         $kcal = $request->query->get('kcal');
         $proteins = $request->query->get('proteins');
 
         $kcal = ($kcal !== null && $kcal !== '') ? (int) $kcal : null;
         $proteins = ($proteins !== null && $proteins !== '') ? (int) $proteins : null;
 
-        // ✅ Create form (POST)
         $recette = new RecetteNutritionnelle();
         $form = $this->createForm(RecetteNutritionnelleType::class, $recette);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $recette->setCoach($coach);
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $recette->setCoach($coach);
 
-            // ✅ upload image
-            $imageFile = $form->get('imageFile')->getData();
-            if ($imageFile) {
-                $newFilename = uniqid('recipe_') . '.' . ($imageFile->guessExtension() ?: 'jpg');
-                $imageFile->move($this->getParameter('recipes_upload_dir'), $newFilename);
-                $recette->setImage($newFilename);
+                $imageFile = $form->get('imageFile')->getData();
+                if ($imageFile) {
+                    $newFilename = uniqid('recipe_') . '.' . ($imageFile->guessExtension() ?: 'jpg');
+                    $imageFile->move($this->getParameter('recipes_upload_dir'), $newFilename);
+                    $recette->setImage($newFilename);
+                }
+
+                $em->persist($recette);
+                $em->flush();
+
+                if ($request->isXmlHttpRequest()) {
+                    return $this->json(['success' => true, 'message' => 'Recipe added successfully ✅']);
+                }
+
+                $this->addFlash('success', 'Recipe added successfully ✅');
+                return $this->redirectToRoute('coach_recette', [
+                    'q' => $q,
+                    'objectif' => $objectif,
+                    'kcal' => $kcal,
+                    'proteins' => $proteins,
+                ]);
             }
 
-            $em->persist($recette);
-            $em->flush();
-
-            $this->addFlash('success', 'Recipe added successfully ✅');
-
-            // ✅ garder les filtres après ajout
-            return $this->redirectToRoute('coach_recette', [
-                'q' => $q,
-                'objectif' => $objectif,
-                'kcal' => $kcal,
-                'proteins' => $proteins,
-            ]);
+            if ($request->isXmlHttpRequest()) {
+                return $this->json([
+                    'success' => false,
+                    'errors' => $this->getFormErrors($form)
+                ], 400);
+            }
         }
 
-        // ✅ search + filters results
-        // Fetch ALL recipes (global library) as requested
         $recipes = $repo->searchForAll($q ?: null, $kcal, $proteins);
 
         return $this->render('coach_recette/recette.html.twig', [
             'form' => $form->createView(),
             'recipes' => $recipes,
-
             'q' => $q,
             'objectif' => $objectif,
             'kcal' => $kcal,
@@ -88,22 +90,13 @@ class RecetteCoachController extends AbstractController
     #[Route('/coach/recipe/add', name: 'coach_recipe_add', methods: ['POST'])]
     public function addQuick(
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
     ): Response {
         $coach = $this->getUser();
         if (!$coach) {
             throw $this->createAccessDeniedException();
         }
-
-        // Validate CSRF token (we will add this to the template next)
-        // For now, if the token is missing in the template, this might fail if we enforce it strictly.
-        // But it's best practice. We'll add it to the template.
-        /* 
-        if (!$this->isCsrfTokenValid('add_recipe', $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid token.');
-            return $this->redirectToRoute('coach_recette');
-        }
-        */
 
         $recette = new RecetteNutritionnelle();
         $recette->setCoach($coach);
@@ -113,21 +106,37 @@ class RecetteCoachController extends AbstractController
         $kcal = $request->request->get('calories');
         $proteins = $request->request->get('protein');
         
-        $recette->setKcal($kcal !== '' ? (int)$kcal : null);
-        $recette->setProteins($proteins !== '' ? (int)$proteins : null);
+        $recette->setKcal($kcal !== '' && $kcal !== null ? (int)$kcal : null);
+        $recette->setProteins($proteins !== '' && $proteins !== null ? (int)$proteins : null);
         
         $recette->setIngredients((string) $request->request->get('ingredients'));
-        $recette->setPreparation((string) $request->request->get('instructions')); // Check if field is instructions or preparation
+        $recette->setPreparation((string) $request->request->get('instructions'));
 
         // Set defaults for required fields not in the simple form
-        // These should ideally be added to the form
         $recette->setTypeMeal('LUNCH'); 
         $recette->setObjectifs(['WELL_BEING']);
 
-        // Note: 'carbs' and 'fats' from the form are currently ignored as they are not in the Entity
+        $errors = $validator->validate($recette);
+        if (count($errors) > 0) {
+            if ($request->isXmlHttpRequest()) {
+                $errorMap = [];
+                foreach ($errors as $error) {
+                    $errorMap[$error->getPropertyPath()] = $error->getMessage();
+                }
+                return $this->json(['success' => false, 'errors' => $errorMap], 400);
+            }
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+            return $this->redirectToRoute('coach_recette');
+        }
 
         $em->persist($recette);
         $em->flush();
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json(['success' => true, 'message' => 'Recipe added successfully (Quick Add) ✅']);
+        }
 
         $this->addFlash('success', 'Recipe added successfully (Quick Add) ✅');
 
@@ -140,7 +149,8 @@ class RecetteCoachController extends AbstractController
         int $id,
         Request $request,
         RecetteNutritionnelleRepository $repo,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
     ): Response {
         $coach = $this->getUser();
         if (!$coach) {
@@ -172,6 +182,24 @@ class RecetteCoachController extends AbstractController
         $recette->setProteins($proteins !== '' && $proteins !== null ? (int) $proteins : null);
 
         $recette->setTypeMeal((string) $request->request->get('typeMeal', ''));
+        
+        $objectifs = $request->request->all('objectifs');
+        $recette->setObjectifs($objectifs);
+
+        $errors = $validator->validate($recette);
+        if (count($errors) > 0) {
+            if ($request->isXmlHttpRequest()) {
+                $errorMap = [];
+                foreach ($errors as $error) {
+                    $errorMap[$error->getPropertyPath()] = $error->getMessage();
+                }
+                return $this->json(['success' => false, 'errors' => $errorMap], 400);
+            }
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+            return $this->redirectToRoute('coach_recette');
+        }
 
         $imageFile = $request->files->get('imageFile');
         if ($imageFile) {
@@ -181,9 +209,13 @@ class RecetteCoachController extends AbstractController
         }
 
         $em->flush();
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->json(['success' => true, 'message' => 'Recipe updated ✅']);
+        }
+
         $this->addFlash('success', 'Recipe updated ✅');
 
-        // ✅ garder les filtres après update (ils viennent du POST hidden inputs)
         return $this->redirectToRoute('coach_recette', [
             'q' => $request->request->get('q'),
             'objectif' => $request->request->get('objectif'),
@@ -255,5 +287,21 @@ class RecetteCoachController extends AbstractController
             'user' => $user,
             'logs' => $logRepo->findByUserOrderedByDate($userId),
         ]);
+    }
+
+    private function getFormErrors($form): array
+    {
+        $errors = [];
+        foreach ($form->getErrors() as $error) {
+            $errors['global'] = $error->getMessage();
+        }
+        foreach ($form->all() as $child) {
+            if (!$child->isValid()) {
+                foreach ($child->getErrors() as $error) {
+                    $errors[$child->getName()] = $error->getMessage();
+                }
+            }
+        }
+        return $errors;
     }
 }
