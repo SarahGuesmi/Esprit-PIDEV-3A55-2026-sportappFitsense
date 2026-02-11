@@ -130,4 +130,39 @@ class DashboardController extends AbstractController
         $this->addFlash('success', 'User deleted successfully!');
         return $this->redirectToRoute('admin_users_index');
     }
+
+    #[Route('/users/activate/{id}', name: 'admin_users_activate')]
+public function activateUser(int $id, EntityManagerInterface $em): Response
+{
+    $user = $em->getRepository(User::class)->find($id);
+
+    if (!$user) {
+        $this->addFlash('error', 'User not found!');
+        return $this->redirectToRoute('admin_users_index');
+    }
+
+    $user->setAccountStatus('active');
+    $em->flush();
+
+    $this->addFlash('success', 'User activated successfully!');
+    return $this->redirectToRoute('admin_users_index');
+}
+
+#[Route('/users/deactivate/{id}', name: 'admin_users_deactivate')]
+public function deactivateUser(int $id, EntityManagerInterface $em): Response
+{
+    $user = $em->getRepository(User::class)->find($id);
+
+    if (!$user) {
+        $this->addFlash('error', 'User not found!');
+        return $this->redirectToRoute('admin_users_index');
+    }
+
+    $user->setAccountStatus('inactive'); 
+    $em->flush();
+
+    $this->addFlash('success', 'User deactivated successfully!');
+    return $this->redirectToRoute('admin_users_index');
+}
+
 }

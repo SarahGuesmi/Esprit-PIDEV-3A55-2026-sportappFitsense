@@ -2,643 +2,591 @@
 
 {% block admin_content %}
 
-<!-- Flash Messages -->
-{% for label, messages in app.flashes %}
-    <div class="mb-6 px-6 py-4 rounded-xl {% if label == 'success' %}bg-green-500/20 border border-green-500/40 text-green-300{% else %}bg-red-500/20 border border-red-500/40 text-red-300{% endif %} backdrop-blur">
-        {% for message in messages %}
-            <div class="flex items-center">
-                <i class="fas {% if label == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} mr-3"></i>
-                <span>{{ message }}</span>
-            </div>
-        {% endfor %}
-    </div>
-{% endfor %}
-
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
-        <!-- Purple accent corner -->
-        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
-        
-        <div class="relative flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                    <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
-                    User Management
-                </h1>
-                <p class="text-gray-400 ml-6">Browse and manage all users in the system</p>
-            </div>
-            <button id="openAddCoachModal" class="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/50 hover:transform hover:scale-105">
-                <i class="fas fa-plus"></i>
-                Add Coach
-            </button>
+    <!-- Flash Messages -->
+    {% for label, messages in app.flashes %}
+        <div class="mb-6 px-6 py-4 rounded-xl {% if label == 'success' %}bg-green-500/20 border border-green-500/40 text-green-300{% else %}bg-red-500/20 border border-red-500/40 text-red-300{% endif %} backdrop-blur">
+            {% for message in messages %}
+                <div class="flex items-center">
+                    <i class="fas {% if label == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} mr-3"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
         </div>
-    </div>
+    {% endfor %}
 
-    <!-- Search Section -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-700">
-        <!-- Purple accent corner -->
-        <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/30 rounded-full blur-3xl"></div>
-        
-        <div class="relative flex flex-col md:flex-row gap-4">
-            <div class="flex-1">
-                <label for="searchUsers" class="block text-sm font-medium text-gray-300 mb-2">Search Users</label>
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-500 group-focus-within:text-purple-400 transition"></i>
+    <div class="space-y-6">
+
+        <!-- Header -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
+            <!-- Purple accent corner -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
+
+            <div class="relative flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                        <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                        User Management
+                    </h1>
+                    <p class="text-gray-400 ml-6">Browse and manage all users in the system</p>
+                </div>
+                <button id="openAddCoachModal" class="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/50 hover:transform hover:scale-105">
+                    <i class="fas fa-plus"></i>
+                    Add Coach
+                </button>
+            </div>
+        </div>
+
+        <!-- Search & Filter Section -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-700">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/30 rounded-full blur-3xl"></div>
+
+            <div class="relative flex flex-col md:flex-row gap-4">
+                <!-- Search -->
+                <div class="flex-1">
+                    <label for="searchUsers" class="block text-sm font-medium text-gray-300 mb-2">Search Users</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-500 group-focus-within:text-purple-400 transition"></i>
+                        </div>
+                        <input
+                            type="text"
+                            id="searchUsers"
+                            class="block w-full pl-12 pr-4 py-3.5 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition"
+                            placeholder="Search by name or email..."
+                        >
                     </div>
-                    <input 
-                        type="text" 
-                        id="searchUsers" 
-                        class="block w-full pl-12 pr-4 py-3.5 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition"
-                        placeholder="Search by name or email..."
-                    >
+                </div>
+
+                <!-- Filters -->
+                <div class="flex gap-2 items-end">
+                    <div>
+                        <label for="filterStatus" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                        <select
+                            id="filterStatus"
+                            class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                        >
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filterRole" class="block text-sm font-medium text-gray-300 mb-2">Role</label>
+                        <select
+                            id="filterRole"
+                            class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                        >
+                            <option value="">All</option>
+                            <option value="ROLE_USER">User</option>
+                            <option value="ROLE_COACH">Coach</option>
+                            <option value="ROLE_ADMIN">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Clear -->
+                <div class="pt-7">
+                    <button id="clearSearch" class="px-6 py-3.5 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-xl text-gray-300 hover:text-white hover:border-purple-500 transition font-medium">
+                        Clear
+                    </button>
                 </div>
             </div>
-            <div class="pt-7">
-                <button id="clearSearch" class="px-6 py-3.5 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-xl text-gray-300 hover:text-white hover:border-purple-500 transition font-medium">
-                    Clear
-                </button>
+
+            <div id="searchResults" class="relative mt-3 text-sm text-gray-400"></div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-gray-700">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative p-6 border-b border-gray-700/50">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-3">
+                    <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                    Users Table
+                </h2>
             </div>
-        </div>
-        <div id="searchResults" class="relative mt-3 text-sm text-gray-400"></div>
-    </div>
 
-    <!-- Users Table -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-gray-700">
-        <!-- Purple accent corners -->
-        <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-        
-        <div class="relative p-6 border-b border-gray-700/50">
-            <h2 class="text-xl font-semibold text-white flex items-center gap-3">
-                <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
-                Users Table
-            </h2>
-        </div>
-
-        <div class="relative overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-700/50">
-                <thead class="bg-gray-900/50 backdrop-blur">
-                    <tr>
-                        <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-user text-purple-400"></i>
-                                Author
-                            </div>
-                        </th>
-                        <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-briefcase text-purple-400"></i>
-                                Function
-                            </div>
-                        </th>
-                        <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-calendar text-purple-400"></i>
-                                Employed
-                            </div>
-                        </th>
-                        <th class="px-6 py-5 text-right text-xs font-bold text-gray-300 uppercase tracking-wider">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-700/50 backdrop-blur">
-                    {% for user in users %}
-                        <tr class="table-row hover:bg-purple-500/5 transition-all duration-200 group">
-                            <td class="px-6 py-5 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-11 w-11">
-                                        <img class="h-11 w-11 rounded-xl ring-2 ring-purple-500/30 group-hover:ring-purple-500/50 transition"
-                                             src="https://ui-avatars.com/api/?name={{ user.firstname }}+{{ user.lastname }}&background=7c3aed&color=fff"
-                                             alt="{{ user.firstname }} {{ user.lastname }}">
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-semibold text-white group-hover:text-purple-300 transition">
-                                            {{ user.firstname }} {{ user.lastname }}
-                                        </div>
-                                        <div class="text-sm text-gray-400">
-                                            {{ user.email }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5 whitespace-nowrap">
-                                <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-300 border border-purple-500/40 backdrop-blur">
-                                    {{ user.roles|join(', ') }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-300">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-clock text-gray-500 text-xs"></i>
-                                    {{ user.dateCreation ? user.dateCreation|date('d/m/Y') : '—' }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex justify-end gap-2">
-                                    <button 
-                                        class="edit-user-btn bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 border border-purple-500/40 hover:border-purple-500/60 hover:shadow-lg hover:shadow-purple-500/20"
-                                        data-user-id="{{ user.id }}"
-                                        data-user-firstname="{{ user.firstname }}"
-                                        data-user-lastname="{{ user.lastname }}"
-                                        data-user-email="{{ user.email }}"
-                                        data-user-status="{{ user.accountStatus }}"
-                                        data-user-roles="{{ user.roles|json_encode }}"
-                                    >
-                                        <i class="fas fa-edit"></i>
-                                        <span class="hidden md:inline">Edit</span>
-                                    </button>
-                                    <button 
-                                        class="delete-user-btn bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 border border-red-500/40 hover:border-red-500/60 hover:shadow-lg hover:shadow-red-500/20"
-                                        data-user-id="{{ user.id }}"
-                                        data-user-name="{{ user.firstname }} {{ user.lastname }}"
-                                    >
-                                        <i class="fas fa-trash"></i>
-                                        <span class="hidden md:inline">Delete</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    {% else %}
+            <div class="relative overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700/50">
+                    <thead class="bg-gray-900/50 backdrop-blur">
                         <tr>
-                            <td colspan="4" class="px-6 py-20 text-center">
-                                <div class="flex flex-col items-center justify-center">
-                                    <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur rounded-2xl p-8 mb-4 border border-gray-700">
-                                        <i class="fas fa-users text-gray-500 text-5xl"></i>
-                                    </div>
-                                    <h3 class="text-xl font-semibold text-gray-300 mb-2">No users found</h3>
-                                    <p class="text-gray-500">No users registered yet</p>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user text-purple-400"></i>
+                                    User
                                 </div>
-                            </td>
+                            </th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-briefcase text-purple-400"></i>
+                                    Function
+                                </div>
+                            </th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-toggle-on text-purple-400"></i>
+                                    Status
+                                </div>
+                            </th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar text-purple-400"></i>
+                                    Date creation
+                                </div>
+                            </th>
+                            <th class="px-6 py-5 text-right text-xs font-bold text-gray-300 uppercase tracking-wider">Action</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700/50 backdrop-blur">
+                        {% for user in users %}
+                            <tr class="table-row hover:bg-purple-500/5 transition-all duration-200 group">
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-11 w-11">
+                                            <img class="h-11 w-11 rounded-xl ring-2 ring-purple-500/30 group-hover:ring-purple-500/50 transition"
+                                                 src="https://ui-avatars.com/api/?name={{ user.firstname }}+{{ user.lastname }}&background=7c3aed&color=fff"
+                                                 alt="{{ user.firstname }} {{ user.lastname }}">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-semibold text-white group-hover:text-purple-300 transition">
+                                                {{ user.firstname }} {{ user.lastname }}
+                                            </div>
+                                            <div class="text-sm text-gray-400">
+                                                {{ user.email }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-300 border border-purple-500/40 backdrop-blur">
+                                        {{ user.roles|join(', ') }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap">
+                                    {% if user.accountStatus == 'active' %}
+                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-500/20 text-green-300 border border-green-500/40">
+                                            Active
+                                        </span>
+                                    {% elseif user.accountStatus == 'inactive' %}
+                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/20 text-red-300 border border-red-500/40">
+                                            Inactive
+                                        </span>
+                                    {% else %}
+                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">
+                                            Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-300">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-clock text-gray-500 text-xs"></i>
+                                        {{ user.dateCreation ? user.dateCreation|date('d/m/Y') : '—' }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex justify-end items-center gap-2">
+                                        <a href="/admin/users/activate/{{ user.id }}"
+                                           class="px-3 py-1.5 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-md border border-green-500/40 transition">
+                                            Activate
+                                        </a>
+                                        <a href="/admin/users/deactivate/{{ user.id }}"
+                                           class="px-3 py-1.5 text-xs bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 rounded-md border border-yellow-500/40 transition">
+                                            Deactivate
+                                        </a>
+                                        <button
+                                            class="edit-user-btn bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-2.5 py-1.5 rounded-md border border-purple-500/40 transition"
+                                            data-user-id="{{ user.id }}"
+                                            data-user-firstname="{{ user.firstname }}"
+                                            data-user-lastname="{{ user.lastname }}"
+                                            data-user-email="{{ user.email }}"
+                                            data-user-status="{{ user.accountStatus }}"
+                                            data-user-roles="{{ user.roles|json_encode }}"
+                                        >
+                                            <i class="fas fa-edit text-sm"></i>
+                                        </button>
+                                        <button
+                                            class="delete-user-btn bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2.5 py-1.5 rounded-md border border-red-500/40 transition"
+                                            data-user-id="{{ user.id }}"
+                                            data-user-name="{{ user.firstname }} {{ user.lastname }}"
+                                        >
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-20 text-center">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur rounded-2xl p-8 mb-4 border border-gray-700">
+                                            <i class="fas fa-users text-gray-500 text-5xl"></i>
+                                        </div>
+                                        <h3 class="text-xl font-semibold text-gray-300 mb-2">No users found</h3>
+                                        <p class="text-gray-500">No users registered yet</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Add Coach Modal -->
-<div id="addCoachModal" class="modal">
-    <div class="modal-content max-w-2xl">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-white">Add New Coach</h3>
-            <button id="closeAddCoachModal" class="text-gray-400 hover:text-purple-400 text-2xl transition">
-                <i class="fas fa-times"></i>
-            </button>
+    <!-- Add Coach Modal -->
+    <div id="addCoachModal" class="modal fixed inset-0 bg-black/60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-300 hidden">
+        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 border border-gray-700 transform transition-all duration-300 scale-95 opacity-0">
+            <div class="flex items-center justify-between mb-6 p-6 pb-0">
+                <h3 class="text-2xl font-bold text-white">Add New Coach</h3>
+                <button id="closeAddCoachModal" class="text-gray-400 hover:text-purple-400 text-2xl transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="addCoachForm" action="{{ path('admin_users_add_coach') }}" method="POST" class="p-6 pt-0">
+                <div class="space-y-4">
+                    <div>
+                        <label for="firstname" class="block text-sm font-medium text-gray-300 mb-2">First Name *</label>
+                        <input type="text" id="firstname" name="firstname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter first name">
+                        <p class="mt-1 text-sm text-gray-400">Letters only, no numbers</p>
+                    </div>
+                    <div>
+                        <label for="lastname" class="block text-sm font-medium text-gray-300 mb-2">Last Name *</label>
+                        <input type="text" id="lastname" name="lastname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter last name">
+                        <p class="mt-1 text-sm text-gray-400">Letters only, no numbers</p>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email *</label>
+                        <input type="email" id="email" name="email" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="coach@example.com">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password *</label>
+                        <input type="password" id="password" name="password" required minlength="6" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Minimum 6 characters">
+                        <p class="mt-1 text-sm text-gray-400">Minimum 6 characters</p>
+                    </div>
+                    <div>
+                        <label for="accountStatus" class="block text-sm font-medium text-gray-300 mb-2">Account Status *</label>
+                        <select id="accountStatus" name="accountStatus" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                            <option value="">Select status...</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-8">
+                    <button type="button" id="cancelAddCoach" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">Cancel</button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition font-semibold shadow-lg hover:shadow-purple-500/50">
+                        <i class="fas fa-plus mr-2"></i> Create Coach
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <form id="addCoachForm" action="{{ path('admin_users_add_coach') }}" method="POST">
-            <div class="space-y-4">
-                <!-- First Name -->
-                <div>
-                    <label for="firstname" class="block text-sm font-medium text-gray-300 mb-2">First Name *</label>
-                    <input 
-                        type="text" 
-                        id="firstname" 
-                        name="firstname" 
-                        required
-                        pattern="[a-zA-Z]+"
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="Enter first name"
-                    >
-                    <p class="mt-1 text-sm text-gray-400">Letters only, no numbers</p>
-                </div>
-
-                <!-- Last Name -->
-                <div>
-                    <label for="lastname" class="block text-sm font-medium text-gray-300 mb-2">Last Name *</label>
-                    <input 
-                        type="text" 
-                        id="lastname" 
-                        name="lastname" 
-                        required
-                        pattern="[a-zA-Z]+"
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="Enter last name"
-                    >
-                    <p class="mt-1 text-sm text-gray-400">Letters only, no numbers</p>
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email *</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        required
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="coach@example.com"
-                    >
-                </div>
-
-                <!-- Password -->
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password *</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        required
-                        minlength="6"
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="Minimum 6 characters"
-                    >
-                    <p class="mt-1 text-sm text-gray-400">Minimum 6 characters</p>
-                </div>
-
-                <!-- Account Status -->
-                <div>
-                    <label for="accountStatus" class="block text-sm font-medium text-gray-300 mb-2">Account Status *</label>
-                    <select 
-                        id="accountStatus" 
-                        name="accountStatus" 
-                        required
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                    >
-                        <option value="">Select status...</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="pending">Pending</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-4 mt-8">
-                <button type="button" id="cancelAddCoach" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">
-                    Cancel
-                </button>
-                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition font-semibold shadow-lg hover:shadow-purple-500/50">
-                    <i class="fas fa-plus mr-2"></i>
-                    Create Coach
-                </button>
-            </div>
-        </form>
     </div>
-</div>
 
-<!-- Edit User Modal -->
-<div id="editUserModal" class="modal">
-    <div class="modal-content max-w-2xl">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-white">Edit User</h3>
-            <button id="closeEditUserModal" class="text-gray-400 hover:text-purple-400 text-2xl transition">
-                <i class="fas fa-times"></i>
-            </button>
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal fixed inset-0 bg-black/60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-300 hidden">
+        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 border border-gray-700 transform transition-all duration-300 scale-95 opacity-0">
+            <div class="flex items-center justify-between mb-6 p-6 pb-0">
+                <h3 class="text-2xl font-bold text-white">Edit User</h3>
+                <button id="closeEditUserModal" class="text-gray-400 hover:text-purple-400 text-2xl transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="editUserForm" method="POST" class="p-6 pt-0">
+                <input type="hidden" id="edit_user_id" name="user_id">
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="edit_firstname" class="block text-sm font-medium text-gray-300 mb-2">First Name *</label>
+                        <input type="text" id="edit_firstname" name="firstname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter first name">
+                    </div>
+                    <div>
+                        <label for="edit_lastname" class="block text-sm font-medium text-gray-300 mb-2">Last Name *</label>
+                        <input type="text" id="edit_lastname" name="lastname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter last name">
+                    </div>
+                    <div>
+                        <label for="edit_email" class="block text-sm font-medium text-gray-300 mb-2">Email *</label>
+                        <input type="email" id="edit_email" name="email" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="user@example.com">
+                    </div>
+                    <div>
+                        <label for="edit_password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                        <input type="password" id="edit_password" name="password" minlength="6" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Leave blank to keep current password">
+                        <p class="mt-1 text-sm text-gray-400">Leave blank to keep current password</p>
+                    </div>
+                    <div>
+                        <label for="edit_accountStatus" class="block text-sm font-medium text-gray-300 mb-2">Account Status *</label>
+                        <select id="edit_accountStatus" name="accountStatus" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="edit_role" class="block text-sm font-medium text-gray-300 mb-2">Role *</label>
+                        <select id="edit_role" name="role" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                            <option value="ROLE_USER">User</option>
+                            <option value="ROLE_COACH">Coach</option>
+                            <option value="ROLE_ADMIN">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-8">
+                    <button type="button" id="cancelEditUser" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">Cancel</button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition font-semibold shadow-lg hover:shadow-purple-500/50">
+                        <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <form id="editUserForm" method="POST">
-            <input type="hidden" id="edit_user_id" name="user_id">
-            
-            <div class="space-y-4">
-                <!-- First Name -->
-                <div>
-                    <label for="edit_firstname" class="block text-sm font-medium text-gray-300 mb-2">First Name *</label>
-                    <input 
-                        type="text" 
-                        id="edit_firstname" 
-                        name="firstname" 
-                        required
-                        pattern="[a-zA-Z]+"
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="Enter first name"
-                    >
-                </div>
-
-                <!-- Last Name -->
-                <div>
-                    <label for="edit_lastname" class="block text-sm font-medium text-gray-300 mb-2">Last Name *</label>
-                    <input 
-                        type="text" 
-                        id="edit_lastname" 
-                        name="lastname" 
-                        required
-                        pattern="[a-zA-Z]+"
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="Enter last name"
-                    >
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label for="edit_email" class="block text-sm font-medium text-gray-300 mb-2">Email *</label>
-                    <input 
-                        type="email" 
-                        id="edit_email" 
-                        name="email" 
-                        required
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="user@example.com"
-                    >
-                </div>
-
-                <!-- Password (Optional) -->
-                <div>
-                    <label for="edit_password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
-                    <input 
-                        type="password" 
-                        id="edit_password" 
-                        name="password" 
-                        minlength="6"
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        placeholder="Leave blank to keep current password"
-                    >
-                    <p class="mt-1 text-sm text-gray-400">Leave blank to keep current password</p>
-                </div>
-
-                <!-- Account Status -->
-                <div>
-                    <label for="edit_accountStatus" class="block text-sm font-medium text-gray-300 mb-2">Account Status *</label>
-                    <select 
-                        id="edit_accountStatus" 
-                        name="accountStatus" 
-                        required
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                    >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="pending">Pending</option>
-                    </select>
-                </div>
-
-                <!-- Roles -->
-                <div>
-                    <label for="edit_role" class="block text-sm font-medium text-gray-300 mb-2">Role *</label>
-                    <select 
-                        id="edit_role" 
-                        name="role" 
-                        required
-                        class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                    >
-                        <option value="ROLE_USER">User</option>
-                        <option value="ROLE_COACH">Coach</option>
-                        <option value="ROLE_ADMIN">Admin</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-4 mt-8">
-                <button type="button" id="cancelEditUser" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">
-                    Cancel
-                </button>
-                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition font-semibold shadow-lg hover:shadow-purple-500/50">
-                    <i class="fas fa-save mr-2"></i>
-                    Save Changes
-                </button>
-            </div>
-        </form>
     </div>
-</div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteUserModal" class="modal">
-    <div class="modal-content max-w-md">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-white">Delete User</h3>
-            <button id="closeDeleteUserModal" class="text-gray-400 hover:text-red-400 text-2xl transition">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="mb-6">
-            <div class="bg-red-500/20 rounded-xl p-4 mb-4 border border-red-500/40">
-                <p class="text-gray-300">Are you sure you want to delete this user?</p>
-                <p class="mt-2 font-semibold text-white" id="deleteUserName"></p>
-            </div>
-            <p class="text-sm text-red-400 flex items-center gap-2">
-                <i class="fas fa-exclamation-triangle"></i>
-                This action cannot be undone.
-            </p>
-        </div>
-
-        <form id="deleteUserForm" method="POST">
-            <input type="hidden" id="delete_user_id" name="user_id">
-            
-            <div class="flex justify-end gap-4">
-                <button type="button" id="cancelDeleteUser" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">
-                    Cancel
-                </button>
-                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition font-semibold shadow-lg hover:shadow-red-500/50">
-                    <i class="fas fa-trash mr-2"></i>
-                    Confirm Delete
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteUserModal" class="modal fixed inset-0 bg-black/60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-300 hidden">
+        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-gray-700 transform transition-all duration-300 scale-95 opacity-0">
+            <div class="flex items-center justify-between mb-6 p-6 pb-0">
+                <h3 class="text-2xl font-bold text-white">Delete User</h3>
+                <button id="closeDeleteUserModal" class="text-gray-400 hover:text-red-400 text-2xl transition">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
-        </form>
+
+            <div class="p-6 pt-0">
+                <div class="bg-red-500/20 rounded-xl p-4 mb-4 border border-red-500/40">
+                    <p class="text-gray-300">Are you sure you want to delete this user?</p>
+                    <p class="mt-2 font-semibold text-white" id="deleteUserName"></p>
+                </div>
+                <p class="text-sm text-red-400 flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <form id="deleteUserForm" method="POST" class="p-6 pt-0">
+                <input type="hidden" id="delete_user_id" name="user_id">
+
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancelDeleteUser" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">Cancel</button>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition font-semibold shadow-lg hover:shadow-red-500/50">
+                        <i class="fas fa-trash mr-2"></i> Confirm Delete
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ===== Add Coach Modal Controls =====
-    const addCoachModal = document.getElementById('addCoachModal');
-    const openAddCoachBtn = document.getElementById('openAddCoachModal');
-    const closeAddCoachBtn = document.getElementById('closeAddCoachModal');
-    const cancelAddCoachBtn = document.getElementById('cancelAddCoach');
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
 
-    function openAddCoachModal() {
-        addCoachModal.style.display = 'flex';
-        setTimeout(() => {
-            addCoachModal.classList.add('active');
-        }, 10);
+            // Flash messages fade out
+            document.querySelectorAll('.mb-6').forEach(flash => {
+                setTimeout(() => {
+                    flash.style.transition = 'opacity 0.5s ease';
+                    flash.style.opacity = '0';
+                    setTimeout(() => flash.remove(), 500);
+                }, 5000);
+            });
+
+            // ────────────────────────────────────────────────
+            //   Core elements
+            // ────────────────────────────────────────────────
+            const searchInput   = document.getElementById('searchUsers');
+            const filterStatus  = document.getElementById('filterStatus');
+            const filterRole    = document.getElementById('filterRole');
+            const clearButton   = document.getElementById('clearSearch');
+            const searchResults = document.getElementById('searchResults');
+            const tableRows     = document.querySelectorAll('tbody tr');
+
+            // ────────────────────────────────────────────────
+            //   Live filtering
+            // ────────────────────────────────────────────────
+            function filterUsers() {
+    if (!searchInput || !filterStatus || !filterRole) {
+        console.warn("One of the filter elements is missing");
+        return;
     }
 
-    function closeAddCoachModal() {
-        addCoachModal.classList.remove('active');
-        setTimeout(() => {
-            addCoachModal.style.display = 'none';
-        }, 300);
-    }
+    const searchTerm   = searchInput.value.toLowerCase().trim();
+    const statusFilter = filterStatus.value.trim(); // e.g. "active", "inactive", ""
+    const roleFilter   = filterRole.value.trim();
 
-    openAddCoachBtn.addEventListener('click', openAddCoachModal);
-    closeAddCoachBtn.addEventListener('click', closeAddCoachModal);
-    cancelAddCoachBtn.addEventListener('click', closeAddCoachModal);
+    let visibleCount = 0;
 
-    // Close on outside click
-    addCoachModal.addEventListener('click', function(e) {
-        if (e.target === addCoachModal) {
-            closeAddCoachModal();
+    tableRows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return; // no-users row
+
+        const nameEl   = row.querySelector('.text-sm.font-semibold.text-white');
+        const emailEl  = row.querySelector('.text-sm.text-gray-400');
+        const roleEl   = row.querySelector('td:nth-child(2) span');
+        const statusEl = row.querySelector('td:nth-child(3) span');
+
+        // Extract and normalize
+        const name   = (nameEl?.textContent   || '').toLowerCase().trim();
+        const email  = (emailEl?.textContent  || '').toLowerCase().trim();
+        const role   = (roleEl?.textContent   || '').toLowerCase().trim();
+        let   status = (statusEl?.textContent || '').toLowerCase().trim();
+
+        // Debug: log what we actually see in the status cell
+        if (statusFilter && visibleCount === 0) {  // log only once per filter change
+            console.log(
+                'Sample status cell raw:', statusEl?.textContent,
+                '→ normalized:', status
+            );
         }
-    });
 
-    // ===== Edit User Modal Controls =====
-    const editUserModal = document.getElementById('editUserModal');
-    const closeEditUserBtn = document.getElementById('closeEditUserModal');
-    const cancelEditUserBtn = document.getElementById('cancelEditUser');
-    const editUserForm = document.getElementById('editUserForm');
-    const editUserBtns = document.querySelectorAll('.edit-user-btn');
+        const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+        const matchesRole   = !roleFilter || role.includes(roleFilter.toLowerCase());
 
-    function openEditUserModal(userData) {
-        // Populate form fields
-        document.getElementById('edit_user_id').value = userData.id;
-        document.getElementById('edit_firstname').value = userData.firstname;
-        document.getElementById('edit_lastname').value = userData.lastname;
-        document.getElementById('edit_email').value = userData.email;
-        document.getElementById('edit_accountStatus').value = userData.status;
-        document.getElementById('edit_password').value = ''; // Clear password field
-        
-        // Set role dropdown
-        const roles = JSON.parse(userData.roles);
-        const primaryRole = roles.find(r => r !== 'ROLE_USER') || 'ROLE_USER';
-        document.getElementById('edit_role').value = primaryRole;
-        
-        // Set form action
-        editUserForm.action = `/admin/users/edit/${userData.id}`;
-        
-        // Show modal
-        editUserModal.style.display = 'flex';
-        setTimeout(() => {
-            editUserModal.classList.add('active');
-        }, 10);
+// Status matching
+let matchesStatus = !statusFilter;  // if no filter → show all
+
+if (statusFilter) {
+    // Exact match after normalization
+    if (status === statusFilter) {
+        matchesStatus = true;
+    } else {
+        matchesStatus = false;
     }
+}
 
-    function closeEditUserModal() {
-        editUserModal.classList.remove('active');
-        setTimeout(() => {
-            editUserModal.style.display = 'none';
-        }, 300);
-    }
-
-    // Attach click handlers to all edit buttons
-    editUserBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userData = {
-                id: this.dataset.userId,
-                firstname: this.dataset.userFirstname,
-                lastname: this.dataset.userLastname,
-                email: this.dataset.userEmail,
-                status: this.dataset.userStatus,
-                roles: this.dataset.userRoles
-            };
-            openEditUserModal(userData);
-        });
-    });
-
-    closeEditUserBtn.addEventListener('click', closeEditUserModal);
-    cancelEditUserBtn.addEventListener('click', closeEditUserModal);
-
-    // Close on outside click
-    editUserModal.addEventListener('click', function(e) {
-        if (e.target === editUserModal) {
-            closeEditUserModal();
-        }
-    });
-
-    // ===== Delete User Modal Controls =====
-    const deleteUserModal = document.getElementById('deleteUserModal');
-    const closeDeleteUserBtn = document.getElementById('closeDeleteUserModal');
-    const cancelDeleteUserBtn = document.getElementById('cancelDeleteUser');
-    const deleteUserForm = document.getElementById('deleteUserForm');
-    const deleteUserBtns = document.querySelectorAll('.delete-user-btn');
-
-    function openDeleteUserModal(userId, userName) {
-        document.getElementById('delete_user_id').value = userId;
-        document.getElementById('deleteUserName').textContent = userName;
-        deleteUserForm.action = `/admin/users/delete/${userId}`;
-        
-        deleteUserModal.style.display = 'flex';
-        setTimeout(() => {
-            deleteUserModal.classList.add('active');
-        }, 10);
-    }
-
-    function closeDeleteUserModal() {
-        deleteUserModal.classList.remove('active');
-        setTimeout(() => {
-            deleteUserModal.style.display = 'none';
-        }, 300);
-    }
-
-    // Attach click handlers to all delete buttons
-    deleteUserBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userId = this.dataset.userId;
-            const userName = this.dataset.userName;
-            openDeleteUserModal(userId, userName);
-        });
-    });
-
-    closeDeleteUserBtn.addEventListener('click', closeDeleteUserModal);
-    cancelDeleteUserBtn.addEventListener('click', closeDeleteUserModal);
-
-    // Close on outside click
-    deleteUserModal.addEventListener('click', function(e) {
-        if (e.target === deleteUserModal) {
-            closeDeleteUserModal();
-        }
-    });
-
-    // Close all modals on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (addCoachModal.style.display !== 'none') {
-                closeAddCoachModal();
-            }
-            if (editUserModal.style.display !== 'none') {
-                closeEditUserModal();
-            }
-            if (deleteUserModal.style.display !== 'none') {
-                closeDeleteUserModal();
-            }
-        }
-    });
-
-    // ===== Search Functionality =====
-    const searchInput = document.getElementById('searchUsers');
-    const clearButton = document.getElementById('clearSearch');
-    const searchResults = document.getElementById('searchResults');
-    const tableRows = document.querySelectorAll('tbody tr');
-    
-    function filterUsers() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        let visibleCount = 0;
-        
-        tableRows.forEach(row => {
-            // Skip the "no users found" row
-            if (row.querySelector('td[colspan]')) {
-                return;
-            }
-            
-            const nameElement = row.querySelector('.text-sm.font-semibold.text-white');
-            const emailElement = row.querySelector('.text-sm.text-gray-400');
-            
-            if (nameElement && emailElement) {
-                const name = nameElement.textContent.toLowerCase();
-                const email = emailElement.textContent.toLowerCase();
-                
-                if (name.includes(searchTerm) || email.includes(searchTerm)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-        });
-        
-        // Update search results text
-        if (searchTerm) {
-            searchResults.innerHTML = `<i class="fas fa-search mr-2"></i>Showing ${visibleCount} user(s) matching "${searchTerm}"`;
+        if (matchesSearch && matchesStatus && matchesRole) {
+            row.style.display = '';
+            visibleCount++;
         } else {
-            searchResults.textContent = '';
+            row.style.display = 'none';
         }
+    });
+
+    // Show result count
+    if (searchTerm || statusFilter || roleFilter) {
+        searchResults.innerHTML = `<i class="fas fa-search mr-2"></i>Showing ${visibleCount} user(s)`;
+    } else {
+        searchResults.textContent = '';
     }
-    
-    // Event listeners
-    searchInput.addEventListener('input', filterUsers);
-    
-    clearButton.addEventListener('click', function() {
-        searchInput.value = '';
-        filterUsers();
-        searchInput.focus();
-    });
-    
-    // Allow Enter key to trigger search (though it's already live)
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            filterUsers();
-        }
-    });
-});
-</script>
+}
+
+            searchInput?.addEventListener('input',   filterUsers);
+            filterStatus?.addEventListener('change', filterUsers);
+            filterRole?.addEventListener('change',   filterUsers);
+
+            clearButton?.addEventListener('click', () => {
+                if (searchInput) searchInput.value = '';
+                filterUsers();
+                searchInput?.focus();
+            });
+
+            // ────────────────────────────────────────────────
+            //   Modal helpers
+            // ────────────────────────────────────────────────
+            function openModal(modal) {
+                if (!modal) return;
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('active'), 20);
+            }
+
+            function closeModal(modal) {
+                if (!modal) return;
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            // ────────────────────────────────────────────────
+            //   Add Coach Modal
+            // ────────────────────────────────────────────────
+            const addModal      = document.getElementById('addCoachModal');
+            const openAddBtn    = document.getElementById('openAddCoachModal');
+            const closeAddBtn   = document.getElementById('closeAddCoachModal');
+            const cancelAddBtn  = document.getElementById('cancelAddCoach');
+
+            openAddBtn?.addEventListener('click',       () => openModal(addModal));
+            closeAddBtn?.addEventListener('click',      () => closeModal(addModal));
+            cancelAddBtn?.addEventListener('click',     () => closeModal(addModal));
+            addModal?.addEventListener('click', e => { if (e.target === addModal) closeModal(addModal); });
+
+            // ────────────────────────────────────────────────
+            //   Edit Modal
+            // ────────────────────────────────────────────────
+            const editModal     = document.getElementById('editUserModal');
+            const closeEditBtn  = document.getElementById('closeEditUserModal');
+            const cancelEditBtn = document.getElementById('cancelEditUser');
+            const editForm      = document.getElementById('editUserForm');
+
+            document.querySelectorAll('.edit-user-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const data = {
+                        id:        this.dataset.userId,
+                        firstname: this.dataset.userFirstname,
+                        lastname:  this.dataset.userLastname,
+                        email:     this.dataset.userEmail,
+                        status:    this.dataset.userStatus,
+                        roles:     this.dataset.userRoles
+                    };
+
+                    document.getElementById('edit_user_id').value       = data.id;
+                    document.getElementById('edit_firstname').value     = data.firstname;
+                    document.getElementById('edit_lastname').value      = data.lastname;
+                    document.getElementById('edit_email').value         = data.email;
+                    document.getElementById('edit_accountStatus').value = data.status;
+                    document.getElementById('edit_password').value      = '';
+
+                    let primaryRole = 'ROLE_USER';
+                    try {
+                        const roles = JSON.parse(data.roles);
+                        primaryRole = roles.find(r => r !== 'ROLE_USER') || 'ROLE_USER';
+                    } catch (e) {
+                        console.warn('Invalid roles format', data.roles);
+                    }
+                    document.getElementById('edit_role').value = primaryRole;
+
+                    editForm.action = `/admin/users/edit/${data.id}`;
+
+                    openModal(editModal);
+                });
+            });
+
+            closeEditBtn?.addEventListener('click',  () => closeModal(editModal));
+            cancelEditBtn?.addEventListener('click', () => closeModal(editModal));
+            editModal?.addEventListener('click', e => { if (e.target === editModal) closeModal(editModal); });
+
+            // ────────────────────────────────────────────────
+            //   Delete Modal
+            // ────────────────────────────────────────────────
+            const deleteModal      = document.getElementById('deleteUserModal');
+            const closeDeleteBtn   = document.getElementById('closeDeleteUserModal');
+            const cancelDeleteBtn  = document.getElementById('cancelDeleteUser');
+            const deleteForm       = document.getElementById('deleteUserForm');
+
+            document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.getElementById('delete_user_id').value = this.dataset.userId;
+                    document.getElementById('deleteUserName').textContent = this.dataset.userName;
+                    deleteForm.action = `/admin/users/delete/${this.dataset.userId}`;
+                    openModal(deleteModal);
+                });
+            });
+
+            closeDeleteBtn?.addEventListener('click',  () => closeModal(deleteModal));
+            cancelDeleteBtn?.addEventListener('click', () => closeModal(deleteModal));
+            deleteModal?.addEventListener('click', e => { if (e.target === deleteModal) closeModal(deleteModal); });
+
+            // Escape key → close modals
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    closeModal(addModal);
+                    closeModal(editModal);
+                    closeModal(deleteModal);
+                }
+            });
+        });
+    </script>
+
 {% endblock %}
