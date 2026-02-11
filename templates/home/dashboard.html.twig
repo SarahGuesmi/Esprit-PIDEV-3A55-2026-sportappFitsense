@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard Coach - Training Studio{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5" style="background-color: #0b0b0b; min-height: 100vh;">
+    <div class="container-xl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-lg" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 24px;">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-5">
+                            <h1 class="card-title" style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 1.5rem;">
+                                🏋️‍♂️ Dashboard Coach
+                            </h1>
+                            <p class="card-text" style="color: #b3b3b3; font-size: 1.125rem; line-height: 1.6;">
+                                Bienvenue dans votre espace de gestion. Consultez les questionnaires de vos clients et suivez leur progression.
+                            </p>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Bouton Questionnaires -->
+                            <div class="col-lg-6 col-md-6">
+                                <div class="card h-100" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; transition: all 0.3s ease;">
+                                    <div class="card-body text-center p-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-clipboard-list" style="font-size: 3rem; color: #10b981;"></i>
+                                        </div>
+                                        <h5 class="card-title" style="color: #ffffff; font-weight: 600;">Questionnaires</h5>
+                                        <p class="card-text" style="color: #b3b3b3;">Consultez les retours de vos clients après leurs séances</p>
+                                        <a href="{{ path('coach_questionnaires') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #059669 100%); border: none; font-weight: 700; padding: 0.75rem 2rem; border-radius: 50px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); transition: all 0.3s ease;">
+                                            Voir les questionnaires
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Statistiques -->
+                            <div class="col-lg-6 col-md-6">
+                                <div class="card h-100" style="background: rgba(199, 240, 0, 0.1); border: 1px solid rgba(199, 240, 0, 0.3); border-radius: 16px; transition: all 0.3s ease;">
+                                    <div class="card-body text-center p-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-chart-line" style="font-size: 3rem; color: #c7f000;"></i>
+                                        </div>
+                                        <h5 class="card-title" style="color: #ffffff; font-weight: 600;">Statistiques</h5>
+                                        <p class="card-text" style="color: #b3b3b3;">Analysez les performances et les retours de vos clients</p>
+                                        <button class="btn btn-secondary" style="background: linear-gradient(135deg, #c7f000 0%, #d4ff00 100%); border: none; color: #000; font-weight: 700; padding: 0.75rem 2rem; border-radius: 50px;" disabled>
+                                            Bientôt disponible
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Informations -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px;">
+                                    <div class="card-body p-4">
+                                        <h6 class="card-title" style="color: #ffffff; font-weight: 600; margin-bottom: 1rem;">
+                                            <i class="fas fa-info-circle me-2" style="color: #10b981;"></i>
+                                            Informations du Coach
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p class="mb-2" style="color: #b3b3b3;"><strong style="color: #ffffff;">Nom:</strong> {{ app.user ? app.user.firstname ~ ' ' ~ app.user.lastname : 'Non connecté' }}</p>
+                                                <p class="mb-2" style="color: #b3b3b3;"><strong style="color: #ffffff;">Email:</strong> {{ app.user ? app.user.email : 'N/A' }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p class="mb-2" style="color: #b3b3b3;"><strong style="color: #ffffff;">Rôle:</strong> Coach</p>
+                                                <p class="mb-0" style="color: #b3b3b3;"><strong style="color: #ffffff;">Statut:</strong> Actif</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
