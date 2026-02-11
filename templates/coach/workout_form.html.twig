@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isEdit ? 'Modifier Workout' : 'Créer Workout' }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Container général */
+        .form-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 2rem auto;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 35px 60px -15px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4f46e5; /* Indigo */
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        /* Champs de formulaire */
+        .form-card .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .form-card .form-control:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Boutons */
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .btn-primary:hover {
+            background: #6366f1;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            transform: translateY(-1px);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="form-card">
+    <h1>{{ isEdit ? 'Modifier Workout' : 'Créer Workout' }}</h1>
+
+    {{ form_start(form) }}
+        {% for field in form %}
+            <div class="mb-4">
+                {{ form_label(field, null, {'label_attr': {'class': 'block font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(field, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(field, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+            </div>
+        {% endfor %}
+
+        <div class="flex justify-end gap-3 mt-4">
+            <a href="{{ path('coach_workout_catalog') }}" class="btn btn-secondary">Retour à la liste</a>
+            <button type="submit" class="btn btn-primary">
+                {{ isEdit ? 'Mettre à jour' : 'Créer' }}
+            </button>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}
