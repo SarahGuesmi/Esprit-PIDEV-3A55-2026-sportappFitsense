@@ -1,77 +1,143 @@
 {% extends 'admin/base_admin.html.twig' %}
 
+{% block title %}Dashboard - FitSense Admin{% endblock %}
+
 {% block admin_content %}
 
 <div class="space-y-8">
     <!-- Header -->
     <div>
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p class="mt-2 text-gray-600">Welcome to the admin panel</p>
+        <h1 class="text-3xl font-bold text-white">Dashboard</h1>
+        <p class="mt-2 text-gray-400">Welcome to the admin panel</p>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Total Users Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:transform hover:scale-105">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600">Total Users</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ userCount ?? 0 }}</p>
+                    <p class="text-sm font-medium text-gray-400 uppercase tracking-wide">Total Users</p>
+                    <p class="text-4xl font-bold text-white mt-3">{{ userCount ?? 0 }}</p>
+                    <p class="text-xs text-green-400 mt-2 flex items-center gap-1">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+12% this month</span>
+                    </p>
                 </div>
-                <div class="bg-indigo-100 rounded-full p-3">
-                    <i class="fas fa-users text-indigo-600 text-2xl"></i>
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 shadow-lg">
+                    <i class="fas fa-users text-white text-3xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Active Sessions Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300 hover:transform hover:scale-105">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600">Active Sessions</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">24</p>
+                    <p class="text-sm font-medium text-gray-400 uppercase tracking-wide">Active Sessions</p>
+                    <p class="text-4xl font-bold text-white mt-3">24</p>
+                    <p class="text-xs text-green-400 mt-2 flex items-center gap-1">
+                        <i class="fas fa-circle text-green-400 text-xs animate-pulse"></i>
+                        <span>Live now</span>
+                    </p>
                 </div>
-                <div class="bg-green-100 rounded-full p-3">
-                    <i class="fas fa-chart-line text-green-600 text-2xl"></i>
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 shadow-lg">
+                    <i class="fas fa-chart-line text-white text-3xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Notifications Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:transform hover:scale-105">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600">Notifications</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">12</p>
+                    <p class="text-sm font-medium text-gray-400 uppercase tracking-wide">Notifications</p>
+                    <p class="text-4xl font-bold text-white mt-3">12</p>
+                    <p class="text-xs text-yellow-400 mt-2 flex items-center gap-1">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>3 pending</span>
+                    </p>
                 </div>
-                <div class="bg-yellow-100 rounded-full p-3">
-                    <i class="fas fa-bell text-yellow-600 text-2xl"></i>
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 shadow-lg">
+                    <i class="fas fa-bell text-white text-3xl"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-2xl shadow-lg p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
+        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <div class="w-1 h-8 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
+            Quick Actions
+        </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a href="{{ path('admin_users_index') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                <i class="fas fa-users text-indigo-600 text-xl mr-3"></i>
-                <span class="font-medium text-gray-900">Manage Users</span>
+            <a href="{{ path('admin_users_index') }}" class="group flex items-center p-5 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-750 hover:border-blue-500 transition-all duration-300 hover:transform hover:scale-105">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 mr-4 group-hover:shadow-lg group-hover:shadow-blue-500/50 transition-all">
+                    <i class="fas fa-users text-white text-xl"></i>
+                </div>
+                <span class="font-semibold text-gray-300 group-hover:text-white transition">Manage Users</span>
             </a>
-            <a href="#" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                <i class="fas fa-table text-indigo-600 text-xl mr-3"></i>
-                <span class="font-medium text-gray-900">View Tables</span>
+            <a href="#" class="group flex items-center p-5 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-750 hover:border-green-500 transition-all duration-300 hover:transform hover:scale-105">
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-3 mr-4 group-hover:shadow-lg group-hover:shadow-green-500/50 transition-all">
+                    <i class="fas fa-table text-white text-xl"></i>
+                </div>
+                <span class="font-semibold text-gray-300 group-hover:text-white transition">View Tables</span>
             </a>
-            <a href="#" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                <i class="fas fa-cog text-indigo-600 text-xl mr-3"></i>
-                <span class="font-medium text-gray-900">Settings</span>
+            <a href="#" class="group flex items-center p-5 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-750 hover:border-purple-500 transition-all duration-300 hover:transform hover:scale-105">
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 mr-4 group-hover:shadow-lg group-hover:shadow-purple-500/50 transition-all">
+                    <i class="fas fa-cog text-white text-xl"></i>
+                </div>
+                <span class="font-semibold text-gray-300 group-hover:text-white transition">Settings</span>
             </a>
-            <a href="#" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                <i class="fas fa-chart-bar text-indigo-600 text-xl mr-3"></i>
-                <span class="font-medium text-gray-900">Reports</span>
+            <a href="#" class="group flex items-center p-5 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-750 hover:border-yellow-500 transition-all duration-300 hover:transform hover:scale-105">
+                <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-3 mr-4 group-hover:shadow-lg group-hover:shadow-yellow-500/50 transition-all">
+                    <i class="fas fa-chart-bar text-white text-xl"></i>
+                </div>
+                <span class="font-semibold text-gray-300 group-hover:text-white transition">Reports</span>
             </a>
         </div>
     </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
+        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <div class="w-1 h-8 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
+            Recent Activity
+        </h2>
+        <div class="space-y-4">
+            <div class="flex items-center gap-4 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition">
+                <div class="bg-blue-500/20 rounded-full p-3">
+                    <i class="fas fa-user-plus text-blue-400"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-white font-medium">New user registered</p>
+                    <p class="text-gray-400 text-sm">John Doe joined the platform</p>
+                </div>
+                <span class="text-gray-500 text-sm">2 min ago</span>
+            </div>
+            <div class="flex items-center gap-4 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition">
+                <div class="bg-green-500/20 rounded-full p-3">
+                    <i class="fas fa-dumbbell text-green-400"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-white font-medium">Training session completed</p>
+                    <p class="text-gray-400 text-sm">Sarah finished her workout</p>
+                </div>
+                <span class="text-gray-500 text-sm">15 min ago</span>
+            </div>
+            <div class="flex items-center gap-4 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition">
+                <div class="bg-purple-500/20 rounded-full p-3">
+                    <i class="fas fa-trophy text-purple-400"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-white font-medium">Goal achieved</p>
+                    <p class="text-gray-400 text-sm">Mike reached his monthly target</p>
+                </div>
+                <span class="text-gray-500 text-sm">1 hour ago</span>
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock %}

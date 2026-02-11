@@ -1,6 +1,54 @@
-<!-- templates/admin/partials/footer.html.twig -->
-<footer class="bg-white border-t border-gray-200 p-4 mt-auto">
-    <div class="text-center text-sm text-gray-500">
-        © {{ "now"|date("Y") }} FitSense Admin - All rights reserved.
+<footer class="mt-auto border-t backdrop-blur-sm"
+        style="background: linear-gradient(90deg, #1B1E26 0%, #262A35 100%); border-top: 1px solid #343846;">
+    
+    <div class="px-6 py-6 text-center">
+        
+        <!-- Copyright -->
+        <div>
+            <p class="text-sm text-gray-300">
+                Copyright © {{ "now"|date("Y") }} 
+                <span class="font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">FitSense</span>
+                - Designed by 
+                <a href="#" class="text-purple-400 hover:text-purple-300 transition font-medium">YourTeam</a>
+            </p>
+            <p class="text-xs text-gray-500 mt-1">
+                Distributed with <i class="fas fa-heart text-red-500 animate-pulse"></i> by 
+                <a href="#" class="text-purple-400 hover:text-purple-300 transition">FitSense Team</a>
+            </p>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="flex justify-center items-center gap-6 mt-4">
+            <a href="#" class="text-sm text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
+                <i class="fas fa-book"></i>
+                <span>Documentation</span>
+            </a>
+            <a href="#" class="text-sm text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
+                <i class="fas fa-question-circle"></i>
+                <span>Support</span>
+            </a>
+            <a href="#" class="text-sm text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
+                <i class="fas fa-shield-alt"></i>
+                <span>Privacy</span>
+            </a>
+        </div>
+
+        <!-- Version Info -->
+        <div class="mt-4 pt-4 border-t border-gray-700/50">
+            <p class="text-xs text-gray-500">
+                <i class="fas fa-code text-purple-400"></i> Version 1.0.0 - Admin Panel
+            </p>
+        </div>
+
     </div>
 </footer>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
