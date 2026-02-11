@@ -1,95 +1,102 @@
-{# MODAL (ONE) #}
-<div class="modal-backdrop" id="recipeModalBackdrop" aria-hidden="true">
-  <div class="modal" id="recipeModal">
-    <div class="modal-header">
-      <div style="flex:1">
-        <div class="modal-title-row">
-          <h2 class="modal-title view-field" id="mTitle">Recipe</h2>
-
-          <div class="edit-field" style="width:100%">
-            <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block;">Title</label>
-            <input type="text" name="title" form="updateForm" id="fTitle">
+{# MODAL (Tailwind Glass Design) #}
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur items-center justify-center hidden" id="recipeModalBackdrop" style="display: none;">
+  <div class="glass-card max-w-4xl w-full mx-4 overflow-hidden flex flex-col max-h-[90vh]" id="recipeModal">
+    
+    <!-- Header -->
+    <div class="p-6 border-b border-gray-800 flex justify-between items-start">
+      <div class="flex-1">
+        <div class="flex items-center gap-3">
+          <h2 id="mTitle" class="view-field text-3xl font-bold text-white mb-2">Recipe</h2>
+          
+          <!-- Edit Title -->
+          <div class="edit-field w-full hidden">
+            <label class="block text-xs font-bold text-gray-400 mb-1">Title</label>
+            <input type="text" name="title" form="updateForm" id="fTitle" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
           </div>
         </div>
 
-        <div class="muted view-field" id="mDescSmall"></div>
-
-        <div class="edit-field" style="margin-top:10px">
-          <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block;">Description</label>
-          <textarea name="description" form="updateForm" id="fDescription"></textarea>
+        <div class="flex gap-3 mb-4 flex-wrap chips">
+          <span id="mKcalChip" class="chip px-3 py-1 bg-blue-500/10 rounded-lg text-blue-400 text-xs font-bold border border-blue-500/20">🔥 kcal</span>
+          <span id="mProtChip" class="chip px-3 py-1 bg-purple-500/10 rounded-lg text-purple-400 text-xs font-bold border border-purple-500/20">💪 proteins</span>
+          <span id="mTypeChip" class="chip px-3 py-1 bg-gray-800 rounded-lg text-gray-400 text-xs font-bold border border-gray-700">🍽️ type</span>
         </div>
 
-        <div class="chips">
-          <span class="chip" id="mKcalChip">🔥 kcal</span>
-          <span class="chip" id="mProtChip">💪 proteins</span>
-          <span class="chip" id="mTypeChip">🍽️ type</span>
-        </div>
-
-        <div class="edit-field row-2" style="margin-top:10px">
+        <!-- Edit Meta -->
+        <div class="edit-field grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 hidden">
           <div>
-            <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block;">Kcal</label>
-            <input type="number" min="0" name="kcal" form="updateForm" id="fKcal">
+            <label class="block text-xs font-bold text-gray-400 mb-1">Kcal</label>
+            <input type="number" min="0" name="kcal" form="updateForm" id="fKcal" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
           </div>
-          <div>
-            <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block;">Proteins (g)</label>
-            <input type="number" min="0" name="proteins" form="updateForm" id="fProteins">
+           <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1">Proteins (g)</label>
+            <input type="number" min="0" name="proteins" form="updateForm" id="fProteins" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
           </div>
-        </div>
-
-        <div class="edit-field" style="margin-top:10px">
-          <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block;">Meal type</label>
-          <select name="typeMeal" form="updateForm" id="fTypeMeal">
-            <option value="BREAKFAST">BREAKFAST</option>
-            <option value="LUNCH">LUNCH</option>
-            <option value="DINNER">DINNER</option>
-            <option value="SNACK">SNACK</option>
-          </select>
+           <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1">Meal Type</label>
+            <select name="typeMeal" form="updateForm" id="fTypeMeal" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+               <option value="BREAKFAST">BREAKFAST</option>
+                <option value="LUNCH">LUNCH</option>
+                <option value="DINNER">DINNER</option>
+                <option value="SNACK">SNACK</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <button class="modal-close" type="button" id="closeModalBtn">×</button>
+      <button id="closeModalBtn" class="modal-close w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-xl flex items-center justify-center transition text-white">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
-    <div class="modal-body" id="modalBody">
-      <div>
-        <div class="modal-img">
-          <img id="mImg" src="" alt="recipe">
+    <!-- Body -->
+    <div class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-8 modal-body" id="modalBody">
+      <div class="md:col-span-1">
+        <div class="rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 aspect-square mb-6 modal-img">
+          <img id="mImg" src="" alt="Recipe" class="w-full h-full object-cover">
         </div>
 
-        <div class="edit-field" style="margin-top:10px">
-          <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block;">Change image</label>
-          <input type="file" name="imageFile" form="updateForm" accept="image/jpeg,image/png,image/webp">
-          <div class="help">JPG / PNG / WEBP — max 3MB</div>
+        <!-- Edit Image -->
+        <div class="edit-field mt-4 hidden">
+          <label class="block text-xs font-bold text-gray-400 mb-1">Change Image</label>
+          <input type="file" name="imageFile" form="updateForm" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-gray-400">
+          <div class="text-[10px] text-gray-500 mt-1">JPG / PNG / WEBP — max 3MB</div>
         </div>
       </div>
 
-      <div>
-        <div class="modal-section">
-          <h3>🧾 Ingrédients</h3>
-
-          <div class="view-field">
-            <ul class="list" id="mIngredientsList"></ul>
-          </div>
-
-          <div class="edit-field">
-            <textarea name="ingredients" form="updateForm" id="fIngredients"></textarea>
-            <div class="help">Astuce: mets chaque ingrédient dans une nouvelle ligne.</div>
+      <div class="md:col-span-2 space-y-8">
+        <!-- Description -->
+        <div>
+          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-3">Description</h3>
+          <div id="mDescSmall" class="view-field text-gray-300 leading-relaxed"></div>
+          
+          <div class="edit-field hidden">
+            <textarea name="description" form="updateForm" id="fDescription" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
           </div>
         </div>
 
+        <!-- Ingredients -->
         <div class="modal-section">
-          <h3>🧑‍🍳 Préparation</h3>
-
-          <div class="view-field">
-            <ul class="list" id="mPreparationList"></ul>
-          </div>
-
-          <div class="edit-field">
-            <textarea name="preparation" form="updateForm" id="fPreparation"></textarea>
-            <div class="help">Astuce: mets chaque étape dans une nouvelle ligne.</div>
+          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">🧾 Ingredients</h3>
+          <ul id="mIngredientsList" class="view-field space-y-2 text-gray-300 list-disc pl-4"></ul>
+          
+          <div class="edit-field hidden">
+            <textarea name="ingredients" form="updateForm" id="fIngredients" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
+             <div class="text-[10px] text-gray-500 mt-1">One ingredient per line</div>
           </div>
         </div>
 
+        <!-- Preparation -->
+        <div class="modal-section">
+          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">🧑‍🍳 Preparation</h3>
+          <ul id="mPreparationList" class="view-field space-y-4 text-gray-300 list-decimal pl-4"></ul>
+          
+          <div class="edit-field hidden">
+            <textarea name="preparation" form="updateForm" id="fPreparation" rows="5" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
+             <div class="text-[10px] text-gray-500 mt-1">One step per line</div>
+          </div>
+        </div>
+
+        <!-- Forms -->
         <form id="updateForm" method="post" enctype="multipart/form-data" style="display:none;">
           <input type="hidden" name="_token" id="updToken">
         </form>
@@ -100,12 +107,18 @@
       </div>
     </div>
 
-    <div class="modal-footer">
-      <button class="btn btn-ghost" type="button" id="toggleEditBtn">✏️ update</button>
-      <button class="btn btn-green" type="submit" form="updateForm" id="saveBtn">✅ Save</button>
-      <button class="btn btn-danger" type="submit" form="deleteForm"
-              onclick="return confirm('Supprimer cette recette ?')">
-        🗑️ delete
+    <!-- Footer -->
+    <div class="p-6 border-t border-gray-800 flex justify-end gap-3 modal-footer bg-gray-900/50 backdrop-blur">
+      <button class="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition border border-gray-700" type="button" id="toggleEditBtn">
+        <i class="fas fa-edit mr-2"></i> Edit
+      </button>
+      
+      <button class="hidden px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition" type="submit" form="updateForm" id="saveBtn">
+        <i class="fas fa-check mr-2"></i> Save Changes
+      </button>
+      
+      <button class="px-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-xl font-bold transition border border-red-500/20" type="submit" form="deleteForm" onclick="return confirm('Delete this recipe?')">
+        <i class="fas fa-trash mr-2"></i> Delete
       </button>
     </div>
   </div>

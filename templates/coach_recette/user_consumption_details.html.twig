@@ -1,0 +1,65 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block title %}Consumption Details - {{ user.firstname }} {{ user.lastname }}{% endblock %}
+
+{% block coach_content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h2 class="text-3xl font-bold gradient-text">Meal History: {{ user.firstname }} {{ user.lastname }}</h2>
+        <p class="text-gray-400">Detailed list of all recipes consumed</p>
+    </div>
+    <a href="{{ path('coach_nutrition_consumption') }}" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition flex items-center gap-2">
+        <i class="fas fa-arrow-left"></i> Back to Logs
+    </a>
+</div>
+
+<div class="glass-card overflow-hidden border border-white/10">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 uppercase text-xs font-bold tracking-wider text-gray-400">
+                    <th class="px-6 py-4">Date</th>
+                    <th class="px-6 py-4">Recipe</th>
+                    <th class="px-6 py-4 text-center">Photo</th>
+                    <th class="px-6 py-4 text-right">Stats</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for log in logs %}
+                <tr class="hover:bg-white/5 transition group">
+                    <td class="px-6 py-4">
+                        <div class="text-white font-medium">{{ log.dateConsommation|date('M d, Y') }}</div>
+                        <div class="text-xs text-gray-500">{{ log.dateConsommation|date('H:i') }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-blue-400">{{ log.recette.title|default('Deleted Recipe') }}</div>
+                        <div class="text-xs text-gray-500">Log ID: #{{ log.id }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        {% if log.image %}
+                            <a href="{{ asset('uploads/consumption/' ~ log.image) }}" target="_blank" class="inline-block w-16 h-10 rounded-lg overflow-hidden border border-white/10 hover:border-blue-500/50 transition">
+                                <img src="{{ asset('uploads/consumption/' ~ log.image) }}" class="w-full h-full object-cover">
+                            </a>
+                        {% else %}
+                            <span class="text-xs text-gray-600 italic">No photo</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[10px] font-bold uppercase border border-blue-500/20">🔥 {{ log.kcal }} KCAL</span>
+                            <span class="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded text-[10px] font-bold uppercase border border-purple-500/20">💪 {{ log.proteins }}g</span>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-gray-500 italic">
+                        No individual logs found for this user.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

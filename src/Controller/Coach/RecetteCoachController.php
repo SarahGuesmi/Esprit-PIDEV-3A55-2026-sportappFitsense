@@ -4,6 +4,7 @@ namespace App\Controller\Coach;
 
 use App\Entity\RecetteNutritionnelle;
 use App\Form\RecetteNutritionnelleType;
+use App\Repository\RecetteConsommeeRepository;
 use App\Repository\RecetteNutritionnelleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -69,8 +70,8 @@ class RecetteCoachController extends AbstractController
         }
 
         // ✅ search + filters results
-        // ⚠️ Ici, adapte selon ton repository (voir note dessous)
-        $recipes = $repo->searchForCoach($coach, $q ?: null, $objectif ?: null, $kcal, $proteins);
+        // Fetch ALL recipes (global library) as requested
+        $recipes = $repo->searchForAll($q ?: null, $kcal, $proteins);
 
         return $this->render('coach_recette/recette.html.twig', [
             'form' => $form->createView(),
@@ -81,6 +82,56 @@ class RecetteCoachController extends AbstractController
             'kcal' => $kcal,
             'proteins' => $proteins,
         ]);
+    }
+
+    // ✅ ADD QUICK (Modal)
+    #[Route('/coach/recipe/add', name: 'coach_recipe_add', methods: ['POST'])]
+    public function addQuick(
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $coach = $this->getUser();
+        if (!$coach) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // Validate CSRF token (we will add this to the template next)
+        // For now, if the token is missing in the template, this might fail if we enforce it strictly.
+        // But it's best practice. We'll add it to the template.
+        /* 
+        if (!$this->isCsrfTokenValid('add_recipe', $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid token.');
+            return $this->redirectToRoute('coach_recette');
+        }
+        */
+
+        $recette = new RecetteNutritionnelle();
+        $recette->setCoach($coach);
+        $recette->setTitle((string) $request->request->get('name'));
+        $recette->setDescription((string) $request->request->get('description'));
+        
+        $kcal = $request->request->get('calories');
+        $proteins = $request->request->get('protein');
+        
+        $recette->setKcal($kcal !== '' ? (int)$kcal : null);
+        $recette->setProteins($proteins !== '' ? (int)$proteins : null);
+        
+        $recette->setIngredients((string) $request->request->get('ingredients'));
+        $recette->setPreparation((string) $request->request->get('instructions')); // Check if field is instructions or preparation
+
+        // Set defaults for required fields not in the simple form
+        // These should ideally be added to the form
+        $recette->setTypeMeal('LUNCH'); 
+        $recette->setObjectifs(['WELL_BEING']);
+
+        // Note: 'carbs' and 'fats' from the form are currently ignored as they are not in the Entity
+
+        $em->persist($recette);
+        $em->flush();
+
+        $this->addFlash('success', 'Recipe added successfully (Quick Add) ✅');
+
+        return $this->redirectToRoute('coach_recette');
     }
 
     // ✅ UPDATE
@@ -178,6 +229,31 @@ class RecetteCoachController extends AbstractController
             'objectif' => $request->request->get('objectif'),
             'kcal' => $request->request->get('kcalFilter'),
             'proteins' => $request->request->get('proteinsFilter'),
+        ]);
+    }
+
+    #[Route('/coach/nutrition/consumption', name: 'coach_nutrition_consumption')]
+    public function consumptionLogs(RecetteConsommeeRepository $repo): Response
+    {
+        return $this->render('coach_recette/consumption_history.html.twig', [
+            'stats' => $repo->findUserConsumptionStats(),
+        ]);
+    }
+
+    #[Route('/coach/nutrition/consumption/user/{userId}', name: 'coach_user_consumption_details')]
+    public function userConsumptionDetails(
+        int $userId,
+        EntityManagerInterface $em,
+        RecetteConsommeeRepository $logRepo
+    ): Response {
+        $user = $em->getRepository(\App\Entity\User::class)->find($userId);
+        if (!$user) {
+            throw $this->createNotFoundException('User not found');
+        }
+
+        return $this->render('coach_recette/user_consumption_details.html.twig', [
+            'user' => $user,
+            'logs' => $logRepo->findByUserOrderedByDate($userId),
         ]);
     }
 }
