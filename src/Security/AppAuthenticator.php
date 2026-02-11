@@ -68,7 +68,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         }
 
         // User has a profile, redirect to dashboard
-        return new RedirectResponse($this->urlGenerator->generate('dashboard'));
+        return new RedirectResponse($this->urlGenerator->generate('dashboard_user'));
     }
 
     protected function getLoginUrl(Request $request): string

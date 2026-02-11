@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Controller\Front;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[IsGranted('ROLE_USER')]
+class DashboardUserController extends AbstractController
+{
+    #[Route('/dashboard', name: 'dashboard_user')]
+    public function index(): Response
+    {
+        return $this->render('front/dashboarduser.html.twig', [
+            'user' => $this->getUser(),
+        ]);
+    }
+}
