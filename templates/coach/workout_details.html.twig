@@ -1,72 +1,21 @@
-{% extends 'base.html.twig' %}
+{% extends 'coach/base_coach.html.twig' %}
 
-{% block title %}{{ workout.nom }}{% endblock %}
+{% block title %}{{ workout.nom }} - FitSense{% endblock %}
 
-{% block header %}{% endblock %}
-{% block navigation %}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block footer %}{% endblock %}
+{% block coach_page_title %}Workout Details{% endblock %}
+{% block coach_page_subtitle %}{{ workout.nom }}{% endblock %}
 
 {% block stylesheets %}
 {{ parent() }}
 <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        background: #000;
-    }
-
-    body {
-        background: radial-gradient(circle at top, #0F172A, #000);
-        color: white;
-        font-family: 'Inter', system-ui, sans-serif;
-    }
-
-
     .details-wrapper {
         max-width: 950px;
-        margin: 4rem auto;
+        margin: 0 auto;
         padding: 2.5rem;
         background: linear-gradient(145deg, #0D0D0D, #111);
         border-radius: 1.5rem;
         border: 1px solid rgba(255,255,255,0.05);
         box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-    }
-
-    .back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 1.2rem;
-        background: #1F1F1F;
-        border-radius: 0.8rem;
-        text-decoration: none;
-        color: white;
-        font-weight: 600;
-        transition: 0.3s;
-    }
-
-    .back-btn:hover {
-        background: #2A2A2A;
-        transform: translateX(-3px);
-    }
-
-    h1 {
-        font-size: 2.4rem;
-        font-weight: 900;
-        margin: 2rem 0 0.5rem;
-        letter-spacing: -0.5px;
-    }
-
-    .description {
-        color: #9CA3AF;
-        margin-bottom: 1.5rem;
-    }
-
-    .badges {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
     }
 
     .badge {
@@ -123,44 +72,79 @@
 </style>
 {% endblock %}
 
-{% block body %}
-<div class="details-wrapper">
-
-    <a href="{{ path('coach_workout_catalog') }}" class="back-btn">
-        ← Retour au catalogue
-    </a>
-
-    <h1>{{ workout.nom }}</h1>
-
-    <p class="description">
-        {{ workout.description ?: 'Aucune description disponible pour ce workout.' }}
-    </p>
-
-    <div class="badges">
-        <span class="badge">{{ workout.duree }} min</span>
-        <span class="badge">{{ workout.niveau }}</span>
+{% block coach_content %}
+<div class="max-w-4xl mx-auto py-8">
+    <!-- Back Button -->
+    <div class="mb-8">
+        <a href="{{ path('coach_workout_catalog') }}"
+           class="inline-flex items-center text-gray-400 hover:text-white transition group font-semibold">
+            <i class="fas fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i>
+            Back to Catalog
+        </a>
     </div>
 
-    <div class="section-title">
-        Exercices ({{ workout.exercises|length }})
-    </div>
-
-    {% if workout.exercises is empty %}
-        <p style="color:#6B7280;">Aucun exercice inclus dans ce workout.</p>
-    {% else %}
-        <div class="exercise-grid">
-            {% for exercise in workout.exercises %}
-                <div class="exercise-card">
-                    <div class="exercise-name">
-                        {{ exercise.nom }}
-                    </div>
-                    <div class="exercise-index">
-                        #{{ loop.index }}
-                    </div>
-                </div>
-            {% endfor %}
+    <div class="details-wrapper">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div>
+                <h1 class="text-4xl font-black mb-2">{{ workout.nom }}</h1>
+                <p class="text-gray-400 max-w-2xl">
+                    {{ workout.description ?: 'No description available for this workout.' }}
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <span class="badge shadow-lg shadow-green-500/20">
+                    <i class="far fa-clock mr-2"></i>{{ workout.duree }} min
+                </span>
+                <span class="badge shadow-lg shadow-green-500/20">
+                    <i class="fas fa-signal mr-2"></i>{{ workout.niveau }}
+                </span>
+            </div>
         </div>
-    {% endif %}
 
+        <div class="border-t border-gray-800 pt-8 mt-8">
+            <h2 class="section-title flex items-center gap-3">
+                <i class="fas fa-dumbbell text-green-500"></i>
+                Exercises ({{ workout.exercises|length }})
+            </h2>
+
+            {% if workout.exercises is empty %}
+                <div class="flex flex-col items-center justify-center py-12 bg-gray-900/40 rounded-2xl border border-dashed border-gray-800">
+                    <i class="fas fa-info-circle text-gray-600 text-3xl mb-4"></i>
+                    <p class="text-gray-500 font-medium">No exercises included in this workout.</p>
+                </div>
+            {% else %}
+                <div class="exercise-grid">
+                    {% for exercise in workout.exercises %}
+                        <div class="exercise-card group">
+                            <div class="flex items-center justify-between">
+                                <div class="exercise-name group-hover:text-green-400 transition">
+                                    {{ exercise.nom }}
+                                </div>
+                                <div class="exercise-index">
+                                    #{{ loop.index }}
+                                </div>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
+                                {{ exercise.description|default('View exercise details for more info')|slice(0, 100) }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 mt-12 pt-8 border-t border-gray-800">
+            <a href="{{ path('coach_workout_edit', {id: workout.id}) }}" 
+               class="px-8 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-gray-100 transition shadow-lg py-3 flex items-center justify-center">
+                <i class="fas fa-edit mr-2"></i> Edit Workout
+            </a>
+            <a href="{{ path('coach_workout_catalog') }}" 
+               class="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl font-bold text-sm border border-gray-700 transition flex items-center justify-center">
+                Cancel
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}

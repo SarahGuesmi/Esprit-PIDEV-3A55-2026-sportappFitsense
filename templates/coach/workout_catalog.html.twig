@@ -1,25 +1,13 @@
-{% extends 'base.html.twig' %}
+{% extends 'coach/base_coach.html.twig' %}
 
 {% block title %}Workout Catalog - FitSense{% endblock %}
 
+{% block coach_page_title %}Workout Catalog{% endblock %}
+{% block coach_page_subtitle %}Browse and manage your workout routines{% endblock %}
+
 {% block stylesheets %}
-<script src="https://cdn.tailwindcss.com"></script>
+{{ parent() }}
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-}
-
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: #000000;
-    color: #FFFFFF;
-    min-height: 100vh;
-}
-
 .gradient-text {
     background: linear-gradient(135deg, #22C55E, #84CC16);
     -webkit-background-clip: text;
@@ -73,10 +61,6 @@ body {
 @keyframes shine {
     0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
     100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-}
-
-.hidden {
-    display: none !important;
 }
 
 /* Dropdown Styles */
@@ -195,640 +179,467 @@ body {
     opacity: 0.7;
 }
 
-/* Confirmation Modal Styles */
+/* Confirmation Modal Recovery */
+#confirmModal.hidden { display: none; }
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    opacity: 0;
-    animation: fadeIn 0.2s forwards;
 }
-
-@keyframes fadeIn {
-    to { opacity: 1; }
-}
-
-.modal-content {
+.modal-content-delete {
     background: #0D0D0D;
     border: 1px solid #1F1F1F;
     border-radius: 16px;
     max-width: 450px;
     width: 90%;
     padding: 2rem;
-    transform: scale(0.95);
-    animation: scaleIn 0.2s forwards;
-}
-
-@keyframes scaleIn {
-    to { transform: scale(1); }
-}
-
-.modal-icon {
-    width: 48px;
-    height: 48px;
-    margin: 0 auto 1.5rem;
-    background: rgba(239, 68, 68, 0.1);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-}
-
-.modal-btn {
-    flex: 1;
-    padding: 0.875rem;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-}
-
-.modal-btn-cancel {
-    background: #1F1F1F;
-    color: #FFFFFF;
-}
-
-.modal-btn-cancel:hover {
-    background: #2D2D2D;
-}
-
-.modal-btn-delete {
-    background: linear-gradient(135deg, #EF4444, #DC2626);
-    color: #FFFFFF;
-}
-
-.modal-btn-delete:hover {
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 </style>
 {% endblock %}
 
-{# Override header block to remove navigation #}
-{% block header %}{% endblock %}
-{% block navigation %}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block menu %}{% endblock %}
-
-{% block body %}
-<div class="min-h-screen bg-black text-white">
-    
-    <!-- Top Header Bar -->
-    <div class="border-b border-gray-900">
-        <div class="max-w-[1400px] mx-auto px-8 py-4">
-            <div class="flex items-center justify-between">
-                <!-- Logo -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-lime-500 rounded-lg flex items-center justify-center font-black text-black text-xl">
-                        F6
-                    </div>
-                    <span class="text-xl font-bold tracking-tight">FITSENSE</span>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex items-center gap-3">
-                    <a href="{{ path('coach_exercise_list') }}" 
-                       class="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-lg font-semibold text-sm transition-all border border-gray-800">
-                        Manage Exercises
-                    </a>
-                    <a href="{{ path('coach_workout_create') }}" 
-                       class="px-6 py-2.5 gradient-btn rounded-lg font-bold text-sm text-black shadow-lg hover:shadow-xl transition-all {{ exerciseCount == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                       {% if exerciseCount == 0 %}onclick="return false;"{% endif %}>
-                        + Create Workout
-                    </a>
-                </div>
-            </div>
-        </div>
+{% block coach_content %}
+<div class="space-y-8">
+    <!-- Action Bar -->
+    <div class="flex items-center justify-end gap-3 mb-6">
+        <a href="{{ path('coach_exercise_list') }}" 
+           class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-sm transition-all border border-gray-700 text-gray-300">
+            <i class="fas fa-list-check mr-2"></i>
+            Manage Exercises
+        </a>
+        <a href="{{ path('coach_workout_create') }}" 
+           class="px-6 py-2.5 gradient-btn rounded-lg font-bold text-sm text-black shadow-lg hover:shadow-xl transition-all {{ exerciseCount == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+           {% if exerciseCount == 0 %}onclick="return false;"{% endif %}>
+            <i class="fas fa-plus mr-2"></i>
+            Create Workout
+        </a>
     </div>
 
-    <!-- Main Container -->
-    <div class="max-w-[1400px] mx-auto px-8 py-8">
-        
-        <!-- Page Header -->
-        <div class="mb-8">
-            <h1 class="text-5xl font-black tracking-tight mb-2">
-                Workout Catalog
-            </h1>
-            <p class="text-gray-500 text-lg">
-                Browse and manage your workout routines
+    <!-- Search Bar & Filters -->
+    <div class="space-y-4 bg-gray-900/40 p-6 rounded-2xl border border-gray-800">
+        <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Search Bar -->
+            <div class="relative flex-1">
+                <input type="text" 
+                       id="searchInput"
+                       placeholder="Search a workout..." 
+                       class="w-full px-5 py-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500 search-input transition-all">
+                <i class="fas fa-search absolute right-5 top-1/2 -translate-y-1/2 text-gray-600"></i>
+            </div>
+
+            <!-- Objectives Dropdown Filter -->
+            <div class="dropdown-container w-full lg:w-80">
+                <button id="dropdownButton" class="dropdown-button w-full px-5 py-3.5 bg-gray-900 border border-gray-700 rounded-xl text-left flex items-center justify-between hover:border-green-500 transition-all text-sm">
+                    <span class="text-gray-400" id="dropdownLabel">Filter by objectives</span>
+                    <i class="fas fa-chevron-down text-gray-600 transition-transform" id="dropdownIcon"></i>
+                </button>
+
+                <div id="dropdownMenu" class="dropdown-menu hidden">
+                    {% set allObjectives = [] %}
+                    {% for workout in workouts %}
+                        {% for objectif in workout.objectifs %}
+                            {% if objectif.name not in allObjectives %}
+                                {% set allObjectives = allObjectives|merge([objectif.name]) %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% for objectif in allObjectives %}
+                        <div class="dropdown-item" data-value="{{ objectif|lower|replace({' ': '-'}) }}">
+                            <div class="checkbox-custom">
+                                <i class="fas fa-check text-[10px] text-white hidden"></i>
+                            </div>
+                            <span class="text-gray-300 font-medium text-sm">{{ objectif }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Objectives Tags -->
+        <div id="selectedTags" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- Alerts -->
+    {% for message in app.flashes('success') %}
+        <div class="bg-green-500/10 border border-green-500/20 rounded-xl px-6 py-4 flex items-center justify-between animate-fadeIn">
+            <div class="flex items-center gap-3 text-green-400">
+                <i class="fas fa-check-circle"></i>
+                <span class="font-medium">{{ message }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-green-400 hover:text-green-300 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('warning') %}
+        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl px-6 py-4 flex items-center justify-between animate-fadeIn">
+            <div class="flex items-center gap-3 text-amber-400">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="font-medium">{{ message }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-amber-400 hover:text-amber-300 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    {% endfor %}
+
+    {% if exerciseCount == 0 %}
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl px-6 py-5">
+            <div class="flex items-start gap-4 text-blue-400">
+                <i class="fas fa-info-circle text-xl mt-0.5"></i>
+                <div>
+                    <h3 class="text-base font-bold mb-1">No exercises available</h3>
+                    <p class="text-gray-400 text-sm">
+                        Create at least one exercise before building workouts. 
+                        <a href="{{ path('coach_exercise_create') }}" class="text-blue-400 underline hover:text-blue-300 font-semibold">Create exercise</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Section Title with Results Counter -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+            Available Routines
+        </h2>
+        <span id="resultsCounter" class="text-xs font-bold text-gray-600 bg-gray-900 px-3 py-1 rounded-full border border-gray-800">
+            {% if workouts is not empty %}
+                {{ workouts|length }} workout(s)
+            {% endif %}
+        </span>
+    </div>
+
+    {% if workouts is empty %}
+        <!-- Empty State -->
+        <div id="emptyState" class="flex flex-col items-center justify-center py-24 bg-gray-900/20 rounded-2xl border border-dashed border-gray-800">
+            <div class="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-dumbbell text-3xl text-gray-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-400 mb-2">No workouts yet</h3>
+            <p class="text-gray-500 max-w-sm text-center">
+                {% if exerciseCount > 0 %}
+                    Create your first workout to get started tracking athlete progress
+                {% else %}
+                    Start by creating exercises first to build your workout variations
+                {% endif %}
             </p>
         </div>
-
-        <!-- Search Bar & Filters -->
-        <div class="mb-8 space-y-4">
-            <!-- Search Bar and Dropdown Filter -->
-            <div class="flex gap-4 items-start">
-                <!-- Search Bar -->
-                <div class="relative flex-1 max-w-xl">
-                    <input type="text" 
-                           id="searchInput"
-                           placeholder="Search a workout..." 
-                           class="w-full px-5 py-4 bg-[#0D0D0D] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-green-500 search-input transition-all">
-                    <svg class="w-5 h-5 absolute right-5 top-1/2 -translate-y-1/2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                </div>
-
-                <!-- Objectives Dropdown Filter -->
-                <div class="dropdown-container w-80">
-                    <button id="dropdownButton" class="dropdown-button w-full px-5 py-4 bg-[#0D0D0D] border border-gray-800 rounded-xl text-left flex items-center justify-between hover:border-green-500 transition-all">
-                        <span class="text-gray-400" id="dropdownLabel">Filter by objectives</span>
-                        <svg class="w-5 h-5 text-gray-600 transition-transform" id="dropdownIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-
-                    <div id="dropdownMenu" class="dropdown-menu hidden">
-                        {% set allObjectives = [] %}
-                        {% for workout in workouts %}
-                            {% for objectif in workout.objectifs %}
-                                {% if objectif.name not in allObjectives %}
-                                    {% set allObjectives = allObjectives|merge([objectif.name]) %}
-                                {% endif %}
-                            {% endfor %}
-                        {% endfor %}
-
-                        {% for objectif in allObjectives %}
-                            <div class="dropdown-item" data-value="{{ objectif|lower|replace({' ': '-'}) }}">
-                                <div class="checkbox-custom">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                                <span class="text-gray-300 font-medium">{{ objectif }}</span>
+    {% else %}
+        <!-- Workouts List -->
+        <div id="workoutsList" class="grid grid-cols-1 gap-4">
+            {% for workout in workouts %}
+                <div class="workout-card bg-gray-900/40 border border-gray-800 rounded-2xl overflow-hidden card-hover shine-effect group"
+                     data-name="{{ workout.nom|lower }}"
+                     data-description="{{ workout.description|default('')|lower }}"
+                     data-objectives="{{ workout.objectifs|map(o => o.name|lower|replace({' ': '-'}))|join(',') }}">
+                    <div class="flex flex-col lg:flex-row items-center justify-between p-6 gap-6">
+                        
+                        <!-- Left Section -->
+                        <div class="flex items-center gap-5 flex-1 min-w-0 w-full">
+                            <!-- Icon -->
+                            <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-lime-500 rounded-xl flex items-center justify-center flex-shrink-0 icon-glow transform group-hover:rotate-6 transition">
+                                <i class="fas fa-bolt text-black text-2xl"></i>
                             </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
 
-            <!-- Selected Objectives Tags -->
-            <div id="selectedTags" class="flex flex-wrap gap-2"></div>
-        </div>
-
-        <!-- Alerts -->
-        {% for message in app.flashes('success') %}
-            <div class="mb-6 bg-green-500/5 border border-green-500/20 rounded-xl px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span class="text-green-400 font-medium">{{ message }}</span>
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" class="text-green-400 hover:text-green-300">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        {% endfor %}
-
-        {% for message in app.flashes('warning') %}
-            <div class="mb-6 bg-amber-500/5 border border-amber-500/20 rounded-xl px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-2 h-2 bg-amber-500 rounded-full"></div>
-                    <span class="text-amber-400 font-medium">{{ message }}</span>
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" class="text-amber-400 hover:text-amber-300">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        {% endfor %}
-
-        {% if exerciseCount == 0 %}
-            <div class="mb-8 bg-blue-500/5 border border-blue-500/20 rounded-xl px-6 py-5">
-                <div class="flex items-start gap-4">
-                    <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                    </svg>
-                    <div>
-                        <h3 class="text-base font-bold text-blue-400 mb-1">No exercises available</h3>
-                        <p class="text-gray-400 text-sm">
-                            Create at least one exercise before building workouts. 
-                            <a href="{{ path('coach_exercise_create') }}" class="text-blue-400 underline hover:text-blue-300">Create exercise</a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-
-        <!-- Section Title with Results Counter -->
-        <div class="mb-6 flex items-center justify-between">
-            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider">
-                Available Routines
-            </h2>
-            <span id="resultsCounter" class="text-sm text-gray-600">
-                {% if workouts is not empty %}
-                    {{ workouts|length }} workout(s)
-                {% endif %}
-            </span>
-        </div>
-
-        {% if workouts is empty %}
-            <!-- Empty State -->
-            <div id="emptyState" class="flex flex-col items-center justify-center py-24 bg-[#0D0D0D] rounded-2xl border border-gray-900">
-                <svg class="w-20 h-20 text-gray-800 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                </svg>
-                <h3 class="text-xl font-bold text-gray-400 mb-2">No workouts yet</h3>
-                <p class="text-gray-600">
-                    {% if exerciseCount > 0 %}
-                        Create your first workout to get started
-                    {% else %}
-                        Start by creating exercises first
-                    {% endif %}
-                </p>
-            </div>
-        {% else %}
-            <!-- Workouts List -->
-            <div id="workoutsList" class="space-y-4">
-                {% for workout in workouts %}
-                    <div class="workout-card bg-[#0D0D0D] border border-gray-900 rounded-2xl overflow-hidden card-hover shine-effect"
-                         data-name="{{ workout.nom|lower }}"
-                         data-description="{{ workout.description|default('')|lower }}"
-                         data-objectives="{{ workout.objectifs|map(o => o.name|lower|replace({' ': '-'}))|join(',') }}">
-                        <div class="flex items-center justify-between p-6">
-                            
-                            <!-- Left Section -->
-                            <div class="flex items-center gap-5 flex-1">
-                                <!-- Icon -->
-                                <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-lime-500 rounded-xl flex items-center justify-center flex-shrink-0 icon-glow">
-                                    <svg class="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                    </svg>
+                            <!-- Info -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h3 class="text-xl font-bold truncate group-hover:text-green-400 transition">{{ workout.nom }}</h3>
+                                    <span class="px-2 py-0.5 bg-green-500/10 text-green-400 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-green-500/20">
+                                        {% if workout.niveau == 'BEGINNER' %}
+                                            Beginner
+                                        {% elseif workout.niveau == 'INTERMEDIATE' %}
+                                            Intermediate
+                                        {% else %}
+                                            Advanced
+                                        {% endif %}
+                                    </span>
                                 </div>
+                                
+                                <div class="flex items-center gap-4 flex-wrap">
+                                    <!-- Duration -->
+                                    <div class="flex items-center gap-2 text-gray-400 text-xs font-semibold">
+                                        <i class="far fa-clock text-green-500"></i>
+                                        <span>{{ workout.duree }} min</span>
+                                    </div>
 
-                                <!-- Info -->
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="text-xl font-bold mb-2 truncate">{{ workout.nom }}</h3>
-                                    
-                                    <div class="flex items-center gap-3 flex-wrap">
-                                        <!-- Duration -->
-                                        <div class="flex items-center gap-2 text-gray-400 text-sm">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span class="font-semibold">{{ workout.duree }} min</span>
-                                        </div>
+                                    <!-- Exercises Count -->
+                                    <div class="flex items-center gap-2 text-gray-400 text-xs font-semibold border-l border-gray-800 pl-4">
+                                        <i class="fas fa-layer-group text-blue-500"></i>
+                                        <span>{{ workout.exercises|length }} Exercises</span>
+                                    </div>
 
-                                        <!-- Level -->
-                                        <span class="px-3 py-1 bg-green-500/10 text-green-400 rounded-lg text-xs font-bold uppercase">
-                                            {% if workout.niveau == 'BEGINNER' %}
-                                                Beginner
-                                            {% elseif workout.niveau == 'INTERMEDIATE' %}
-                                                Intermediate
-                                            {% else %}
-                                                Advanced
-                                            {% endif %}
-                                        </span>
-
-                                        <!-- Objectives -->
-                                        {% if workout.objectifs is not empty %}
+                                    <!-- Objectives -->
+                                    {% if workout.objectifs is not empty %}
+                                        <div class="flex items-center gap-2 flex-wrap border-l border-gray-800 pl-4">
                                             {% for objectif in workout.objectifs|slice(0, 2) %}
-                                                <span class="px-3 py-1 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold">
+                                                <span class="px-2 py-0.5 bg-gray-800 text-gray-400 rounded text-[10px] font-bold uppercase tracking-wider">
                                                     {{ objectif.name }}
                                                 </span>
                                             {% endfor %}
-                                        {% endif %}
-                                    </div>
-
-                                    <!-- Description (mobile hidden) -->
-                                    <p class="text-gray-500 text-sm mt-2 hidden lg:block">
-                                        {{ workout.description|default('No description')|slice(0, 100) }}{% if workout.description|length > 100 %}...{% endif %}
-                                    </p>
+                                        </div>
+                                    {% endif %}
                                 </div>
-                            </div>
-
-                            <!-- Right Section - Actions -->
-                            <div class="flex items-center gap-3 ml-4">
-                                <a href="{{ path('coach_workout_details', {id: workout.id}) }}" 
-                                   class="px-6 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-gray-100 transition-all whitespace-nowrap">
-                                    View Details
-                                </a>
-                                
-                                <a href="{{ path('coach_workout_edit', {id: workout.id}) }}" 
-                                   class="w-11 h-11 bg-gray-900 hover:bg-gray-800 rounded-xl flex items-center justify-center transition-all border border-gray-800">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                                    </svg>
-                                </a>
-
-                                <form method="post" 
-                                      action="{{ path('coach_workout_delete', {id: workout.id}) }}"
-                                      class="delete-form"
-                                      data-workout-name="{{ workout.nom }}">
-                                    <button type="button"
-                                            class="delete-btn w-11 h-11 bg-red-500/10 hover:bg-red-500/20 rounded-xl flex items-center justify-center transition-all border border-red-500/20">
-                                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                </form>
                             </div>
                         </div>
 
-                        <!-- Expandable section for exercises -->
-                        <div class="border-t border-gray-900 bg-black/30 px-6 py-4">
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2 text-gray-500">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <span class="font-semibold">{{ workout.exercises|length }} exercise(s) included</span>
-                                </div>
-                                {% if workout.exercises|length > 0 %}
-                                    <div class="flex -space-x-2">
-                                        {% for i in 1..min(3, workout.exercises|length) %}
-                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-lime-500 border-2 border-black flex items-center justify-center text-black text-xs font-bold">
-                                                {{ i }}
-                                            </div>
-                                        {% endfor %}
-                                        {% if workout.exercises|length > 3 %}
-                                            <div class="w-8 h-8 rounded-full bg-gray-800 border-2 border-black flex items-center justify-center text-gray-400 text-xs font-bold">
-                                                +{{ workout.exercises|length - 3 }}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                            </div>
+                        <!-- Right Section - Actions -->
+                        <div class="flex items-center gap-3 w-full lg:w-auto justify-end">
+                            <a href="{{ path('coach_workout_details', {id: workout.id}) }}" 
+                               class="flex-1 lg:flex-none px-6 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-gray-100 transition-all text-center whitespace-nowrap">
+                                View Details
+                            </a>
+                            
+                            <a href="{{ path('coach_workout_edit', {id: workout.id}) }}" 
+                               class="w-11 h-11 bg-gray-800 hover:bg-gray-700 rounded-xl flex items-center justify-center transition-all border border-gray-700 text-gray-400 hover:text-white"
+                               title="Edit Workout">
+                                <i class="fas fa-edit"></i>
+                            </a>
+
+                            <form method="post" 
+                                  action="{{ path('coach_workout_delete', {id: workout.id}) }}"
+                                  class="delete-form"
+                                  data-workout-name="{{ workout.nom }}">
+                                <button type="button"
+                                        class="delete-btn w-11 h-11 bg-red-500/10 hover:bg-red-500/20 rounded-xl flex items-center justify-center transition-all border border-red-500/20 text-red-400"
+                                        title="Delete Workout">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
-
-            <!-- No Results State -->
-            <div id="noResultsState" class="hidden flex-col items-center justify-center py-24 bg-[#0D0D0D] rounded-2xl border border-gray-900">
-                <svg class="w-20 h-20 text-gray-800 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                <h3 class="text-xl font-bold text-gray-400 mb-2">No workouts found</h3>
-                <p class="text-gray-600">Try adjusting your search or filters</p>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Confirmation Modal -->
-<div id="confirmModal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <div class="modal-icon">
-            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
+                </div>
+            {% endfor %}
         </div>
-        <h3 class="text-xl font-bold text-center text-white mb-2">Delete Workout?</h3>
-        <p class="text-gray-400 text-center text-sm">
-            Are you sure you want to delete "<span id="workoutNameModal" class="text-white font-semibold"></span>"? This action cannot be undone.
-        </p>
-        <div class="modal-buttons">
-            <button id="cancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
-            <button id="confirmBtn" class="modal-btn modal-btn-delete">Delete</button>
+
+        <!-- No Results State -->
+        <div id="noResultsState" class="hidden flex-col items-center justify-center py-24 bg-gray-900/20 rounded-2xl border border-gray-800">
+            <i class="fas fa-search text-gray-800 text-5xl mb-6"></i>
+            <h3 class="text-xl font-bold text-gray-400 mb-2">No workouts found</h3>
+            <p class="text-gray-600">Try adjusting your search query or filters</p>
         </div>
-    </div>
+    {% endif %}
 </div>
+{% endblock %}
+{% block scripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const workoutCards = document.querySelectorAll('.workout-card');
+        const resultsCounter = document.getElementById('resultsCounter');
+        const noResultsState = document.getElementById('noResultsState');
+        const workoutsList = document.getElementById('workoutsList');
+        
+        // Dropdown elements
+        const dropdownButton = document.getElementById('dropdownButton');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const dropdownIcon = document.getElementById('dropdownIcon');
+        const dropdownLabel = document.getElementById('dropdownLabel');
+        const selectedTags = document.getElementById('selectedTags');
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        
+        // Modal elements
+        const confirmModal = document.getElementById('confirmModal');
+        const workoutNameModal = document.getElementById('workoutNameModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        let currentForm = null;
+        
+        let selectedObjectives = [];
+        let currentSearch = '';
 
-<!-- JavaScript for Search and Multi-Select Filter -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const workoutCards = document.querySelectorAll('.workout-card');
-    const resultsCounter = document.getElementById('resultsCounter');
-    const noResultsState = document.getElementById('noResultsState');
-    const workoutsList = document.getElementById('workoutsList');
-    
-    // Dropdown elements
-    const dropdownButton = document.getElementById('dropdownButton');
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    const dropdownIcon = document.getElementById('dropdownIcon');
-    const dropdownLabel = document.getElementById('dropdownLabel');
-    const selectedTags = document.getElementById('selectedTags');
-    const dropdownItems = document.querySelectorAll('.dropdown-item');
-    
-    // Modal elements
-    const confirmModal = document.getElementById('confirmModal');
-    const workoutNameModal = document.getElementById('workoutNameModal');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const confirmBtn = document.getElementById('confirmBtn');
-    let currentForm = null;
-    
-    let selectedObjectives = [];
-    let currentSearch = '';
-
-    // Delete confirmation modal
-    const deleteForms = document.querySelectorAll('.delete-form');
-    deleteForms.forEach(form => {
-        const deleteBtn = form.querySelector('.delete-btn');
-        deleteBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            currentForm = form;
-            const workoutName = form.dataset.workoutName;
-            workoutNameModal.textContent = workoutName;
-            confirmModal.classList.remove('hidden');
+        // Delete confirmation modal
+        const deleteForms = document.querySelectorAll('.delete-form');
+        deleteForms.forEach(form => {
+            const deleteBtn = form.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentForm = form;
+                const workoutName = form.dataset.workoutName;
+                workoutNameModal.textContent = workoutName;
+                confirmModal.classList.remove('hidden');
+            });
         });
-    });
 
-    // Cancel deletion
-    cancelBtn.addEventListener('click', function() {
-        confirmModal.classList.add('hidden');
-        currentForm = null;
-    });
-
-    // Confirm deletion
-    confirmBtn.addEventListener('click', function() {
-        if (currentForm) {
-            currentForm.submit();
-        }
-    });
-
-    // Close modal on overlay click
-    confirmModal.addEventListener('click', function(e) {
-        if (e.target === confirmModal) {
+        // Cancel deletion
+        cancelBtn.addEventListener('click', function() {
             confirmModal.classList.add('hidden');
             currentForm = null;
-        }
-    });
+        });
 
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) {
-            confirmModal.classList.add('hidden');
-            currentForm = null;
-        }
-    });
-
-    // Toggle dropdown
-    dropdownButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('hidden');
-        dropdownIcon.style.transform = dropdownMenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
-            dropdownMenu.classList.add('hidden');
-            dropdownIcon.style.transform = 'rotate(0deg)';
-        }
-    });
-
-    // Handle dropdown item selection
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const value = this.dataset.value;
-            const text = this.querySelector('span').textContent;
-            
-            if (this.classList.contains('selected')) {
-                // Deselect
-                this.classList.remove('selected');
-                selectedObjectives = selectedObjectives.filter(obj => obj.value !== value);
-            } else {
-                // Select
-                this.classList.add('selected');
-                selectedObjectives.push({ value: value, text: text });
+        // Confirm deletion
+        confirmBtn.addEventListener('click', function() {
+            if (currentForm) {
+                currentForm.submit();
             }
+        });
+
+        // Close modal on overlay click
+        confirmModal.addEventListener('click', function(e) {
+            if (e.target === confirmModal) {
+                confirmModal.classList.add('hidden');
+                currentForm = null;
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) {
+                confirmModal.classList.add('hidden');
+                currentForm = null;
+            }
+        });
+
+        // Toggle dropdown
+        dropdownButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('hidden');
+            if (dropdownIcon) {
+                dropdownIcon.style.transform = dropdownMenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (dropdownMenu && !dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
+                dropdownMenu.classList.add('hidden');
+                if (dropdownIcon) dropdownIcon.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Handle dropdown item selection
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const value = this.dataset.value;
+                const text = this.querySelector('span').textContent;
+                
+                if (this.classList.contains('selected')) {
+                    // Deselect
+                    this.classList.remove('selected');
+                    selectedObjectives = selectedObjectives.filter(obj => obj.value !== value);
+                } else {
+                    // Select
+                    this.classList.add('selected');
+                    selectedObjectives.push({ value: value, text: text });
+                }
+                
+                updateSelectedTags();
+                updateDropdownLabel();
+                applyFilters();
+            });
+        });
+
+        // Update selected tags display
+        function updateSelectedTags() {
+            selectedTags.innerHTML = '';
+            
+            selectedObjectives.forEach(obj => {
+                const badge = document.createElement('div');
+                badge.className = 'selected-badge';
+                badge.innerHTML = `
+                    <span>${obj.text}</span>
+                    <button onclick="removeObjective('${obj.value}')">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                `;
+                selectedTags.appendChild(badge);
+            });
+        }
+
+        // Update dropdown label
+        function updateDropdownLabel() {
+            if (selectedObjectives.length === 0) {
+                dropdownLabel.textContent = 'Filter by objectives';
+                dropdownLabel.classList.add('text-gray-400');
+                dropdownLabel.classList.remove('text-white');
+            } else {
+                dropdownLabel.textContent = `${selectedObjectives.length} objective(s) selected`;
+                dropdownLabel.classList.remove('text-gray-400');
+                dropdownLabel.classList.add('text-white');
+            }
+        }
+
+        // Remove objective (global function for onclick)
+        window.removeObjective = function(value) {
+            selectedObjectives = selectedObjectives.filter(obj => obj.value !== value);
+            
+            // Update dropdown item
+            dropdownItems.forEach(item => {
+                if (item.dataset.value === value) {
+                    item.classList.remove('selected');
+                }
+            });
             
             updateSelectedTags();
             updateDropdownLabel();
             applyFilters();
-        });
+        };
+
+        // Search functionality
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                currentSearch = e.target.value.toLowerCase().trim();
+                applyFilters();
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            let visibleCount = 0;
+            
+            workoutCards.forEach(card => {
+                const name = card.dataset.name || '';
+                const description = card.dataset.description || '';
+                const objectives = card.dataset.objectives ? card.dataset.objectives.split(',') : [];
+                
+                // Check search match
+                const matchesSearch = !currentSearch || 
+                                    name.includes(currentSearch) || 
+                                    description.includes(currentSearch);
+                
+                // Check filter match (if any objectives selected, card must have at least one)
+                let matchesFilter = true;
+                if (selectedObjectives.length > 0) {
+                    matchesFilter = selectedObjectives.some(selectedObj => 
+                        objectives.includes(selectedObj.value)
+                    );
+                }
+                
+                // Show or hide card
+                if (matchesSearch && matchesFilter) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            // Update counter
+            if (resultsCounter) {
+                resultsCounter.textContent = `${visibleCount} workout(s)`;
+            }
+            
+            // Show/hide no results state
+            if (workoutsList && noResultsState) {
+                if (visibleCount === 0 && workoutCards.length > 0) {
+                    workoutsList.style.display = 'none';
+                    noResultsState.style.display = 'flex';
+                } else {
+                    workoutsList.style.display = 'grid';
+                    noResultsState.style.display = 'none';
+                }
+            }
+        }
     });
-
-    // Update selected tags display
-    function updateSelectedTags() {
-        selectedTags.innerHTML = '';
-        
-        selectedObjectives.forEach(obj => {
-            const badge = document.createElement('div');
-            badge.className = 'selected-badge';
-            badge.innerHTML = `
-                <span>${obj.text}</span>
-                <button onclick="removeObjective('${obj.value}')">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            `;
-            selectedTags.appendChild(badge);
-        });
-    }
-
-    // Update dropdown label
-    function updateDropdownLabel() {
-        if (selectedObjectives.length === 0) {
-            dropdownLabel.textContent = 'Filter by objectives';
-            dropdownLabel.classList.add('text-gray-400');
-            dropdownLabel.classList.remove('text-white');
-        } else {
-            dropdownLabel.textContent = `${selectedObjectives.length} objective(s) selected`;
-            dropdownLabel.classList.remove('text-gray-400');
-            dropdownLabel.classList.add('text-white');
-        }
-    }
-
-    // Remove objective (global function for onclick)
-    window.removeObjective = function(value) {
-        selectedObjectives = selectedObjectives.filter(obj => obj.value !== value);
-        
-        // Update dropdown item
-        dropdownItems.forEach(item => {
-            if (item.dataset.value === value) {
-                item.classList.remove('selected');
-            }
-        });
-        
-        updateSelectedTags();
-        updateDropdownLabel();
-        applyFilters();
-    };
-
-    // Search functionality
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            currentSearch = e.target.value.toLowerCase().trim();
-            applyFilters();
-        });
-    }
-
-    // Apply filters
-    function applyFilters() {
-        let visibleCount = 0;
-        
-        workoutCards.forEach(card => {
-            const name = card.dataset.name || '';
-            const description = card.dataset.description || '';
-            const objectives = card.dataset.objectives ? card.dataset.objectives.split(',') : [];
-            
-            // Check search match
-            const matchesSearch = !currentSearch || 
-                                name.includes(currentSearch) || 
-                                description.includes(currentSearch);
-            
-            // Check filter match (if any objectives selected, card must have at least one)
-            let matchesFilter = true;
-            if (selectedObjectives.length > 0) {
-                matchesFilter = selectedObjectives.some(selectedObj => 
-                    objectives.includes(selectedObj.value)
-                );
-            }
-            
-            // Show or hide card
-            if (matchesSearch && matchesFilter) {
-                card.classList.remove('hidden');
-                visibleCount++;
-            } else {
-                card.classList.add('hidden');
-            }
-        });
-        
-        // Update counter
-        if (resultsCounter) {
-            resultsCounter.textContent = `${visibleCount} workout(s)`;
-        }
-        
-        // Show/hide no results state
-        if (workoutsList && noResultsState) {
-            if (visibleCount === 0 && workoutCards.length > 0) {
-                workoutsList.style.display = 'none';
-                noResultsState.style.display = 'flex';
-            } else {
-                workoutsList.style.display = 'block';
-                noResultsState.style.display = 'none';
-            }
-        }
-    }
-});
-</script>
-
-<!-- Responsive Styles -->
-<style>
-@media (max-width: 1024px) {
-    .max-w-\[1400px\] { padding-left: 1rem; padding-right: 1rem; }
-    .flex.gap-4.items-start { flex-direction: column; }
-    .dropdown-container { width: 100%; }
-}
-
-@media (max-width: 768px) {
-    .card-hover > div:first-child { flex-direction: column; align-items: flex-start; }
-    .card-hover .flex.items-center.gap-3.ml-4 { margin-left: 0; margin-top: 1rem; width: 100%; justify-content: space-between; }
-}
-</style>
+    </script>
 {% endblock %}
-
-{% block footer %}{% endblock %}
