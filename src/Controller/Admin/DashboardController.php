@@ -24,6 +24,20 @@ class DashboardController extends AbstractController
         ]);
     }
 
+    #[Route('/db-fix', name: 'admin_db_fix')]
+    public function dbFix(EntityManagerInterface $em): Response
+    {
+        $metadatas = $em->getMetadataFactory()->getAllMetadata();
+        $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($em);
+        
+        try {
+            $schemaTool->updateSchema($metadatas, true);
+            return new Response("<h1>Database Schema Fixed!</h1><p>The missing columns (including 'titre') have been added.</p><a href='/admin/dashboard'>Go back to Dashboard</a>");
+        } catch (\Exception $e) {
+            return new Response("<h1>Error fixing schema:</h1><pre>" . $e->getMessage() . "</pre>");
+        }
+    }
+
     #[Route('/users', name: 'admin_users_index')]
     public function users(EntityManagerInterface $em): Response
     {

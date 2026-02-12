@@ -21,14 +21,11 @@ class WorkoutType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            // Nom du Workout
+
+            // ================= Nom =================
             ->add('nom', TextType::class, [
                 'label' => 'Nom du Workout',
                 'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Ex: HIIT Full Body'
-                ],
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Le nom est obligatoire']),
                     new Assert\Length([
@@ -39,8 +36,25 @@ class WorkoutType extends AbstractType
                     ]),
                 ],
             ])
-            
-            // Niveau (Débutant, Intermédiaire, Avancé)
+
+            // ================= Objectifs (OBLIGATOIRE) =================
+            ->add('objectifs', EntityType::class, [
+                'class' => ObjectifSportif::class,
+                'choice_label' => 'name',
+                'label' => 'Objectifs du Workout',
+                'multiple' => true,
+                'expanded' => true,
+                'required' => true,
+                'by_reference' => false,
+                'constraints' => [
+                    new Assert\Count([
+                        'min' => 1,
+                        'minMessage' => 'Vous devez sélectionner au moins un objectif',
+                    ]),
+                ],
+            ])
+
+            // ================= Niveau =================
             ->add('niveau', ChoiceType::class, [
                 'label' => 'Niveau de difficulté',
                 'required' => true,
@@ -49,23 +63,16 @@ class WorkoutType extends AbstractType
                     'Intermédiaire' => 'INTERMEDIATE',
                     'Avancé' => 'ADVANCED'
                 ],
-                'attr' => ['class' => 'form-select'],
                 'placeholder' => 'Sélectionnez un niveau',
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Le niveau est obligatoire']),
                 ],
             ])
-            
-            // Durée estimée
+
+            // ================= Durée =================
             ->add('duree', IntegerType::class, [
                 'label' => 'Durée estimée (minutes)',
                 'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => '45',
-                    'min' => 5,
-                    'max' => 180
-                ],
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'La durée est obligatoire']),
                     new Assert\Range([
@@ -75,86 +82,29 @@ class WorkoutType extends AbstractType
                     ]),
                 ],
             ])
-            
-            // Description
+
+            // ================= Description =================
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'required' => false,
-                'attr' => [
-                    'class' => 'form-control',
-                    'rows' => 4,
-                    'placeholder' => 'Décrivez le workout, ses bénéfices, ses particularités...'
-                ]
             ])
-            
-            // ✅ CORRECTION : objectifs au lieu de objectifsSportifs
-            ->add('objectifs', EntityType::class, [
-                'class' => ObjectifSportif::class,
-                'choice_label' => 'name',
-                'label' => 'Objectifs du Workout',
-                'multiple' => true,
-                'expanded' => true,
-                'required' => false,
-                'attr' => ['class' => 'objectifs-list'],
-                'help' => 'Sélectionnez un ou plusieurs objectifs pour ce workout'
-            ])
-            
-            // Exercices à inclure
-            // ✅ OPTION 1 : Affichage simple (juste le nom)
+
+            // ================= Exercises =================
             ->add('exercises', EntityType::class, [
                 'class' => Exercise::class,
-                'choice_label' => 'nom',  // Simplement le nom de l'exercice
+                'choice_label' => 'nom',
                 'label' => 'Exercices à inclure',
                 'multiple' => true,
                 'expanded' => false,
                 'required' => true,
-                'attr' => [
-                    'class' => 'form-select',
-                    'size' => 8
-                ],
                 'by_reference' => false,
-                'help' => 'Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs exercices',
                 'constraints' => [
                     new Assert\Count([
                         'min' => 1,
                         'minMessage' => 'Vous devez sélectionner au moins un exercice',
                     ]),
                 ],
-            ])
-            
-            /* 
-            // ✅ OPTION 2 : Si vous voulez ajouter plus d'infos
-            // Décommentez ce bloc et commentez l'option 1 ci-dessus
-            // Adaptez les noms de méthodes selon votre entité Exercise
-            
-            ->add('exercises', EntityType::class, [
-                'class' => Exercise::class,
-                'choice_label' => function (Exercise $exercise) {
-                    // Adaptez selon les méthodes disponibles dans votre entité Exercise
-                    // Exemples possibles :
-                    return $exercise->getNom();
-                    // return $exercise->getNom() . ' (' . $exercise->getDifficulte() . ')';
-                    // return $exercise->getNom() . ' - ' . $exercise->getEquipement();
-                },
-                'label' => 'Exercices à inclure',
-                'multiple' => true,
-                'expanded' => false,
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-select',
-                    'size' => 8
-                ],
-                'by_reference' => false,
-                'help' => 'Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs exercices',
-                'constraints' => [
-                    new Assert\Count([
-                        'min' => 1,
-                        'minMessage' => 'Vous devez sélectionner au moins un exercice',
-                    ]),
-                ],
-            ])
-            */
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
