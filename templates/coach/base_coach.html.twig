@@ -158,8 +158,12 @@
         <div class="lg:ml-64 flex flex-col h-screen">
             <!-- Navbar -->
             {% embed 'admin/partials/navbar.html.twig' with {'role_label': 'Coach'} %}
-                {% block page_title %}Coach Panel{% endblock %}
-                {% block page_subtitle %}Manage your athletes{% endblock %}
+                {% block page_title %}
+                    {% block coach_page_title %}Coach Panel{% endblock %}
+                {% endblock %}
+                {% block page_subtitle %}
+                    {% block coach_page_subtitle %}Manage your athletes{% endblock %}
+                {% endblock %}
             {% endembed %}
 
             <!-- Main Content -->

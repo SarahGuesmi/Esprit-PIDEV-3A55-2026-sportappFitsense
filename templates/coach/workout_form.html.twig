@@ -1,18 +1,13 @@
-{% extends 'base.html.twig' %}
+{% extends 'coach/base_coach.html.twig' %}
 
 {% block title %}{{ isEdit ? 'Edit Workout' : 'Create Workout' }} - FitSense{% endblock %}
 
+{% block coach_page_title %}{{ isEdit ? 'Edit Workout' : 'Create Workout' }}{% endblock %}
+{% block coach_page_subtitle %}Configure your athlete's training routine{% endblock %}
+
 {% block stylesheets %}
-<script src="https://cdn.tailwindcss.com"></script>
+{{ parent() }}
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: #000000;
-    color: #FFFFFF;
-}
-
 .gradient-btn {
     background: linear-gradient(135deg, #22C55E, #84CC16);
 }
@@ -75,201 +70,157 @@ body {
 </style>
 {% endblock %}
 
-{% block header %}{% endblock %}
-{% block navigation %}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block menu %}{% endblock %}
-{% block footer %}{% endblock %}
-
-{% block body %}
-<div class="min-h-screen bg-black text-white">
-
-    <!-- Header -->
-    <div class="border-b border-gray-900">
-        <div class="max-w-[900px] mx-auto px-8 py-6 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="{{ path('coach_workout_catalog') }}"
-                   class="px-4 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg border border-gray-800 text-sm font-semibold transition">
-                    ← Back
-                </a>
-
-                <h1 class="text-3xl font-black tracking-tight">
-                    {{ isEdit ? 'Edit Workout' : 'Create Workout' }}
-                </h1>
-            </div>
-        </div>
+{% block coach_content %}
+<div class="max-w-4xl mx-auto py-8">
+    <!-- Back Button -->
+    <div class="mb-8">
+        <a href="{{ path('coach_workout_catalog') }}"
+           class="inline-flex items-center text-gray-400 hover:text-white transition group font-semibold">
+            <i class="fas fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i>
+            Back to Catalog
+        </a>
     </div>
 
     <!-- Form Card -->
-    <div class="max-w-[900px] mx-auto px-8 py-10">
+    <div class="bg-gray-900/40 border border-gray-800 rounded-2xl p-8 md:p-12 card-glow shadow-2xl">
+        {{ form_start(form, {'attr': {'id': 'workoutForm', 'novalidate': 'novalidate'}}) }}
+            <div class="space-y-8">
+                {% for field in form %}
+                    {% if field.vars.name != '_token' %}
+                        <div class="form-group">
+                            {{ form_label(field, null, {'label_attr': {'class': 'form-label'}}) }}
 
-        <div class="bg-[#0D0D0D] border border-gray-900 rounded-2xl p-10 card-glow">
+                            {{ form_widget(field, {
+                                'attr': {
+                                    'class': 'form-input' ~ (field.vars.errors|length ? ' error' : ''),
+                                    'placeholder': 'Enter ' ~ field.vars.label|lower,
+                                    'type': field.vars.name == 'duree' ? 'number' : null,
+                                    'min': field.vars.name == 'duree' ? 1 : null,
+                                    'required': field.vars.required ? 'required' : null,
+                                    'data-field-name': field.vars.name
+                                }
+                            }) }}
 
-            {{ form_start(form, {'attr': {'id': 'workoutForm', 'novalidate': 'novalidate'}}) }}
+                            {% if field.vars.errors|length %}
+                                <div class="error-message" data-error-for="{{ field.vars.name }}">
+                                    <i class="fas fa-exclamation-circle error-icon"></i>
+                                    {{ field.vars.errors[0].message }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-                <div class="space-y-6">
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row justify-end gap-4 mt-12 pt-8 border-t border-gray-800">
+                <a href="{{ path('coach_workout_catalog') }}"
+                   class="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-xl font-bold text-sm transition text-center">
+                    Cancel
+                </a>
 
-                    {% for field in form %}
-                        {% if field.vars.name != '_token' %}
-                            <div>
-                                {{ form_label(field, null, {'label_attr': {'class': 'form-label'}}) }}
-
-                                {{ form_widget(field, {
-                                    'attr': {
-                                        'class': 'form-input' ~ (field.vars.errors|length ? ' error' : ''),
-                                        'placeholder': 'Enter ' ~ field.vars.label|lower,
-                                        'type': field.vars.name == 'duree' ? 'number' : null,
-                                        'min': field.vars.name == 'duree' ? 1 : null,
-                                        'required': field.vars.required ? 'required' : null,
-                                        'data-field-name': field.vars.name
-                                    }
-                                }) }}
-
-                                {# Affiche les erreurs du champ si présentes #}
-                                {% if field.vars.errors|length %}
-                                    <div class="error-message" data-error-for="{{ field.vars.name }}">
-                                        <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        {{ field.vars.errors[0].message }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-
-                </div>
-
-                <!-- Actions -->
-                <div class="flex justify-end gap-4 mt-10">
-                    <a href="{{ path('coach_workout_catalog') }}"
-                       class="px-6 py-3 bg-gray-900 hover:bg-gray-800 border border-gray-800 rounded-xl font-semibold text-sm transition">
-                        Cancel
-                    </a>
-
-                    <button type="submit"
-                            class="px-8 py-3 gradient-btn text-black rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition">
-                        {{ isEdit ? 'Update Workout' : 'Create Workout' }}
-                    </button>
-                </div>
-
-            {{ form_end(form) }}
-
-        </div>
-
+                <button type="submit"
+                        class="px-10 py-3 gradient-btn text-black rounded-xl font-black text-sm shadow-lg hover:shadow-green-500/20 transition transform hover:scale-[1.02] active:scale-[0.98]">
+                    {{ isEdit ? 'Update Workout' : 'Create Workout' }}
+                </button>
+            </div>
+        {{ form_end(form) }}
     </div>
 </div>
+{% endblock %}
 
-<!-- JS pour validation et gestion des erreurs -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('workoutForm');
-    const inputs = document.querySelectorAll('.form-input');
+{% block scripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('workoutForm');
+        const inputs = document.querySelectorAll('.form-input');
 
-    function showError(input, message) {
-        input.classList.add('error');
+        function showError(input, message) {
+            input.classList.add('error');
 
-        const existingError = input.parentElement.querySelector('.error-message');
-        if (existingError) {
-            existingError.remove();
-        }
-
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.setAttribute('data-error-for', input.getAttribute('data-field-name'));
-        errorDiv.innerHTML = `
-            <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            ${message}
-        `;
-        input.parentElement.appendChild(errorDiv);
-    }
-
-    function clearError(input) {
-        input.classList.remove('error');
-        const error = input.parentElement.querySelector('.error-message');
-        if (error) {
-            error.remove();
-        }
-    }
-
-    function validateField(input) {
-        const value = input.value.trim();
-        const fieldName = input.getAttribute('data-field-name');
-        const isRequired = input.hasAttribute('required');
-
-        // 🔴 Objectif obligatoire
-        if (fieldName === 'objectif') {
-            if (!value) {
-                showError(input, 'Workout objective is required');
-                return false;
+            const existingError = input.parentElement.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
             }
 
-            if (value.length < 3) {
-                showError(input, 'Objective must contain at least 3 characters');
-                return false;
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.setAttribute('data-error-for', input.getAttribute('data-field-name'));
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle error-icon"></i>
+                ${message}
+            `;
+            input.parentElement.appendChild(errorDiv);
+        }
+
+        function clearError(input) {
+            input.classList.remove('error');
+            const error = input.parentElement.querySelector('.error-message');
+            if (error) {
+                error.remove();
             }
         }
 
-        // Champ requis générique
-        if (isRequired && !value) {
-            showError(input, 'This field is required');
-            return false;
-        }
+        function validateField(input) {
+            const value = input.value.trim();
+            const fieldName = input.getAttribute('data-field-name');
+            const isRequired = input.hasAttribute('required');
 
-        // Durée
-        if (fieldName === 'duree' && value) {
-            const duration = parseInt(value);
-            if (isNaN(duration) || duration < 1) {
-                showError(input, 'Duration must be at least 1 minute');
+            // Generic required field
+            if (isRequired && !value) {
+                showError(input, 'This field is required');
                 return false;
             }
-        }
 
-        // Textarea détaillée (description par exemple)
-        if (input.tagName === 'TEXTAREA' && isRequired && value.length < 10) {
-            showError(input, 'Please provide a more detailed description (minimum 10 characters)');
-            return false;
-        }
+            // Duration
+            if (fieldName === 'duree' && value) {
+                const duration = parseInt(value);
+                if (isNaN(duration) || duration < 1) {
+                    showError(input, 'Duration must be at least 1 minute');
+                    return false;
+                }
+            }
 
-        clearError(input);
-        return true;
-    }
+            // Detailed textarea (e.g. description)
+            if (input.tagName === 'TEXTAREA' && isRequired && value.length < 10) {
+                showError(input, 'Please provide a more detailed description (minimum 10 characters)');
+                return false;
+            }
 
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
             clearError(input);
-        });
-
-        input.addEventListener('blur', () => {
-            validateField(input);
-        });
-    });
-
-    form.addEventListener('submit', (e) => {
-        let isValid = true;
+            return true;
+        }
 
         inputs.forEach(input => {
-            if (!validateField(input)) {
-                isValid = false;
-            }
+            input.addEventListener('input', () => {
+                clearError(input);
+            });
+
+            input.addEventListener('blur', () => {
+                validateField(input);
+            });
         });
 
-        if (!isValid) {
-            e.preventDefault();
+        form.addEventListener('submit', (e) => {
+            let isValid = true;
 
-            const firstError = document.querySelector('.form-input.error');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstError.focus();
+            inputs.forEach(input => {
+                if (!validateField(input)) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+
+                const firstError = document.querySelector('.form-input.error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
             }
-        }
+        });
     });
-});
-</script>
-
-
+    </script>
 {% endblock %}

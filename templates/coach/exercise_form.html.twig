@@ -1,22 +1,15 @@
-{% extends 'base.html.twig' %}
+{% extends 'coach/base_coach.html.twig' %}
 
 {% block title %}
     {{ isEdit ? 'Edit Exercise' : 'Create Exercise' }} - FitSense
 {% endblock %}
 
+{% block coach_page_title %}{{ isEdit ? 'Edit Exercise' : 'Create Exercise' }}{% endblock %}
+{% block coach_page_subtitle %}{{ isEdit ? 'Modify exercise details' : 'Add a new exercise to your library' }}{% endblock %}
+
 {% block stylesheets %}
-<script src="https://cdn.tailwindcss.com"></script>
+{{ parent() }}
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: #000;
-    color: #fff;
-}
-
 .gradient-btn {
     background: linear-gradient(135deg, #22C55E, #84CC16);
 }
@@ -63,48 +56,51 @@ body {
 </style>
 {% endblock %}
 
-{% block header %}{% endblock %}
-{% block navigation %}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block menu %}{% endblock %}
-{% block footer %}{% endblock %}
+{% block coach_content %}
+<div class="max-w-4xl mx-auto py-8">
+    <!-- Back Button -->
+    <div class="mb-8">
+        <a href="{{ path('coach_exercise_list') }}"
+           class="inline-flex items-center text-gray-400 hover:text-white transition group font-semibold">
+            <i class="fas fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i>
+            Back to Exercise List
+        </a>
+    </div>
 
-{% block body %}
-<div class="min-h-screen bg-black">
-
-    <div class="max-w-[900px] mx-auto px-6 py-10">
-
-        <h1 class="text-4xl font-black mb-2">
-            {{ isEdit ? 'Edit Exercise' : 'Create Exercise' }}
-        </h1>
-        <p class="text-gray-500 mb-8">
-            {{ isEdit ? 'Modify the exercise details below' : 'Fill in the form below to create a new exercise' }}
-        </p>
-
-        <!-- 🔴 GLOBAL ALERT -->
-        <div id="formAlert" class="hidden mb-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-6 py-4">
-            <strong class="block mb-1">⚠️ Missing required fields</strong>
+    <!-- GLOBAL ALERT -->
+    <div id="formAlert" class="hidden mb-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-6 py-4 flex items-center gap-4">
+        <i class="fas fa-exclamation-triangle text-xl"></i>
+        <div>
+            <strong class="block mb-1">Missing required fields</strong>
             Please fill in all required fields before submitting the form.
         </div>
+    </div>
 
-        <div class="bg-[#0D0D0D] border border-gray-800 rounded-2xl p-8">
-            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'exerciseForm'}}) }}
+    <div class="bg-gray-900/40 border border-gray-800 rounded-2xl p-8 md:p-12 shadow-2xl">
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'exerciseForm'}}) }}
 
-            <!-- Name -->
-            <div class="form-group">
-                <label class="form-label">Exercise Name *</label>
-                {{ form_widget(form.nom, {'attr': {'class': 'form-input required'}}) }}
-                {% if form.nom.vars.errors|length %}
-                    <span class="form-error">{{ form.nom.vars.errors[0].message }}</span>
-                {% endif %}
-            </div>
+        <!-- Name -->
+        <div class="form-group">
+            <label class="form-label">Exercise Name *</label>
+            {{ form_widget(form.nom, {'attr': {'class': 'form-input required', 'placeholder': 'e.g. Push Ups'}}) }}
+            {% if form.nom.vars.errors|length %}
+                <div class="form-error flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ form.nom.vars.errors[0].message }}
+                </div>
+            {% endif %}
+        </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Type -->
             <div class="form-group">
                 <label class="form-label">Exercise Type *</label>
                 {{ form_widget(form.type, {'attr': {'class': 'form-select required'}}) }}
                 {% if form.type.vars.errors|length %}
-                    <span class="form-error">{{ form.type.vars.errors[0].message }}</span>
+                    <div class="form-error flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.type.vars.errors[0].message }}
+                    </div>
                 {% endif %}
             </div>
 
@@ -115,62 +111,69 @@ body {
                     'attr': {
                         'class': 'form-input required',
                         'min': 1,
-                        'max': 3600
+                        'max': 3600,
+                        'placeholder': '60'
                     }
                 }) }}
                 {% if form.duree.vars.errors|length %}
-                    <span class="form-error">{{ form.duree.vars.errors[0].message }}</span>
+                    <div class="form-error flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.duree.vars.errors[0].message }}
+                    </div>
                 {% endif %}
             </div>
-
-            <!-- Description -->
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                {{ form_widget(form.description, {'attr': {'class': 'form-textarea'}}) }}
-            </div>
-
-            <!-- Buttons -->
-            <div class="flex gap-4 mt-6">
-                <button type="submit" class="flex-1 gradient-btn text-black font-bold py-3 rounded-xl">
-                    {{ isEdit ? 'Save Changes' : 'Create Exercise' }}
-                </button>
-                <a href="{{ path('coach_exercise_list') }}"
-                   class="flex-1 text-center py-3 bg-gray-900 rounded-xl border border-gray-800">
-                    Cancel
-                </a>
-            </div>
-
-            {{ form_end(form) }}
         </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            {{ form_widget(form.description, {'attr': {'class': 'form-textarea', 'rows': '5', 'placeholder': 'Describe how to perform the exercise...'}}) }}
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 mt-8 pt-8 border-t border-gray-800/50">
+            <button type="submit" class="flex-1 gradient-btn text-black font-black py-4 rounded-xl shadow-lg hover:shadow-green-500/20 transition transform hover:scale-[1.01] active:scale-[0.99]">
+                <i class="fas fa-{{ isEdit ? 'save' : 'plus-circle' }} mr-2"></i>
+                {{ isEdit ? 'Save Changes' : 'Create Exercise' }}
+            </button>
+            <a href="{{ path('coach_exercise_list') }}"
+               class="flex-1 text-center py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl border border-gray-700 font-bold transition">
+                Cancel
+            </a>
+        </div>
+
+        {{ form_end(form) }}
     </div>
 </div>
+{% endblock %}
 
-<!-- ✅ VALIDATION JS -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('exerciseForm');
-    const alertBox = document.getElementById('formAlert');
-    const requiredFields = form.querySelectorAll('.required');
+{% block scripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('exerciseForm');
+        const alertBox = document.getElementById('formAlert');
+        const requiredFields = form.querySelectorAll('.required');
 
-    form.addEventListener('submit', (e) => {
-        let hasError = false;
-        alertBox.classList.add('hidden');
+        form.addEventListener('submit', (e) => {
+            let hasError = false;
+            alertBox.classList.add('hidden');
 
-        requiredFields.forEach(field => {
-            field.classList.remove('error');
+            requiredFields.forEach(field => {
+                field.classList.remove('error');
 
-            if (!field.value || field.value.trim() === '') {
-                field.classList.add('error');
-                hasError = true;
+                if (!field.value || field.value.trim() === '') {
+                    field.classList.add('error');
+                    hasError = true;
+                }
+            });
+
+            if (hasError) {
+                e.preventDefault();
+                alertBox.classList.remove('hidden');
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
-
-        if (hasError) {
-            e.preventDefault();
-            alertBox.classList.remove('hidden');
-            alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
     });
-});
-</script>
+    </script>
 {% endblock %}
