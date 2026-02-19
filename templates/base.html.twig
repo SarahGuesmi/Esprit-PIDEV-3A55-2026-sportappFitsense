@@ -6,13 +6,191 @@
         <meta name="description" content="">
         <meta name="author" content="">
         <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
+        <!-- Inter Font for Fitsense Theme -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         
-        <title>{% block title %}Training Studio{% endblock %}</title>
+        <title>{% block title %}Fitsense{% endblock %}</title>
         
         {% block stylesheets %}
             <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/bootstrap.min.css') }}">
             <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/font-awesome.css') }}">
             <link rel="stylesheet" href="{{ asset('assets/css/templatemo-training-studio.css') }}">
+            
+            <style>
+                :root {
+                    --blue-light: #38BDF8;
+                    --violet-light: #A78BFA;
+                    --violet-primary: #8B5CF6;
+                    --dark-bg: #0B0C10;
+                    --dark-card: #1B1E26;
+                    --dark-input: #262A35;
+                    --text-primary: #FFFFFF;
+                    --text-secondary: #A1A1AA;
+                    --border-color: #343846;
+                    --gradient-main: linear-gradient(135deg, #8B5CF6, #D8B4FE);
+                    --gradient-hover: linear-gradient(135deg, #7C3AED, #C084FC);
+                }
+
+                body {
+                    font-family: 'Inter', system-ui, sans-serif !important;
+                    background-color: var(--dark-bg) !important;
+                    color: var(--text-primary) !important;
+                }
+
+                h1, h2, h3, h4, h5, h6 {
+                    color: var(--text-primary) !important;
+                }
+
+                p, span, li, a {
+                    color: var(--text-secondary);
+                }
+
+                /* Header / Navbar Overrides */
+                .header-area.header-sticky {
+                    background-color: rgba(11, 12, 16, 0.95) !important;
+                    backdrop-filter: blur(12px);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                }
+
+                .header-area .main-nav .logo {
+                    color: var(--text-primary) !important;
+                    font-weight: 800;
+                    font-size: 28px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    text-transform: none;
+                }
+                
+                .header-area .main-nav .logo em {
+                    font-style: normal;
+                    background: var(--gradient-main);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .header-area .main-nav .nav li a {
+                    color: var(--text-primary) !important;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                    transition: all 0.3s ease;
+                }
+
+                .header-area .main-nav .nav li a:hover {
+                    color: var(--violet-light) !important;
+                }
+                
+                /* Enhanced Navbar Buttons */
+                .nav-btn-signup a {
+                    background: var(--gradient-main) !important;
+                    color: #fff !important;
+                    border-radius: 12px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    height: 45px !important;
+                    padding: 0 25px !important;
+                    font-weight: 700 !important;
+                    line-height: 1 !important;
+                    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+                    margin-left: 10px;
+                }
+
+                .nav-btn-signup a:hover {
+                    background: var(--gradient-hover) !important;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+                    color: #fff !important;
+                }
+
+                .nav-btn-signin a {
+                    background: rgba(255, 255, 255, 0.05) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    color: var(--text-primary) !important;
+                    border-radius: 12px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    height: 45px !important;
+                    padding: 0 25px !important;
+                    font-weight: 700 !important;
+                    line-height: 1 !important;
+                    transition: all 0.3s ease;
+                }
+
+                .nav-btn-signin a:hover {
+                    background: rgba(255, 255, 255, 0.1) !important;
+                    border-color: var(--violet-light) !important;
+                    color: var(--violet-light) !important;
+                }
+
+                /* Theme color overrides for TemplateMo classes */
+                em { color: var(--violet-light) !important; font-style: normal; }
+                .main-button a, button.main-button {
+                    background-color: var(--violet-primary) !important;
+                    background: var(--gradient-main) !important;
+                    border: none !important;
+                    border-radius: 12px !important;
+                    font-weight: 700 !important;
+                    text-transform: uppercase;
+                    transition: all 0.3s ease !important;
+                }
+                .main-button a:hover, button.main-button:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+                }
+                .section-heading h2 em { color: var(--violet-primary) !important; }
+                .trainer-item span { color: var(--violet-light) !important; }
+                
+                /* Footer Overrides */
+                footer {
+                    background: #0B0C10 !important;
+                    border-top: 1px solid var(--border-color);
+                    padding: 40px 0 !important;
+                }
+                footer p {
+                    color: var(--text-secondary) !important;
+                }
+
+                /* Hero Branding Refinements */
+                .hero-brand {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin-bottom: 25px;
+                    animation: fadeInUp 1s ease-out;
+                }
+                .hero-logo-small {
+                    width: 250px !important; /* Made even bigger as requested */
+                    height: auto;
+                    margin-bottom: 25px;
+                    filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.5));
+                }
+                .hero-title-violet {
+                    font-size: 32px !important;
+                    font-weight: 900 !important;
+                    background: var(--gradient-main);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    text-transform: uppercase;
+                    letter-spacing: 4px;
+                    margin: 0 !important;
+                }
+
+                /* Disable Sticky Header Flow */
+                .header-area {
+                    position: absolute !important;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    z-index: 100;
+                }
+
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            </style>
         {% endblock %}
 
         {% block javascripts %}
@@ -37,16 +215,16 @@
                     <div class="row">
                         <div class="col-12">
                             <nav class="main-nav">
-                                <a href="{{ path('app_home') }}" class="logo">Training<em> Studio</em></a>
+                                {% if app.request.get('_route') != 'app_home' %}
+                                    <a href="{{ path('app_home') }}" class="logo">
+                                        <img src="{{ asset('assets/images/sport-hero.png') }}" alt="Fitsense Logo">
+                                        Fitsense
+                                    </a>
+                                {% endif %}
                                 <ul class="nav">
-                                    <li class="scroll-to-section"><a href="#top" class="active">Home</a></li>
-                                    <li class="scroll-to-section"><a href="#features">About</a></li>
-                                    <li class="scroll-to-section"><a href="#our-classes">Classes</a></li>
-                                    <li class="scroll-to-section"><a href="#schedule">Schedules</a></li>
-                                    <li class="scroll-to-section"><a href="#contact-us">Contact</a></li> 
-                                    <li class="main-button"><a href="{{ path('auth_sign_up') }}">Sign Up</a></li>
-                                    <li class="main-button"><a href="{{ path('auth_sign_in') }}">Sign In</a></li>
-
+                                    <!-- Removed specific links as requested -->
+                                    <li class="nav-btn-signup"><a href="{{ path('auth_sign_up') }}">Sign Up</a></li>
+                                    <li class="nav-btn-signin"><a href="{{ path('auth_sign_in') }}">Sign In</a></li>
                                 </ul>        
                                 <a class='menu-trigger'>
                                     <span>Menu</span>
@@ -61,29 +239,22 @@
         {% block body %}{% endblock %}
         
         {% block footer %}
-<footer class="mt-10 shadow-lg backdrop-blur-sm"
-        style="background: linear-gradient(90deg, #1B1E26 0%, #262A35 100%); border-top: 1px solid #343846;">
-    
-    <div class="container mx-auto px-6 py-6">
-        <div class="row">
-            <div class="col-lg-12 text-center">
-                <p class="text-gray-400 text-sm">
-                    Copyright &copy; 2020 Training Studio - Designed by
-                    <a rel="nofollow" href="https://templatemo.com"
-                       class="text-purple-400 hover:text-white transition font-medium"
-                       target="_parent">TemplateMo</a>
-                    <br>
-                    Distributed by
-                    <a rel="nofollow" href="https://themewagon.com"
-                       class="text-purple-400 hover:text-white transition font-medium"
-                       target="_blank">ThemeWagon</a>
-                </p>
-            </div>
-        </div>
-    </div>
+        <footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p>Copyright &copy; 2026 Fitsense
+                        
+                        - Designed by <a rel="nofollow" href="https://templatemo.com" class="tm-text-link" target="_parent">TemplateMo</a><br>
 
-</footer>
-{% endblock %}
+                        Distributed by <a rel="nofollow" href="https://themewagon.com" class="tm-text-link" target="_blank">ThemeWagon</a>
+                        
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        {% endblock %}
 
 
         {% block scripts %}

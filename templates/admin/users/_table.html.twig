@@ -1,0 +1,107 @@
+{% for user in users %}
+    <tr class="table-row row-orbit stagger-row group border-b border-gray-700/30" style="animation-delay: {{ loop.index0 * 0.05 }}s">
+        <td class="px-6 py-5 whitespace-nowrap">
+            <div class="flex items-center">
+                <div class="relative flex-shrink-0 h-11 w-11 group/avatar">
+                    <!-- Status Halo -->
+                    <div class="absolute inset-0 rounded-xl blur-md transition-all duration-500 group-hover/avatar:blur-lg opacity-40
+                        {% if user.accountStatus == 'active' %} bg-green-500
+                        {% elseif user.accountStatus == 'inactive' %} bg-red-500
+                        {% else %} bg-purple-500 {% endif %}"></div>
+                    
+                    <img class="relative h-11 w-11 rounded-xl ring-2 ring-white/10 group-hover:ring-purple-500/50 transition-all duration-300 z-10"
+                         src="https://ui-avatars.com/api/?name={{ user.firstname }}+{{ user.lastname }}&background=7c3aed&color=fff"
+                         alt="{{ user.firstname }} {{ user.lastname }}">
+                </div>
+                <div class="ml-4">
+                    <div class="text-sm font-semibold text-white group-hover:text-purple-300 transition duration-300">
+                        {{ user.firstname }} {{ user.lastname }}
+                    </div>
+                    <div class="text-xs text-gray-500 flex items-center gap-1.5">
+                        <span class="w-1 h-1 rounded-full bg-gray-700"></span>
+                        {{ user.email }}
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td class="px-6 py-5 whitespace-nowrap">
+            <span class="px-3 py-1.5 inline-flex text-[10px] uppercase tracking-widest font-bold rounded-lg bg-gray-800/50 text-purple-400 border border-purple-500/30 backdrop-blur shadow-[0_0_10px_rgba(139,92,246,0.1)]">
+                {{ user.roles|join(', ') }}
+            </span>
+        </td>
+        <td class="px-6 py-5 whitespace-nowrap">
+            {% if user.accountStatus == 'active' %}
+                <span class="status-pulse-active px-3 py-1.5 text-[10px] uppercase font-bold rounded-full bg-green-500/10 text-green-400 border border-green-500/40">
+                    <i class="fas fa-circle text-[6px] mr-1.5"></i> Active
+                </span>
+            {% elseif user.accountStatus == 'inactive' %}
+                <span class="status-pulse-inactive px-3 py-1.5 text-[10px] uppercase font-bold rounded-full bg-red-500/10 text-red-400 border border-red-500/40">
+                    <i class="fas fa-circle text-[6px] mr-1.5"></i> Inactive
+                </span>
+            {% else %}
+                <span class="status-pulse-pending px-3 py-1.5 text-[10px] uppercase font-bold rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/40">
+                    <i class="fas fa-circle text-[6px] mr-1.5"></i> Pending
+                </span>
+            {% endif %}
+        </td>
+        <td class="px-6 py-5 whitespace-nowrap">
+            <div class="flex flex-col">
+                <span class="text-xs text-white font-medium">{{ user.dateCreation ? user.dateCreation|date('M d, Y') : '—' }}</span>
+                <span class="text-[10px] text-gray-600 uppercase">{{ user.dateCreation ? user.dateCreation|date('H:i') : '' }}</span>
+            </div>
+        </td>
+        <td class="px-6 py-5 whitespace-nowrap text-right">
+            <div class="flex justify-end items-center gap-3">
+                <div class="opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2 translate-x-4 group-hover:translate-x-0">
+                    <a href="/admin/users/activate/{{ user.id }}"
+                       class="p-2 text-xs bg-green-500/10 hover:bg-green-500 text-green-400 hover:text-white rounded-lg border border-green-500/20 transition-all"
+                       title="Activate">
+                        <i class="fas fa-check"></i>
+                    </a>
+                    <a href="/admin/users/deactivate/{{ user.id }}"
+                       class="p-2 text-xs bg-yellow-500/10 hover:bg-yellow-500 text-yellow-400 hover:text-white rounded-lg border border-yellow-500/20 transition-all"
+                       title="Deactivate">
+                        <i class="fas fa-ban"></i>
+                    </a>
+                </div>
+                
+                <button
+                    class="edit-user-btn p-2 bg-purple-500/10 hover:bg-purple-500 text-purple-400 hover:text-white rounded-lg border border-purple-500/20 transition-all active:scale-90"
+                    data-user-id="{{ user.id }}"
+                    data-user-firstname="{{ user.firstname }}"
+                    data-user-lastname="{{ user.lastname }}"
+                    data-user-email="{{ user.email }}"
+                    data-user-status="{{ user.accountStatus }}"
+                    data-user-roles="{{ user.roles|json_encode }}"
+                >
+                    <i class="fas fa-pencil-alt text-xs"></i>
+                </button>
+                <button
+                    class="delete-user-btn p-2 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-lg border border-red-500/20 transition-all active:scale-90"
+                    data-user-id="{{ user.id }}"
+                    data-user-name="{{ user.firstname }} {{ user.lastname }}"
+                >
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>
+            </div>
+        </td>
+    </tr>
+{% else %}
+    <tr>
+        <td colspan="5" class="px-6 py-32 text-center bg-gray-900/20 backdrop-blur-sm rounded-2xl">
+            <div class="flex flex-col items-center justify-center">
+                <div class="relative mb-6">
+                    <div class="absolute inset-0 bg-purple-500/20 blur-3xl rounded-full"></div>
+                    <div class="relative bg-gray-800 border border-gray-700 rounded-3xl p-10 shadow-2xl">
+                        <i class="fas fa-user-secret text-7xl text-gray-600 animate-bounce"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-300">Database Ghost Town</h3>
+                <p class="text-gray-500 max-w-xs mt-2">Zero user signatures detected in the local grid coordinates.</p>
+                <button id="openAddCoachModalEmpty" class="mt-8 px-8 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-3" onclick="document.getElementById('openAddCoachModal').click()">
+                    <i class="fas fa-plus"></i> Initiate System Entry
+                </button>
+            </div>
+        </td>
+    </tr>
+{% endfor %}

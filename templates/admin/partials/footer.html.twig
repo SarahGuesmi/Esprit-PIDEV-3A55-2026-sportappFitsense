@@ -1,42 +1,42 @@
-<footer class="mt-auto border-t backdrop-blur-sm"
-        style="background: linear-gradient(90deg, #1B1E26 0%, #262A35 100%); border-top: 1px solid #343846;">
+<footer class="mt-auto border-t backdrop-blur-sm relative z-10"
+        style="background: #111318; border-top: 1px solid #343846;">
     
-    <div class="px-6 py-6 text-center">
+    <div class="px-6 py-8 text-center bg-transparent">
         
         <!-- Copyright -->
-        <div>
-            <p class="text-sm text-gray-300">
+        <div class="bg-transparent">
+            <p class="text-sm text-gray-300 bg-transparent">
                 Copyright © {{ "now"|date("Y") }} 
-                <span class="font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">FitSense</span>
+                <span class="font-bold bg-gradient-to-r from-[#8B5CF6] to-[#D8B4FE] bg-clip-text text-transparent uppercase tracking-tight">FitSense</span>
                 - Designed by 
-                <a href="#" class="text-purple-400 hover:text-purple-300 transition font-medium">YourTeam</a>
+                <a href="#" class="text-[#8B5CF6] hover:text-[#A78BFA] transition font-semibold bg-transparent">YourTeam</a>
             </p>
-            <p class="text-xs text-gray-500 mt-1">
-                Distributed with <i class="fas fa-heart text-red-500 animate-pulse"></i> by 
-                <a href="#" class="text-purple-400 hover:text-purple-300 transition">FitSense Team</a>
+            <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest bg-transparent">
+                Shared with <i class="fas fa-heart text-purple-500/50"></i> by 
+                <span class="text-gray-400">FitSense Team</span>
             </p>
         </div>
 
         <!-- Quick Links -->
-        <div class="flex justify-center items-center gap-6 mt-4">
-            <a href="#" class="text-sm text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
-                <i class="fas fa-book"></i>
-                <span>Documentation</span>
+        <div class="flex justify-center items-center gap-8 mt-6 bg-transparent">
+            <a href="#" class="text-xs text-gray-500 hover:text-purple-400 transition flex items-center gap-2 bg-transparent">
+                <i class="fas fa-book-open opacity-50"></i>
+                <span>Docs</span>
             </a>
-            <a href="#" class="text-sm text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
-                <i class="fas fa-question-circle"></i>
+            <a href="#" class="text-xs text-gray-500 hover:text-purple-400 transition flex items-center gap-2 bg-transparent">
+                <i class="fas fa-headset opacity-50"></i>
                 <span>Support</span>
             </a>
-            <a href="#" class="text-sm text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
-                <i class="fas fa-shield-alt"></i>
+            <a href="#" class="text-xs text-gray-500 hover:text-purple-400 transition flex items-center gap-2 bg-transparent">
+                <i class="fas fa-fingerprint opacity-50"></i>
                 <span>Privacy</span>
             </a>
         </div>
 
         <!-- Version Info -->
-        <div class="mt-4 pt-4 border-t border-gray-700/50">
-            <p class="text-xs text-gray-500">
-                <i class="fas fa-code text-purple-400"></i> Version 1.0.0 - Admin Panel
+        <div class="mt-6 pt-6 border-t border-white/5 bg-transparent">
+            <p class="text-[10px] text-gray-600 font-mono tracking-widest uppercase">
+                <span class="text-purple-500/50">/</span> Version 1.0.0 <span class="text-purple-500/50">/</span> Admin Panel
             </p>
         </div>
 
@@ -44,11 +44,22 @@
 </footer>
 
 <style>
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-.animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
+    /* Absolute Reset for any legacy styles causing "redness" */
+    footer, footer *, footer div, footer p, footer span, footer a {
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Enforce text gradients for spans that need them */
+    .bg-clip-text {
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+    }
+
+    /* Force hide preloader in this area */
+    #js-preloader, .js-preloader, .preloader-inner, .dot, .dots {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
 </style>

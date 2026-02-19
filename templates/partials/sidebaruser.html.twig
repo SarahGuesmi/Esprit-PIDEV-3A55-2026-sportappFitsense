@@ -1,54 +1,59 @@
-<aside class="sidebar fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 lg:translate-x-0 -translate-x-full">
+<aside class="sidebar fixed inset-y-0 left-0 z-40 w-[280px] transform transition-transform duration-300 lg:translate-x-0 -translate-x-full shadow-2xl">
     <div class="h-full flex flex-col">
         <!-- FitSense Header with Logo -->
-        <div class="p-6 pb-4 border-b border-gray-700">
+        <div class="p-6 pb-4 border-b border-white/5 logo-container relative">
             <div class="text-center">
-                <h1 class="text-2xl font-bold mb-3">
-                    <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h1 class="text-2xl font-black mb-3 logo-title">
+                    <span class="bg-gradient-to-r from-[#8B5CF6] to-[#D8B4FE] bg-clip-text text-transparent uppercase tracking-tighter">
                         FitSense
                     </span>
                 </h1>
-                <img src="/assets/images/sport-hero.png" alt="FitSense" class="mx-auto w-28 mb-2 animate-float">
-                <p class="text-gray-400 text-xs font-medium uppercase tracking-wide">User Portal</p>
+                <img src="{{ asset('assets/images/sport-hero.png') }}" alt="FitSense" class="mx-auto w-24 mb-2 animate-float hero-logo">
+                <p class="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] portal-label">Member Portal</p>
             </div>
+            
+            <!-- Desktop Toggle Button -->
+            <button id="desktop-sidebar-toggle" class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#262A35] border border-[#343846] rounded-full hidden lg:flex items-center justify-center text-gray-400 hover:text-white transition shadow-lg z-50">
+                <i class="fas fa-chevron-left text-[10px]"></i>
+            </button>
         </div>
 
-        <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
             <a href="{{ path('dashboard_user') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'dashboard_user' ? 'active' : '' }}">
-                <i class="fas fa-tachometer-alt w-5 mr-3"></i>
-                Dashboard
+                <i class="fas fa-th-large"></i>
+                <span class="sidebar-text">Dashboard</span>
             </a>
 
             <a href="{{ path('user_my_workouts') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_my_workouts' ? 'active' : '' }}">
-                <i class="fas fa-dumbbell w-5 mr-3"></i>
-                Workouts
+                <i class="fas fa-dumbbell"></i>
+                <span class="sidebar-text">My Workouts</span>
             </a>
 
             <a href="{{ path('etat_mental_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'etat_mental' ? 'active' : '' }}">
-                <i class="fas fa-brain w-5 mr-3"></i>
-                Mental Health
+                <i class="fas fa-heartbeat"></i>
+                <span class="sidebar-text">Mental Health</span>
             </a>
 
             <a href="{{ path('user_nutrition') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_nutrition' ? 'active' : '' }}">
-                <i class="fas fa-utensils w-5 mr-3"></i>
-                Nutrition
+                <i class="fas fa-utensils"></i>
+                <span class="sidebar-text">Nutrition</span>
             </a>
         </nav>
 
         <!-- Profile Section -->
-        <div class="px-3 py-6 border-t border-gray-700">
-            <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Settings</p>
+        <div class="px-3 py-4 border-t border-white/5">
+            <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3 portal-label">Settings</p>
             <a href="{{ path('profile_setup_height') }}" class="sidebar-link">
-                <i class="fas fa-user-cog w-5 mr-3"></i>
-                Profile Setup
+                <i class="fas fa-user-circle"></i>
+                <span class="sidebar-text">Account Settings</span>
             </a>
         </div>
 
         <!-- Logout -->
-        <div class="p-3 border-t border-gray-700 mt-auto">
+        <div class="p-3 border-t border-white/5 mt-auto">
             <a href="{{ path('app_logout') }}" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
-                <i class="fas fa-sign-out-alt w-5 mr-3"></i>
-                Logout
+                <i class="fas fa-power-off"></i>
+                <span class="sidebar-text">Sign Out</span>
             </a>
         </div>
     </div>
@@ -57,10 +62,14 @@
 <style>
     @keyframes float {
         0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
+        50% { transform: translateY(-8px); }
     }
     
     .animate-float {
         animation: float 3s ease-in-out infinite;
+    }
+
+    .sidebar-collapsed #desktop-sidebar-toggle i {
+        transform: rotate(180deg);
     }
 </style>

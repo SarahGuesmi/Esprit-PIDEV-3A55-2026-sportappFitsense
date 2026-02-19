@@ -330,9 +330,11 @@ h2 {
     {% endif %}
 
     <div class="action-buttons">
-        <a href="{{ path('etat_mental_exercises', {id: etat.id}) }}" class="btn btn-primary">View Recommended Exercises</a>
+        {% if recommendation is defined and recommendation is not null %}
+            <a href="{{ path('etat_mental_coach_recommendation') }}" class="btn btn-primary">View Recommended Exercises</a>
+        {% endif %}
         <a href="{{ path('etat_mental_new') }}" class="btn btn-secondary">Retake</a>
-        <a href="{{ path('app_home') }}" class="btn btn-secondary">Home</a>
+        <a href="{{ path('etat_mental_index') }}" class="btn btn-secondary">Review Mental Health</a>
     </div>
 </div>
 {% block footer %}{% endblock %}

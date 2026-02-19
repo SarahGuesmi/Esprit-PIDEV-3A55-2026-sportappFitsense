@@ -39,14 +39,37 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/users', name: 'admin_users_index')]
-    public function users(EntityManagerInterface $em): Response
+    public function users(Request $request, EntityManagerInterface $em): Response
     {
-        // Get all users for the users table page
-        $users = $em->getRepository(User::class)
-            ->createQueryBuilder('u')
-            ->orderBy('u.dateCreation', 'DESC')
-            ->getQuery()
-            ->getResult();
+        $q = $request->query->get('q', '');
+        $status = $request->query->get('status', '');
+        $role = $request->query->get('role', '');
+
+        $queryBuilder = $em->getRepository(User::class)->createQueryBuilder('u')
+            ->orderBy('u.dateCreation', 'DESC');
+
+        if (!empty($q)) {
+            $queryBuilder->andWhere('u.firstname LIKE :q OR u.lastname LIKE :q OR u.email LIKE :q')
+                ->setParameter('q', '%' . $q . '%');
+        }
+
+        if (!empty($status)) {
+            $queryBuilder->andWhere('u.accountStatus = :status')
+                ->setParameter('status', $status);
+        }
+
+        if (!empty($role)) {
+            $queryBuilder->andWhere('u.roles LIKE :role')
+                ->setParameter('role', '%' . $role . '%');
+        }
+
+        $users = $queryBuilder->getQuery()->getResult();
+
+        if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest' || $request->query->get('ajax')) {
+            return $this->render('admin/users/_table.html.twig', [
+                'users' => $users,
+            ]);
+        }
 
         return $this->render('admin/users/index.html.twig', [
             'users' => $users,
@@ -62,6 +85,13 @@ class DashboardController extends AbstractController
         $email = $request->request->get('email');
         $password = $request->request->get('password');
         $accountStatus = $request->request->get('accountStatus');
+
+        // Check if email already exists
+        $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $email]);
+        if ($existingUser) {
+            $this->addFlash('error', 'This email address already exists.');
+            return $this->redirectToRoute('admin_users_index');
+        }
 
         // Create new user
         $user = new User();
@@ -105,6 +135,13 @@ class DashboardController extends AbstractController
         $role = $request->request->get('role');
 
         // Update user fields
+        // Check if email already exists (and is not our current user)
+        $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $email]);
+        if ($existingUser && $existingUser->getId() !== $user->getId()) {
+            $this->addFlash('error', 'This email address already exists.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
         $user->setFirstname($firstname);
         $user->setLastname($lastname);
         $user->setEmail($email);

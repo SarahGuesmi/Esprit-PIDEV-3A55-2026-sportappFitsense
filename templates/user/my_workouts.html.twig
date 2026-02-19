@@ -1,0 +1,66 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}FitSense - My Workouts{% endblock %}
+
+{% block user_page_title %}My Workouts{% endblock %}
+{% block user_page_subtitle %}Personalized sessions matching your goals{% endblock %}
+
+{% block user_content %}
+    <div class="space-y-8">
+        <!-- Objectives Pills -->
+        <div class="flex flex-wrap gap-3">
+            {% for name in app.user.getObjectifNames() %}
+                <span class="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-400 rounded-full text-xs font-bold border border-blue-500/30">
+                    <i class="fas fa-tag mr-2"></i>{{ name }}
+                </span>
+            {% endfor %}
+        </div>
+
+        <!-- Workouts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for workout in workouts %}
+                <div class="glass-card overflow-hidden group hover:ring-2 hover:ring-blue-500/50 transition-all duration-300">
+                    <div class="h-48 bg-gray-800 relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent z-10"></div>
+                        <img src="/assets/images/sport-hero.png" alt="Workout" class="w-full h-full object-cover mix-blend-overlay opacity-50 group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="px-2 py-1 bg-blue-500 text-white text-[10px] font-black uppercase tracking-wider rounded">
+                                {{ workout.niveau|capitalize }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2 group-hover:text-blue-400 transition">{{ workout.nom }}</h3>
+                        <div class="flex items-center gap-4 text-xs text-gray-500 mb-4">
+                            <div class="flex items-center gap-1.5">
+                                <i class="far fa-clock text-blue-400"></i>
+                                {{ workout.duree }} mins
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i class="fas fa-list-ol text-purple-400"></i>
+                                {{ workout.exercises|length }} exercises
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-sm line-clamp-2 mb-6">
+                            {{ workout.description|default('No description provided for this session.') }}
+                        </p>
+                        <a href="{{ path('user_workout_view', {id: workout.id}) }}" class="w-full inline-flex items-center justify-center px-6 py-3 bg-gray-800 hover:bg-white hover:text-black rounded-xl font-bold transition duration-300">
+                            Start Workout
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-span-full py-20 text-center">
+                    <div class="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-dumbbell text-3xl text-gray-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-300">No matching workouts</h3>
+                    <p class="text-gray-500 max-w-xs mx-auto mt-2">
+                        Wait for your coach to create workouts matching your objectives.
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+                    

@@ -14,7 +14,9 @@
         </div>
     {% endfor %}
 
-    <div class="space-y-6">
+    <div class="space-y-6 relative z-10">
+        <!-- Tech Grid Background -->
+        <div class="tech-grid"></div>
 
         <!-- Header -->
         <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
@@ -23,16 +25,22 @@
             <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
 
             <div class="relative flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                        <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
-                        User Management
+                <div class="group/header-title">
+                    <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3 transition-all duration-500 group-hover/header-title:tracking-tight">
+                        <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full shadow-[0_0_15px_rgba(167,139,250,0.5)]"></div>
+                        <span class="bg-gradient-to-r from-white via-purple-200 to-white bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent">User Management</span>
                     </h1>
-                    <p class="text-gray-400 ml-6">Browse and manage all users in the system</p>
+                    <p class="text-gray-400 ml-6 flex items-center gap-2">
+                        <i class="fas fa-microchip text-purple-500/50 text-xs"></i>
+                        Browse and manage all users in the system
+                    </p>
                 </div>
-                <button id="openAddCoachModal" class="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/50 hover:transform hover:scale-105">
-                    <i class="fas fa-plus"></i>
-                    Add Coach
+                <button id="openAddCoachModal" class="relative group/add-btn bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-xl font-semibold overflow-hidden transition-all duration-300 shadow-lg hover:shadow-purple-500/50 hover:transform hover:scale-105 active:scale-95">
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/add-btn:translate-y-0 transition-transform duration-300"></div>
+                    <span class="relative flex items-center gap-2">
+                        <i class="fas fa-plus-circle transition-transform group-hover/add-btn:rotate-90"></i>
+                        Add Coach
+                    </span>
                 </button>
             </div>
         </div>
@@ -52,9 +60,10 @@
                         <input
                             type="text"
                             id="searchUsers"
-                            class="block w-full pl-12 pr-4 py-3.5 bg-gray-900/80 backdrop-blur border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition"
+                            class="block w-full pl-12 pr-4 py-3.5 bg-gray-900/40 backdrop-blur-md border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:border-purple-500/80 focus:outline-none focus:ring-4 focus:ring-purple-500/10 transition-all duration-300"
                             placeholder="Search by name or email..."
                         >
+                        <div class="search-scan-line"></div>
                     </div>
                 </div>
 
@@ -140,95 +149,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700/50 backdrop-blur">
-                        {% for user in users %}
-                            <tr class="table-row hover:bg-purple-500/5 transition-all duration-200 group">
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-11 w-11">
-                                            <img class="h-11 w-11 rounded-xl ring-2 ring-purple-500/30 group-hover:ring-purple-500/50 transition"
-                                                 src="https://ui-avatars.com/api/?name={{ user.firstname }}+{{ user.lastname }}&background=7c3aed&color=fff"
-                                                 alt="{{ user.firstname }} {{ user.lastname }}">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-semibold text-white group-hover:text-purple-300 transition">
-                                                {{ user.firstname }} {{ user.lastname }}
-                                            </div>
-                                            <div class="text-sm text-gray-400">
-                                                {{ user.email }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-300 border border-purple-500/40 backdrop-blur">
-                                        {{ user.roles|join(', ') }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    {% if user.accountStatus == 'active' %}
-                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-500/20 text-green-300 border border-green-500/40">
-                                            Active
-                                        </span>
-                                    {% elseif user.accountStatus == 'inactive' %}
-                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/20 text-red-300 border border-red-500/40">
-                                            Inactive
-                                        </span>
-                                    {% else %}
-                                        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">
-                                            Pending
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-300">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fas fa-clock text-gray-500 text-xs"></i>
-                                        {{ user.dateCreation ? user.dateCreation|date('d/m/Y') : '—' }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex justify-end items-center gap-2">
-                                        <a href="/admin/users/activate/{{ user.id }}"
-                                           class="px-3 py-1.5 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-md border border-green-500/40 transition">
-                                            Activate
-                                        </a>
-                                        <a href="/admin/users/deactivate/{{ user.id }}"
-                                           class="px-3 py-1.5 text-xs bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 rounded-md border border-yellow-500/40 transition">
-                                            Deactivate
-                                        </a>
-                                        <button
-                                            class="edit-user-btn bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-2.5 py-1.5 rounded-md border border-purple-500/40 transition"
-                                            data-user-id="{{ user.id }}"
-                                            data-user-firstname="{{ user.firstname }}"
-                                            data-user-lastname="{{ user.lastname }}"
-                                            data-user-email="{{ user.email }}"
-                                            data-user-status="{{ user.accountStatus }}"
-                                            data-user-roles="{{ user.roles|json_encode }}"
-                                        >
-                                            <i class="fas fa-edit text-sm"></i>
-                                        </button>
-                                        <button
-                                            class="delete-user-btn bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2.5 py-1.5 rounded-md border border-red-500/40 transition"
-                                            data-user-id="{{ user.id }}"
-                                            data-user-name="{{ user.firstname }} {{ user.lastname }}"
-                                        >
-                                            <i class="fas fa-trash text-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="5" class="px-6 py-20 text-center">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur rounded-2xl p-8 mb-4 border border-gray-700">
-                                            <i class="fas fa-users text-gray-500 text-5xl"></i>
-                                        </div>
-                                        <h3 class="text-xl font-semibold text-gray-300 mb-2">No users found</h3>
-                                        <p class="text-gray-500">No users registered yet</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
+                        {% include 'admin/users/_table.html.twig' %}
                     </tbody>
                 </table>
             </div>
@@ -236,51 +157,100 @@
     </div>
 
     <!-- Add Coach Modal -->
-    <div id="addCoachModal" class="modal fixed inset-0 bg-black/60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-300 hidden">
-        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 border border-gray-700 transform transition-all duration-300 scale-95 opacity-0">
-            <div class="flex items-center justify-between mb-6 p-6 pb-0">
-                <h3 class="text-2xl font-bold text-white">Add New Coach</h3>
-                <button id="closeAddCoachModal" class="text-gray-400 hover:text-purple-400 text-2xl transition">
-                    <i class="fas fa-times"></i>
-                </button>
+    <div id="addCoachModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] opacity-0 pointer-events-none transition-all duration-500 overflow-hidden">
+        <div class="modal-content relative bg-[#1B1E26]/90 border border-purple-500/30 rounded-[2.5rem] shadow-[0_0_50px_rgba(139,92,246,0.2)] max-w-4xl w-[95%] max-h-[90vh] flex flex-col transform scale-95 transition-all duration-500 overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="relative p-8 border-b border-white/5 bg-gradient-to-r from-purple-500/10 to-transparent">
+                <div class="absolute top-0 right-0 p-8">
+                    <button id="closeAddCoachModal" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 transition-all duration-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                        <i class="fas fa-user-plus text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white tracking-tight">Initiate System Coach</h3>
+                        <p class="text-sm text-gray-400">Deploy a new administrative entity to coordinates</p>
+                    </div>
+                </div>
             </div>
 
-            <form id="addCoachForm" action="{{ path('admin_users_add_coach') }}" method="POST" class="p-6 pt-0">
-                <div class="space-y-4">
-                    <div>
-                        <label for="firstname" class="block text-sm font-medium text-gray-300 mb-2">First Name *</label>
-                        <input type="text" id="firstname" name="firstname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter first name">
-                        <p class="mt-1 text-sm text-gray-400">Letters only, no numbers</p>
+            <!-- Modal Body (Scrollable) -->
+            <form id="addCoachForm" action="{{ path('admin_users_add_coach') }}" method="POST" class="flex-1 overflow-y-auto custom-scrollbar p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- First Name -->
+                    <div class="space-y-2 group/input stagger-field" style="animation-delay: 0.1s">
+                        <label for="firstname" class="block text-xs font-bold text-purple-400/80 uppercase tracking-widest px-1">Forename Signature</label>
+                        <div class="relative">
+                            <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-purple-500 transition-colors"></i>
+                            <input type="text" id="firstname" name="firstname" required pattern="[a-zA-Z]+" 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all duration-300 outline-none" 
+                                   placeholder="e.g. MARCUS">
+                        </div>
                     </div>
-                    <div>
-                        <label for="lastname" class="block text-sm font-medium text-gray-300 mb-2">Last Name *</label>
-                        <input type="text" id="lastname" name="lastname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter last name">
-                        <p class="mt-1 text-sm text-gray-400">Letters only, no numbers</p>
+
+                    <!-- Last Name -->
+                    <div class="space-y-2 group/input stagger-field" style="animation-delay: 0.2s">
+                        <label for="lastname" class="block text-xs font-bold text-purple-400/80 uppercase tracking-widest px-1">Surname Identity</label>
+                        <div class="relative">
+                            <i class="fas fa-signature absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-purple-500 transition-colors"></i>
+                            <input type="text" id="lastname" name="lastname" required pattern="[a-zA-Z]+" 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all duration-300 outline-none" 
+                                   placeholder="e.g. AURELIUS">
+                        </div>
                     </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email *</label>
-                        <input type="email" id="email" name="email" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="coach@example.com">
+
+                    <!-- Email -->
+                    <div class="space-y-2 group/input stagger-field col-span-full" style="animation-delay: 0.3s">
+                        <label for="email" class="block text-xs font-bold text-blue-400/80 uppercase tracking-widest px-1">Network Communication Hub (Email)</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-blue-500 transition-colors"></i>
+                            <input type="email" id="email" name="email" required 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 outline-none" 
+                                   placeholder="coach.alpha@fitsense.tech">
+                        </div>
                     </div>
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password *</label>
-                        <input type="password" id="password" name="password" required minlength="6" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Minimum 6 characters">
-                        <p class="mt-1 text-sm text-gray-400">Minimum 6 characters</p>
+
+                    <!-- Password -->
+                    <div class="space-y-2 group/input stagger-field" style="animation-delay: 0.4s">
+                        <label for="password" class="block text-xs font-bold text-red-400/80 uppercase tracking-widest px-1">Encription Key (Password)</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-red-500 transition-colors"></i>
+                            <input type="password" id="password" name="password" required minlength="6" 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all duration-300 outline-none" 
+                                   placeholder="••••••••">
+                        </div>
                     </div>
-                    <div>
-                        <label for="accountStatus" class="block text-sm font-medium text-gray-300 mb-2">Account Status *</label>
-                        <select id="accountStatus" name="accountStatus" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
-                            <option value="">Select status...</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            
-                        </select>
+
+                    <!-- Account Status -->
+                    <div class="space-y-2 group/input stagger-field" style="animation-delay: 0.5s">
+                        <label for="accountStatus" class="block text-xs font-bold text-green-400/80 uppercase tracking-widest px-1">Deployment Status</label>
+                        <div class="relative">
+                            <i class="fas fa-power-off absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-green-500 transition-colors"></i>
+                            <select id="accountStatus" name="accountStatus" required 
+                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-green-500/50 focus:ring-4 focus:ring-green-500/10 transition-all duration-300 outline-none appearance-none">
+                                <option value="" class="bg-gray-900">SELECT STATE...</option>
+                                <option value="active" class="bg-gray-900">GO LIVE (ACTIVE)</option>
+                                <option value="inactive" class="bg-gray-900">STANDBY (INACTIVE)</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-4 mt-8">
-                    <button type="button" id="cancelAddCoach" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">Cancel</button>
-                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition font-semibold shadow-lg hover:shadow-purple-500/50">
-                        <i class="fas fa-plus mr-2"></i> Create Coach
+                <!-- Form Footer Buttons -->
+                <div class="flex flex-col md:flex-row justify-end gap-4 mt-12 pt-8 border-t border-white/5 stagger-field" style="animation-delay: 0.6s">
+                    <button type="button" id="cancelAddCoach" class="px-8 py-4 bg-white/5 text-gray-400 rounded-2xl hover:bg-white/10 hover:text-white transition-all duration-300 font-bold uppercase tracking-widest text-xs border border-white/5">
+                        Abort Mission
+                    </button>
+                    <button type="submit" class="relative group/submit-btn px-10 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105 active:scale-95 transition-all duration-500 overflow-hidden">
+                        <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover/submit-btn:translate-x-0 transition-transform duration-500"></div>
+                        <span class="relative flex items-center gap-2">
+                            <i class="fas fa-rocket"></i> Activate Coach
+                        </span>
                     </button>
                 </div>
             </form>
@@ -288,57 +258,113 @@
     </div>
 
     <!-- Edit User Modal -->
-    <div id="editUserModal" class="modal fixed inset-0 bg-black/60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-300 hidden">
-        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 border border-gray-700 transform transition-all duration-300 scale-95 opacity-0">
-            <div class="flex items-center justify-between mb-6 p-6 pb-0">
-                <h3 class="text-2xl font-bold text-white">Edit User</h3>
-                <button id="closeEditUserModal" class="text-gray-400 hover:text-purple-400 text-2xl transition">
-                    <i class="fas fa-times"></i>
-                </button>
+    <div id="editUserModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] opacity-0 pointer-events-none transition-all duration-500 overflow-hidden">
+        <div class="modal-content relative bg-[#1B1E26]/90 border border-blue-500/30 rounded-[2.5rem] shadow-[0_0_50px_rgba(56,189,248,0.2)] max-w-4xl w-[95%] max-h-[90vh] flex flex-col transform scale-95 transition-all duration-500 overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="relative p-8 border-b border-white/5 bg-gradient-to-r from-blue-500/10 to-transparent">
+                <div class="absolute top-0 right-0 p-8">
+                    <button id="closeEditUserModal" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 transition-all duration-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <i class="fas fa-user-edit text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white tracking-tight">Sync User Entity</h3>
+                        <p class="text-sm text-gray-400">Reconfiguring data parameters for subject</p>
+                    </div>
+                </div>
             </div>
 
-            <form id="editUserForm" method="POST" class="p-6 pt-0">
+            <!-- Modal Body (Scrollable) -->
+            <form id="editUserForm" method="POST" class="flex-1 overflow-y-auto custom-scrollbar p-8">
                 <input type="hidden" id="edit_user_id" name="user_id">
 
-                <div class="space-y-4">
-                    <div>
-                        <label for="edit_firstname" class="block text-sm font-medium text-gray-300 mb-2">First Name *</label>
-                        <input type="text" id="edit_firstname" name="firstname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter first name">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- First Name -->
+                    <div class="space-y-2 group/input stagger-field">
+                        <label for="edit_firstname" class="block text-xs font-bold text-blue-400/80 uppercase tracking-widest px-1">Forename Signature</label>
+                        <div class="relative">
+                            <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-blue-500 transition-colors"></i>
+                            <input type="text" id="edit_firstname" name="firstname" required pattern="[a-zA-Z]+" 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 outline-none">
+                        </div>
                     </div>
-                    <div>
-                        <label for="edit_lastname" class="block text-sm font-medium text-gray-300 mb-2">Last Name *</label>
-                        <input type="text" id="edit_lastname" name="lastname" required pattern="[a-zA-Z]+" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Enter last name">
+
+                    <!-- Last Name -->
+                    <div class="space-y-2 group/input stagger-field">
+                        <label for="edit_lastname" class="block text-xs font-bold text-blue-400/80 uppercase tracking-widest px-1">Surname Identity</label>
+                        <div class="relative">
+                            <i class="fas fa-signature absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-blue-500 transition-colors"></i>
+                            <input type="text" id="edit_lastname" name="lastname" required pattern="[a-zA-Z]+" 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 outline-none">
+                        </div>
                     </div>
-                    <div>
-                        <label for="edit_email" class="block text-sm font-medium text-gray-300 mb-2">Email *</label>
-                        <input type="email" id="edit_email" name="email" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="user@example.com">
+
+                    <!-- Email (Full Width) -->
+                    <div class="space-y-2 group/input stagger-field col-span-full">
+                        <label for="edit_email" class="block text-xs font-bold text-purple-400/80 uppercase tracking-widest px-1">Communication Hub (Email)</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-purple-500 transition-colors"></i>
+                            <input type="email" id="edit_email" name="email" required 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all duration-300 outline-none">
+                        </div>
                     </div>
-                    <div>
-                        <label for="edit_password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
-                        <input type="password" id="edit_password" name="password" minlength="6" class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Leave blank to keep current password">
-                        <p class="mt-1 text-sm text-gray-400">Leave blank to keep current password</p>
+
+                    <!-- Password -->
+                    <div class="space-y-2 group/input stagger-field">
+                        <label for="edit_password" class="block text-xs font-bold text-red-400/80 uppercase tracking-widest px-1">Security Override (Password)</label>
+                        <div class="relative">
+                            <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-red-500 transition-colors"></i>
+                            <input type="password" id="edit_password" name="password" minlength="6" 
+                                   class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700/50 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all duration-300 outline-none" 
+                                   placeholder="Leave blank to maintain state">
+                        </div>
                     </div>
-                    <div>
-                        <label for="edit_accountStatus" class="block text-sm font-medium text-gray-300 mb-2">Account Status *</label>
-                        <select id="edit_accountStatus" name="accountStatus" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+
+                    <!-- Role Selection -->
+                    <div class="space-y-2 group/input stagger-field">
+                        <label for="edit_role" class="block text-xs font-bold text-yellow-400/80 uppercase tracking-widest px-1">Authority Level</label>
+                        <div class="relative">
+                            <i class="fas fa-shield-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-yellow-500 transition-colors"></i>
+                            <select id="edit_role" name="role" required 
+                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-yellow-500/50 focus:ring-4 focus:ring-yellow-500/10 transition-all duration-300 outline-none appearance-none">
+                                <option value="ROLE_USER" class="bg-gray-900">CITIZEN (USER)</option>
+                                <option value="ROLE_COACH" class="bg-gray-900">OPERATIVE (COACH)</option>
+                                <option value="ROLE_ADMIN" class="bg-gray-900">COMMANDER (ADMIN)</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"></i>
+                        </div>
                     </div>
-                    <div>
-                        <label for="edit_role" class="block text-sm font-medium text-gray-300 mb-2">Role *</label>
-                        <select id="edit_role" name="role" required class="block w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
-                            <option value="ROLE_USER">User</option>
-                            <option value="ROLE_COACH">Coach</option>
-                            <option value="ROLE_ADMIN">Admin</option>
-                        </select>
+
+                    <!-- Account Status (Full Width) -->
+                    <div class="space-y-2 group/input stagger-field col-span-full">
+                        <label for="edit_accountStatus" class="block text-xs font-bold text-green-400/80 uppercase tracking-widest px-1">Current Lifecycle Phase</label>
+                        <div class="relative">
+                            <i class="fas fa-sync-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-green-500 transition-colors"></i>
+                            <select id="edit_accountStatus" name="accountStatus" required 
+                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-green-500/50 focus:ring-4 focus:ring-green-500/10 transition-all duration-300 outline-none appearance-none">
+                                <option value="active" class="bg-gray-900">OPERATIONAL (ACTIVE)</option>
+                                <option value="inactive" class="bg-gray-900">DECOMMISSIONED (INACTIVE)</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-4 mt-8">
-                    <button type="button" id="cancelEditUser" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">Cancel</button>
-                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition font-semibold shadow-lg hover:shadow-purple-500/50">
-                        <i class="fas fa-save mr-2"></i> Save Changes
+                <!-- Form Footer Buttons -->
+                <div class="flex flex-col md:flex-row justify-end gap-4 mt-12 pt-8 border-t border-white/5 stagger-field">
+                    <button type="button" id="cancelEditUser" class="px-8 py-4 bg-white/5 text-gray-400 rounded-2xl hover:bg-white/10 hover:text-white transition-all duration-300 font-bold uppercase tracking-widest text-xs border border-white/5">
+                        Cancel Sync
+                    </button>
+                    <button type="submit" class="relative group/submit-btn px-10 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all duration-500 overflow-hidden">
+                        <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover/submit-btn:translate-x-0 transition-transform duration-500"></div>
+                        <span class="relative flex items-center gap-2">
+                            <i class="fas fa-save"></i> Commit Changes
+                        </span>
                     </button>
                 </div>
             </form>
@@ -400,84 +426,63 @@
             const filterRole    = document.getElementById('filterRole');
             const clearButton   = document.getElementById('clearSearch');
             const searchResults = document.getElementById('searchResults');
-            const tableRows     = document.querySelectorAll('tbody tr');
+            const tableBody     = document.querySelector('tbody');
+            let timeout = null;
 
             // ────────────────────────────────────────────────
-            //   Live filtering
+            //   AJAX filtering
             // ────────────────────────────────────────────────
-            function filterUsers() {
-    if (!searchInput || !filterStatus || !filterRole) {
-        console.warn("One of the filter elements is missing");
-        return;
-    }
+            function ajaxFilter() {
+                const q = searchInput.value;
+                const status = filterStatus.value;
+                const role = filterRole.value;
 
-    const searchTerm   = searchInput.value.toLowerCase().trim();
-    const statusFilter = filterStatus.value.trim(); // e.g. "active", "inactive", ""
-    const roleFilter   = filterRole.value.trim();
+                tableBody.style.opacity = '0.5';
 
-    let visibleCount = 0;
+                const url = new URL('{{ path('admin_users_index') }}', window.location.origin);
+                if (q) url.searchParams.set('q', q);
+                if (status) url.searchParams.set('status', status);
+                if (role) url.searchParams.set('role', role);
+                url.searchParams.set('ajax', '1');
 
-    tableRows.forEach(row => {
-        if (row.querySelector('td[colspan]')) return; // no-users row
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    tableBody.style.opacity = '1';
+                    
+                    const visibleCount = tableBody.querySelectorAll('.table-row').length;
+                    if (q || status || role) {
+                        searchResults.innerHTML = `<i class="fas fa-search mr-2"></i>Showing ${visibleCount} user(s)`;
+                    } else {
+                        searchResults.textContent = '';
+                    }
 
-        const nameEl   = row.querySelector('.text-sm.font-semibold.text-white');
-        const emailEl  = row.querySelector('.text-sm.text-gray-400');
-        const roleEl   = row.querySelector('td:nth-child(2) span');
-        const statusEl = row.querySelector('td:nth-child(3) span');
+                    initModalButtons(); // Re-initialize edit/delete buttons
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    tableBody.style.opacity = '1';
+                });
+            }
 
-        // Extract and normalize
-        const name   = (nameEl?.textContent   || '').toLowerCase().trim();
-        const email  = (emailEl?.textContent  || '').toLowerCase().trim();
-        const role   = (roleEl?.textContent   || '').toLowerCase().trim();
-        let   status = (statusEl?.textContent || '').toLowerCase().trim();
-
-        // Debug: log what we actually see in the status cell
-        if (statusFilter && visibleCount === 0) {  // log only once per filter change
-            console.log(
-                'Sample status cell raw:', statusEl?.textContent,
-                '→ normalized:', status
-            );
-        }
-
-        const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
-        const matchesRole   = !roleFilter || role.includes(roleFilter.toLowerCase());
-
-// Status matching
-let matchesStatus = !statusFilter;  // if no filter → show all
-
-if (statusFilter) {
-    // Exact match after normalization
-    if (status === statusFilter) {
-        matchesStatus = true;
-    } else {
-        matchesStatus = false;
-    }
-}
-
-        if (matchesSearch && matchesStatus && matchesRole) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
-        }
-    });
-
-    // Show result count
-    if (searchTerm || statusFilter || roleFilter) {
-        searchResults.innerHTML = `<i class="fas fa-search mr-2"></i>Showing ${visibleCount} user(s)`;
-    } else {
-        searchResults.textContent = '';
-    }
-}
-
-            searchInput?.addEventListener('input',   filterUsers);
-            filterStatus?.addEventListener('change', filterUsers);
-            filterRole?.addEventListener('change',   filterUsers);
+            searchInput.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(ajaxFilter, 300);
+            });
+            filterStatus.addEventListener('change', ajaxFilter);
+            filterRole.addEventListener('change', ajaxFilter);
 
             clearButton?.addEventListener('click', () => {
-                if (searchInput) searchInput.value = '';
-                filterUsers();
-                searchInput?.focus();
+                searchInput.value = '';
+                filterStatus.value = '';
+                filterRole.value = '';
+                ajaxFilter();
+                searchInput.focus();
             });
 
             // ────────────────────────────────────────────────
@@ -485,33 +490,20 @@ if (statusFilter) {
             // ────────────────────────────────────────────────
             function openModal(modal) {
                 if (!modal) return;
-                modal.classList.remove('hidden');
-                // Force reflow
-                void modal.offsetWidth;
-                
-                modal.classList.remove('opacity-0', 'scale-95');
-                modal.classList.add('active'); // Keep for compatibility if used elsewhere
-                
-                // Also handle inner content
+                modal.classList.remove('pointer-events-none', 'opacity-0');
+                modal.classList.add('active');
                 const content = modal.querySelector('.modal-content');
-                if (content) {
-                    content.classList.remove('opacity-0', 'scale-95');
-                }
+                if (content) content.classList.remove('scale-95', 'opacity-0');
+                document.body.style.overflow = 'hidden';
             }
 
             function closeModal(modal) {
                 if (!modal) return;
-                modal.classList.add('opacity-0', 'scale-95');
+                modal.classList.add('opacity-0', 'pointer-events-none');
                 modal.classList.remove('active');
-                
                 const content = modal.querySelector('.modal-content');
-                if (content) {
-                    content.classList.add('opacity-0', 'scale-95');
-                }
-
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300);
+                if (content) content.classList.add('scale-95', 'opacity-0');
+                document.body.style.overflow = '';
             }
 
             // ────────────────────────────────────────────────
@@ -522,78 +514,75 @@ if (statusFilter) {
             const closeAddBtn   = document.getElementById('closeAddCoachModal');
             const cancelAddBtn  = document.getElementById('cancelAddCoach');
 
-            openAddBtn?.addEventListener('click',       () => openModal(addModal));
-            closeAddBtn?.addEventListener('click',      () => closeModal(addModal));
-            cancelAddBtn?.addEventListener('click',     () => closeModal(addModal));
+            openAddBtn?.addEventListener('click', () => openModal(addModal));
+            closeAddBtn?.addEventListener('click', () => closeModal(addModal));
+            cancelAddBtn?.addEventListener('click', () => closeModal(addModal));
             addModal?.addEventListener('click', e => { if (e.target === addModal) closeModal(addModal); });
 
             // ────────────────────────────────────────────────
-            //   Edit Modal
+            //   Edit & Delete Modals Initialization
             // ────────────────────────────────────────────────
             const editModal     = document.getElementById('editUserModal');
-            const closeEditBtn  = document.getElementById('closeEditUserModal');
-            const cancelEditBtn = document.getElementById('cancelEditUser');
+            const deleteModal   = document.getElementById('deleteUserModal');
             const editForm      = document.getElementById('editUserForm');
+            const deleteForm     = document.getElementById('deleteUserForm');
 
-            document.querySelectorAll('.edit-user-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const data = {
-                        id:        this.dataset.userId,
-                        firstname: this.dataset.userFirstname,
-                        lastname:  this.dataset.userLastname,
-                        email:     this.dataset.userEmail,
-                        status:    this.dataset.userStatus,
-                        roles:     this.dataset.userRoles
+            function initModalButtons() {
+                // Edit buttons
+                document.querySelectorAll('.edit-user-btn').forEach(btn => {
+                    btn.onclick = function () {
+                        const data = {
+                            id:        this.dataset.userId,
+                            firstname: this.dataset.userFirstname,
+                            lastname:  this.dataset.userLastname,
+                            email:     this.dataset.userEmail,
+                            status:    this.dataset.userStatus,
+                            roles:     this.dataset.userRoles
+                        };
+
+                        document.getElementById('edit_user_id').value       = data.id;
+                        document.getElementById('edit_firstname').value     = data.firstname;
+                        document.getElementById('edit_lastname').value      = data.lastname;
+                        document.getElementById('edit_email').value         = data.email;
+                        document.getElementById('edit_accountStatus').value = data.status;
+                        document.getElementById('edit_password').value      = '';
+
+                        let primaryRole = 'ROLE_USER';
+                        try {
+                            const roles = JSON.parse(data.roles);
+                            primaryRole = roles.find(r => r !== 'ROLE_USER') || 'ROLE_USER';
+                        } catch (e) {
+                            console.warn('Invalid roles format', data.roles);
+                        }
+                        document.getElementById('edit_role').value = primaryRole;
+
+                        editForm.action = `/admin/users/edit/${data.id}`;
+                        openModal(editModal);
                     };
-
-                    document.getElementById('edit_user_id').value       = data.id;
-                    document.getElementById('edit_firstname').value     = data.firstname;
-                    document.getElementById('edit_lastname').value      = data.lastname;
-                    document.getElementById('edit_email').value         = data.email;
-                    document.getElementById('edit_accountStatus').value = data.status;
-                    document.getElementById('edit_password').value      = '';
-
-                    let primaryRole = 'ROLE_USER';
-                    try {
-                        const roles = JSON.parse(data.roles);
-                        primaryRole = roles.find(r => r !== 'ROLE_USER') || 'ROLE_USER';
-                    } catch (e) {
-                        console.warn('Invalid roles format', data.roles);
-                    }
-                    document.getElementById('edit_role').value = primaryRole;
-
-                    editForm.action = `/admin/users/edit/${data.id}`;
-
-                    openModal(editModal);
                 });
-            });
 
-            closeEditBtn?.addEventListener('click',  () => closeModal(editModal));
-            cancelEditBtn?.addEventListener('click', () => closeModal(editModal));
+                // Delete buttons
+                document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                    btn.onclick = function () {
+                        document.getElementById('delete_user_id').value = this.dataset.userId;
+                        document.getElementById('deleteUserName').textContent = this.dataset.userName;
+                        deleteForm.action = `/admin/users/delete/${this.dataset.userId}`;
+                        openModal(deleteModal);
+                    };
+                });
+            }
+
+            initModalButtons();
+
+            // Modal closers
+            document.getElementById('closeEditUserModal')?.addEventListener('click', () => closeModal(editModal));
+            document.getElementById('cancelEditUser')?.addEventListener('click', () => closeModal(editModal));
             editModal?.addEventListener('click', e => { if (e.target === editModal) closeModal(editModal); });
 
-            // ────────────────────────────────────────────────
-            //   Delete Modal
-            // ────────────────────────────────────────────────
-            const deleteModal      = document.getElementById('deleteUserModal');
-            const closeDeleteBtn   = document.getElementById('closeDeleteUserModal');
-            const cancelDeleteBtn  = document.getElementById('cancelDeleteUser');
-            const deleteForm       = document.getElementById('deleteUserForm');
-
-            document.querySelectorAll('.delete-user-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    document.getElementById('delete_user_id').value = this.dataset.userId;
-                    document.getElementById('deleteUserName').textContent = this.dataset.userName;
-                    deleteForm.action = `/admin/users/delete/${this.dataset.userId}`;
-                    openModal(deleteModal);
-                });
-            });
-
-            closeDeleteBtn?.addEventListener('click',  () => closeModal(deleteModal));
-            cancelDeleteBtn?.addEventListener('click', () => closeModal(deleteModal));
+            document.getElementById('closeDeleteUserModal')?.addEventListener('click', () => closeModal(deleteModal));
+            document.getElementById('cancelDeleteUser')?.addEventListener('click', () => closeModal(deleteModal));
             deleteModal?.addEventListener('click', e => { if (e.target === deleteModal) closeModal(deleteModal); });
 
-            // Escape key → close modals
             document.addEventListener('keydown', e => {
                 if (e.key === 'Escape') {
                     closeModal(addModal);

@@ -21,11 +21,11 @@
         <!-- Right side - User Menu -->
         <div class="flex items-center gap-8">
             <!-- Notifications -->
-            <a href="{{ path('admin_notifications') }}" class="relative p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition">
-                <i class="fas fa-bell text-lg"></i>
+            <a href="{{ path('admin_notifications') }}" class="relative p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 group/nav-bell" title="View Notifications">
+                <i class="fas fa-bell text-xl transition-transform group-hover/nav-bell:scale-110"></i>
                 {% set unreadCount = unread_notifications_count() %}
                 {% if unreadCount > 0 %}
-                    <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-purple-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-gray-800 animate-pulse">
+                    <span class="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-purple-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#1B1E26] animate-pulse pointer-events-none">
                         {{ unreadCount > 9 ? '9+' : unreadCount }}
                     </span>
                 {% endif %}

@@ -1,0 +1,109 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block title %}FitSense - Edit Recommendation{% endblock %}
+
+{% block coach_content %}
+    <div class="max-w-4xl mx-auto space-y-6 pb-12">
+        <!-- Header Card -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
+            
+            <div class="relative flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                        <div class="w-1.5 h-10 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
+                        Edit Recommendation
+                    </h1>
+                    <p class="text-gray-400 ml-6">Modifying suggestions for <span class="text-blue-400 font-bold">{{ recommendation.user.firstname }} {{ recommendation.user.lastname }}</span></p>
+                </div>
+                <a href="{{ path('coach_mental_health_recommendations_list') }}" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 border border-gray-700">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </a>
+            </div>
+        </div>
+
+        <form action="{{ path('coach_mental_health_recommend_edit', {id: recommendation.id}) }}" method="POST" id="editRecommendationForm" class="space-y-6">
+            <div class="bg-[#1B1E26] border border-gray-700 rounded-2xl p-8 shadow-xl">
+                <div class="space-y-6">
+                    <!-- Dynamic Exercises List -->
+                    <div id="exercisesContainer" class="space-y-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                                <i class="fas fa-dumbbell text-blue-500"></i>
+                                Exercises
+                            </h2>
+                            <button type="button" onclick="addExerciseField()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-500/20">
+                                <i class="fas fa-plus mr-2"></i> Add Exercise
+                            </button>
+                        </div>
+
+                        {% for exercise in recommendation.recommendedExercises %}
+                            <div class="exercise-item bg-gray-800/50 p-6 rounded-xl border border-gray-700 relative group animate-fade-in mb-4">
+                                <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors z-10 shadow-lg {{ loop.first ? 'hidden' : '' }}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Exercise Title</label>
+                                        <input type="text" name="exercise_titles[]" required value="{{ exercise.title }}" placeholder="e.g. Morning Yoga" class="w-full bg-gray-900 border-gray-700 text-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/50 outline-none border transition-all">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Duration (min)</label>
+                                        <input type="number" name="exercise_durations[]" value="{{ exercise.duration }}" placeholder="e.g. 20" class="w-full bg-gray-900 border-gray-700 text-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/50 outline-none border transition-all">
+                                    </div>
+                                    <div class="md:col-span-2 space-y-2">
+                                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Description</label>
+                                        <textarea name="exercise_descriptions[]" rows="3" placeholder="Describe the steps or benefits..." class="w-full bg-gray-900 border-gray-700 text-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/50 outline-none border transition-all">{{ exercise.description }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-700">
+                        <label class="block text-sm font-bold text-gray-400 mb-2 ml-1">Overall Recommendation Note (Optional)</label>
+                        <textarea name="notes" rows="4" class="w-full bg-gray-900 border-gray-700 text-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-blue-500/50 outline-none border transition-all" placeholder="Any general advice for the athlete's mental health journey...">{{ recommendation.notes }}</textarea>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end gap-4">
+                    <a href="{{ path('coach_mental_health_recommendations_list') }}" class="px-8 py-3 text-sm font-bold text-gray-400 hover:text-white transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-10 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-bold transition-all duration-300 shadow-xl shadow-blue-500/30">
+                        Update Recommendation
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function addExerciseField() {
+            const container = document.getElementById('exercisesContainer');
+            const newField = document.createElement('div');
+            newField.className = 'exercise-item bg-gray-800/50 p-6 rounded-xl border border-gray-700 relative group animate-fade-in mb-4';
+            newField.innerHTML = `
+                <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors z-10 shadow-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Exercise Title</label>
+                        <input type="text" name="exercise_titles[]" required placeholder="e.g. New Exercise" class="w-full bg-gray-900 border-gray-700 text-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/50 outline-none border transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Duration (min)</label>
+                        <input type="number" name="exercise_durations[]" placeholder="e.g. 15" class="w-full bg-gray-900 border-gray-700 text-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/50 outline-none border transition-all">
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Description</label>
+                        <textarea name="exercise_descriptions[]" rows="3" placeholder="Describe the steps..." class="w-full bg-gray-900 border-gray-700 text-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-blue-500/50 outline-none border transition-all"></textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newField);
+        }
+    </script>
+{% endblock %}

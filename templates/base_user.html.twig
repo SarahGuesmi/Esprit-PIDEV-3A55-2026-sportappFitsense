@@ -110,12 +110,54 @@
             background: #444;
         }
         
-        /* Gradient text */
-        .gradient-text {
-            background: linear-gradient(135deg, #38BDF8, #A78BFA);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        /* Sidebar Transition */
+        .sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Collapsed Sidebar State */
+        .sidebar-collapsed {
+            width: 80px !important;
+        }
+
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .portal-label,
+        .sidebar-collapsed .logo-title {
+            display: none;
+        }
+
+        .sidebar-collapsed .sidebar-link {
+            justify-content: center;
+            padding: 0.875rem 0;
+            margin: 0.25rem 0.5rem;
+        }
+
+        .sidebar-collapsed .sidebar-link i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+
+        .sidebar-collapsed .logo-container {
+            padding: 1.5rem 0 !important;
+        }
+
+        .sidebar-collapsed .hero-logo {
+            width: 40px !important;
+        }
+
+        /* Content Area Dynamic Margin */
+        .content-expanded {
+            margin-left: 280px; /* Matching coach sidebar width */
+        }
+
+        .content-collapsed {
+            margin-left: 80px;
+        }
+
+        @media (max-width: 1024px) {
+            .content-expanded, .content-collapsed {
+                margin-left: 0 !important;
+            }
         }
     </style>
     
@@ -123,20 +165,22 @@
 </head>
 <body class="antialiased text-gray-100 bg-gray-900">
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden bg-[#0B0C10]">
         <!-- Sidebar -->
         {% include 'partials/sidebaruser.html.twig' %}
 
         <!-- Main Content -->
-        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden lg:ml-64 transition-all duration-300">
+        <div id="main-content" class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 content-expanded">
             
-            <!-- Mobile Header -->
-            <header class="flex items-center justify-between p-4 lg:hidden border-b border-gray-800 bg-gray-900/95 backdrop-blur z-30 sticky top-0">
-                <div class="font-heading font-bold text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">FitSense</div>
-                <button id="mobile-menu-btn" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </header>
+            <!-- Professional Navbar (Matching Coach) -->
+            {% embed 'admin/partials/navbar.html.twig' with {'role_label': 'Member'} %}
+                {% block page_title %}
+                    {% block user_page_title %}Dashboard{% endblock %}
+                {% endblock %}
+                {% block page_subtitle %}
+                    {% block user_page_subtitle %}Welcome back to FitSense{% endblock %}
+                {% endblock %}
+            {% endembed %}
 
             <!-- Main padding wrapper -->
             <main class="w-full flex-grow p-6 lg:p-8">
@@ -159,41 +203,111 @@
         </div>
     </div>
 
-    <!-- Mobile Sidebar Overlay (if needed for JS toggle) -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden glass-card backdrop-blur-sm opacity-0 transition-opacity"></div>
 
-    <script>
-        // Simple Mobile Sidebar Toggle
-        const btn = document.getElementById('mobile-menu-btn');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="modal fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center backdrop-blur-sm">
+        <div class="modal-content bg-[#1B1E26] border border-white/5 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-95 opacity-0 transition-all duration-300">
+            <div class="text-center mb-6">
+                <div class="bg-red-500/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-power-off text-red-500 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-black text-white mb-2">Sign Out</h3>
+                <p class="text-gray-400 text-sm">Are you sure you want to log out of FitSense?</p>
+            </div>
+            <div class="flex gap-3">
+                <button id="cancelLogout" class="flex-1 px-4 py-3 bg-white/5 text-white rounded-xl hover:bg-white/10 transition font-bold border border-white/5">
+                    Cancel
+                </button>
+                <a href="{{ path('app_logout') }}" class="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:brightness-110 transition font-bold text-center shadow-lg shadow-red-500/20">
+                    Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
 
-        if(btn && sidebar) {
-            btn.addEventListener('click', () => {
-                const isClosed = sidebar.classList.contains('-translate-x-full');
-                if(isClosed) {
-                    sidebar.classList.remove('-translate-x-full');
-                    if(overlay) {
-                        overlay.classList.remove('hidden');
-                        setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-                    }
+    <style>
+        .modal.active {
+            display: flex !important;
+        }
+        .modal.active .modal-content {
+            scale: 1;
+            opacity: 1;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('main-content');
+            const desktopToggle = document.getElementById('desktop-sidebar-toggle');
+            const mobileToggle = document.getElementById('mobileSidebarToggle'); // From navbar partial
+            const overlay = document.getElementById('sidebar-overlay');
+
+            // Toggle function for Desktop (Collapse/Expand)
+            function toggleDesktopSidebar() {
+                sidebar.classList.toggle('sidebar-collapsed');
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    mainContent.classList.remove('content-expanded');
+                    mainContent.classList.add('content-collapsed');
+                    localStorage.setItem('sidebar-collapsed', 'true');
                 } else {
-                    sidebar.classList.add('-translate-x-full');
-                    if(overlay) {
-                        overlay.classList.add('opacity-0');
-                        setTimeout(() => overlay.classList.add('hidden'), 300);
-                    }
+                    mainContent.classList.add('content-expanded');
+                    mainContent.classList.remove('content-collapsed');
+                    localStorage.setItem('sidebar-collapsed', 'false');
                 }
+            }
+
+            // Restore sidebar state
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('content-expanded');
+                mainContent.classList.add('content-collapsed');
+            }
+
+            if (desktopToggle) {
+                desktopToggle.addEventListener('click', toggleDesktopSidebar);
+            }
+
+            // Mobile Toggle logic
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
+                });
+            }
+
+            // Logout Modal Logic
+            const modal = document.getElementById('logoutModal');
+            const logoutLinks = document.querySelectorAll('.logout-link');
+            const cancelBtn = document.getElementById('cancelLogout');
+
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    modal.classList.add('active');
+                });
             });
-        }
-        
-        if(overlay) {
-            overlay.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                });
+            }
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
             });
-        }
+        });
     </script>
     
     {% block javascripts %}{% endblock %}

@@ -19,53 +19,53 @@ class ExerciseType extends AbstractType
     {
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom de l\'exercice',
+                'label' => 'Exercise Name',
                 'attr' => [
-                    'placeholder' => 'Ex: Push Ups, Jumping Jacks...',
+                    'placeholder' => 'e.g. Push Ups, Jumping Jacks...',
                     'class' => 'form-control'
                 ],
                 'constraints' => [
                     new Assert\NotBlank([
-                        'message' => 'Le nom est obligatoire'
+                        'message' => 'Name is required'
                     ]),
                     new Assert\Length([
                         'max' => 255,
-                        'maxMessage' => 'Le nom ne peut pas dépasser {{ limit }} caractères'
+                        'maxMessage' => 'Name cannot exceed {{ limit }} characters'
                     ])
                 ]
             ])
             ->add('type', ChoiceType::class, [
-                'label' => 'Type d\'exercice',
+                'label' => 'Exercise Type',
                 'choices' => [
                     'Cardio' => 'Cardio',
-                    'Force' => 'Force',
-                    'Flexibilité' => 'Flexibilité',
-                    'Équilibre' => 'Équilibre',
+                    'Strength' => 'Strength',
+                    'Flexibility' => 'Flexibility',
+                    'Balance' => 'Balance',
                     'HIIT' => 'HIIT',
                     'Endurance' => 'Endurance',
                 ],
                 'attr' => ['class' => 'form-control'],
-                'placeholder' => 'Sélectionnez un type',
+                'placeholder' => 'Select a type',
                 'constraints' => [
                     new Assert\NotBlank([
-                        'message' => 'Le type est obligatoire'
+                        'message' => 'Type is required'
                     ])
                 ]
             ])
             ->add('duree', IntegerType::class, [
-                'label' => 'Durée (en secondes)',
+                'label' => 'Duration (seconds)',
                 'attr' => [
-                    'placeholder' => 'Ex: 45, 60, 120...',
+                    'placeholder' => 'e.g. 45, 60, 120...',
                     'class' => 'form-control',
                     'min' => 1
                 ],
-                'help' => 'Durée de l\'exercice en secondes',
+                'help' => 'Exercise duration in seconds',
                 'constraints' => [
                     new Assert\NotBlank([
-                        'message' => 'La durée est obligatoire'
+                        'message' => 'Duration is required'
                     ]),
                     new Assert\Positive([
-                        'message' => 'La durée doit être positive'
+                        'message' => 'Duration must be a positive number'
                     ])
                 ]
             ])
@@ -73,7 +73,7 @@ class ExerciseType extends AbstractType
                 'label' => 'Description',
                 'required' => false,
                 'attr' => [
-                    'placeholder' => 'Décrivez l\'exercice, les consignes d\'exécution...',
+                    'placeholder' => 'Describe the exercise, execution instructions...',
                     'class' => 'form-control',
                     'rows' => 4
                 ]

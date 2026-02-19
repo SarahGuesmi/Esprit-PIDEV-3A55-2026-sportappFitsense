@@ -24,15 +24,15 @@ class WorkoutType extends AbstractType
 
             // ================= Nom =================
             ->add('nom', TextType::class, [
-                'label' => 'Nom du Workout',
+                'label' => 'Workout Name',
                 'required' => true,
                 'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le nom est obligatoire']),
+                    new Assert\NotBlank(['message' => 'Name is required']),
                     new Assert\Length([
                         'min' => 3,
                         'max' => 255,
-                        'minMessage' => 'Le nom doit contenir au moins {{ limit }} caractères',
-                        'maxMessage' => 'Le nom ne peut pas dépasser {{ limit }} caractères',
+                        'minMessage' => 'Name must contain at least {{ limit }} characters',
+                        'maxMessage' => 'Name cannot exceed {{ limit }} characters',
                     ]),
                 ],
             ])
@@ -41,44 +41,56 @@ class WorkoutType extends AbstractType
             ->add('objectifs', EntityType::class, [
                 'class' => ObjectifSportif::class,
                 'choice_label' => 'name',
-                'label' => 'Objectifs du Workout',
+                'label' => 'Workout Objectives',
                 'multiple' => true,
                 'expanded' => true,
                 'required' => true,
                 'by_reference' => false,
+                'query_builder' => function (\Doctrine\ORM\EntityRepository $er) {
+                    $qb = $er->createQueryBuilder('o');
+                    return $qb->where(
+                        $qb->expr()->in(
+                            'o.id',
+                            $er->createQueryBuilder('o2')
+                                ->select('MIN(o2.id)')
+                                ->groupBy('o2.name')
+                                ->getDQL()
+                        )
+                    )->orderBy('o.name', 'ASC');
+                },
                 'constraints' => [
                     new Assert\Count([
                         'min' => 1,
-                        'minMessage' => 'Vous devez sélectionner au moins un objectif',
+                        'minMessage' => 'You must select at least one objective',
                     ]),
                 ],
             ])
 
             // ================= Niveau =================
             ->add('niveau', ChoiceType::class, [
-                'label' => 'Niveau de difficulté',
+                'label' => 'Difficulty Level',
                 'required' => true,
                 'choices' => [
-                    'Débutant' => 'BEGINNER',
-                    'Intermédiaire' => 'INTERMEDIATE',
-                    'Avancé' => 'ADVANCED'
+                    'Beginner' => 'BEGINNER',
+                    'Intermediate' => 'INTERMEDIATE',
+                    'Advanced' => 'ADVANCED'
                 ],
-                'placeholder' => 'Sélectionnez un niveau',
+                'placeholder' => 'Select a level',
                 'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le niveau est obligatoire']),
+                    new Assert\NotBlank(['message' => 'Level is required']),
                 ],
             ])
 
             // ================= Durée =================
             ->add('duree', IntegerType::class, [
-                'label' => 'Durée estimée (minutes)',
+                'label' => 'Estimated duration (minutes)',
                 'required' => true,
                 'constraints' => [
-                    new Assert\NotBlank(['message' => 'La durée est obligatoire']),
+                    new Assert\NotBlank(['message' => 'Duration is required']),
                     new Assert\Range([
                         'min' => 5,
                         'max' => 180,
-                        'notInRangeMessage' => 'La durée doit être entre {{ min }} et {{ max }} minutes',
+                        'notInRangeMessage' => 'Duration must be between {{ min }} and {{ max }} minutes',
                     ]),
                 ],
             ])
@@ -93,7 +105,7 @@ class WorkoutType extends AbstractType
             ->add('exercises', EntityType::class, [
                 'class' => Exercise::class,
                 'choice_label' => 'nom',
-                'label' => 'Exercices à inclure',
+                'label' => 'Exercises to include',
                 'multiple' => true,
                 'expanded' => false,
                 'required' => true,
@@ -101,7 +113,7 @@ class WorkoutType extends AbstractType
                 'constraints' => [
                     new Assert\Count([
                         'min' => 1,
-                        'minMessage' => 'Vous devez sélectionner au moins un exercice',
+                        'minMessage' => 'You must select at least one exercise',
                     ]),
                 ],
             ]);

@@ -1,0 +1,83 @@
+{% for workout in workouts %}
+    <div class="workout-card bg-gray-900/40 border border-gray-800 rounded-2xl overflow-hidden card-hover shine-effect group"
+         data-name="{{ workout.nom|lower }}"
+         data-description="{{ workout.description|default('')|lower }}"
+         data-objectives="{{ workout.objectifs|map(o => o.name|lower|replace({' ': '-'}))|join(',') }}">
+        <div class="flex flex-col lg:flex-row items-center justify-between p-6 gap-6">
+            
+            <!-- Left Section -->
+            <div class="flex items-center gap-5 flex-1 min-w-0 w-full">
+                <!-- Icon -->
+                <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-lime-500 rounded-xl flex items-center justify-center flex-shrink-0 icon-glow transform group-hover:rotate-6 transition">
+                    <i class="fas fa-bolt text-black text-2xl"></i>
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold truncate group-hover:text-green-400 transition">{{ workout.nom }}</h3>
+                        <span class="px-2 py-0.5 bg-green-500/10 text-green-400 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-green-500/20">
+                            {% if workout.niveau == 'BEGINNER' %}
+                                Beginner
+                            {% elseif workout.niveau == 'INTERMEDIATE' %}
+                                Intermediate
+                            {% else %}
+                                Advanced
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <!-- Duration -->
+                        <div class="flex items-center gap-2 text-gray-400 text-xs font-semibold">
+                            <i class="far fa-clock text-green-500"></i>
+                            <span>{{ workout.duree }} min</span>
+                        </div>
+
+                        <!-- Exercises Count -->
+                        <div class="flex items-center gap-2 text-gray-400 text-xs font-semibold border-l border-gray-800 pl-4">
+                            <i class="fas fa-layer-group text-blue-500"></i>
+                            <span>{{ workout.exercises|length }} Exercises</span>
+                        </div>
+
+                        <!-- Objectives -->
+                        {% if workout.objectifs is not empty %}
+                            <div class="flex items-center gap-2 flex-wrap border-l border-gray-800 pl-4">
+                                {% for objectif in workout.objectifs|slice(0, 2) %}
+                                    <span class="px-2 py-0.5 bg-gray-800 text-gray-400 rounded text-[10px] font-bold uppercase tracking-wider">
+                                        {{ objectif.name }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Section - Actions -->
+            <div class="flex items-center gap-3 w-full lg:w-auto justify-end">
+                <a href="{{ path('coach_workout_details', {id: workout.id}) }}" 
+                   class="flex-1 lg:flex-none px-6 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-gray-100 transition-all text-center whitespace-nowrap">
+                    View Details
+                </a>
+                
+                <a href="{{ path('coach_workout_edit', {id: workout.id}) }}" 
+                   class="w-11 h-11 bg-gray-800 hover:bg-gray-700 rounded-xl flex items-center justify-center transition-all border border-gray-700 text-gray-400 hover:text-white"
+                   title="Edit Workout">
+                    <i class="fas fa-edit"></i>
+                </a>
+
+                <form method="post" 
+                      action="{{ path('coach_workout_delete', {id: workout.id}) }}"
+                      class="delete-form"
+                      data-workout-name="{{ workout.nom }}">
+                    <button type="button"
+                            class="delete-btn w-11 h-11 bg-red-500/10 hover:bg-red-500/20 rounded-xl flex items-center justify-center transition-all border border-red-500/20 text-red-400"
+                            title="Delete Workout">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}

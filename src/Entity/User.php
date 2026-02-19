@@ -5,11 +5,13 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity()]
+#[UniqueEntity(fields: ['email'], message: 'This email address already exists.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'integer')]
@@ -211,13 +213,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * @return string[]
+     */
+    public function getObjectifNames(): array
+    {
+        return $this->getObjectifs()->map(fn($o) => $o->getName())->toArray();
+    }
+
+    /**
      * Checks if the user has at least one objective matching the given workout.
      */
     public function hasMatchingObjectif(Workout $workout): bool
     {
-        $userObjectifs = $this->getObjectifs();
+        $userNames = $this->getObjectifNames();
         foreach ($workout->getObjectifs() as $workoutObjectif) {
-            if ($userObjectifs->contains($workoutObjectif)) {
+            if (in_array($workoutObjectif->getName(), $userNames)) {
                 return true;
             }
         }

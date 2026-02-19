@@ -21,49 +21,77 @@ class CoachController extends AbstractController
 {
     // ==================== WORKOUT CATALOG ====================
     
-   #[Route('/workouts', name: 'coach_workout_catalog')]
-        public function workoutCatalog(
-            Request $request,
-            EntityManagerInterface $em,
-            ExerciseRepository $exerciseRepository
-        ): Response {
+    #[Route('/workouts', name: 'coach_workout_catalog')]
+    public function workoutCatalog(
+        Request $request,
+        EntityManagerInterface $em,
+        ExerciseRepository $exerciseRepository
+    ): Response {
+        $q = $request->query->get('q', '');
+        $selectedObjectifs = $request->query->all('objectifs');
 
-            // Objectifs sélectionnés depuis l'URL (?objectifs[]=1&objectifs[]=2)
-            $selectedObjectifs = $request->query->all('objectifs');
+        $queryBuilder = $em->getRepository(Workout::class)
+            ->createQueryBuilder('w')
+            ->leftJoin('w.objectifs', 'o')
+            ->addSelect('o');
 
-            $qb = $em->createQueryBuilder()
-                ->select('w', 'o')
-                ->from(Workout::class, 'w')
-                ->leftJoin('w.objectifs', 'o');
+        if (!empty($q)) {
+            $queryBuilder->andWhere('w.nom LIKE :q OR w.description LIKE :q')
+                ->setParameter('q', '%' . $q . '%');
+        }
 
-            if (!empty($selectedObjectifs)) {
-                $qb->andWhere('o.id IN (:ids)')
-                ->setParameter('ids', $selectedObjectifs);
-            }
+        if (!empty($selectedObjectifs)) {
+            // Flatten if it comes as an array with slugs (frontend sends slugs/names)
+            // But the original code expected IDs or similar. 
+            // In the template, data-value is objectif|lower|replace({' ': '-'})
+            // So we need to match by that or by name.
+            $queryBuilder->andWhere('LOWER(REPLACE(o.name, \' \', \'-\')) IN (:slugs)')
+                ->setParameter('slugs', $selectedObjectifs);
+        }
 
-            $workouts = $qb->getQuery()->getResult();
+        $workouts = $queryBuilder->getQuery()->getResult();
 
-            // Tous les objectifs pour la liste déroulante
-            $objectifs = $em->getRepository(ObjectifSportif::class)->findAll();
-
-            $exerciseCount = $exerciseRepository->count([]);
-
-            return $this->render('coach/workout_catalog.html.twig', [
+        if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest' || $request->query->get('ajax')) {
+            return $this->render('coach/workout_catalog/_list.html.twig', [
                 'workouts' => $workouts,
-                'exerciseCount' => $exerciseCount,
-                'objectifs' => $objectifs,
-                'selectedObjectifs' => $selectedObjectifs,
             ]);
         }
+
+        $objectifs = $em->getRepository(ObjectifSportif::class)->findAll();
+        $exerciseCount = $exerciseRepository->count([]);
+
+        return $this->render('coach/workout_catalog.html.twig', [
+            'workouts' => $workouts,
+            'exerciseCount' => $exerciseCount,
+            'objectifs' => $objectifs,
+            'selectedObjectifs' => $selectedObjectifs,
+            'q' => $q
+        ]);
+    }
 
     // ==================== EXERCISE MANAGEMENT ====================
     
     #[Route('/exercises', name: 'coach_exercise_list')]
-    public function exerciseList(ExerciseRepository $exerciseRepository): Response
+    public function exerciseList(Request $request, ExerciseRepository $exerciseRepository): Response
     {
-        // Récupère tous les exercices triés par nom
-        $exercises = $exerciseRepository->findBy([], ['nom' => 'ASC']);
+        $q = $request->query->get('q', '');
         
+        $queryBuilder = $exerciseRepository->createQueryBuilder('e')
+            ->orderBy('e.nom', 'ASC');
+
+        if (!empty($q)) {
+            $queryBuilder->andWhere('e.nom LIKE :q OR e.description LIKE :q OR e.type LIKE :q')
+                ->setParameter('q', '%' . $q . '%');
+        }
+
+        $exercises = $queryBuilder->getQuery()->getResult();
+
+        if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest' || $request->query->get('ajax')) {
+            return $this->render('coach/exercise_list/_list.html.twig', [
+                'exercises' => $exercises,
+            ]);
+        }
+
         return $this->render('coach/exercise_list.html.twig', [
             'exercises' => $exercises,
         ]);

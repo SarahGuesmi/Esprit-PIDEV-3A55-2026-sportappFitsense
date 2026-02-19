@@ -118,64 +118,7 @@
     {% else %}
         <!-- Exercises List -->
         <div id="exercisesList" class="space-y-4">
-            {% for exercise in exercises %}
-                <div class="exercise-card bg-[#0D0D0D] border border-gray-900 rounded-2xl overflow-hidden card-hover shine-effect"
-                     data-name="{{ exercise.nom|lower }}"
-                     data-type="{{ exercise.type|lower }}"
-                     data-description="{{ exercise.description|default('')|lower }}"
-                     data-search-text="{{ (exercise.nom ~ ' ' ~ exercise.type ~ ' ' ~ exercise.description|default(''))|lower }}">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between p-6 gap-4">
-                        
-                        <!-- Left Section -->
-                        <div class="flex items-center gap-5 flex-1 min-w-0">
-                            <!-- Icon -->
-                            <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-lime-500 rounded-xl flex items-center justify-center flex-shrink-0 icon-glow">
-                                <i class="fas fa-dumbbell text-2xl text-black"></i>
-                            </div>
-
-                            <!-- Info -->
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-xl font-bold mb-2 truncate">{{ exercise.nom }}</h3>
-                                
-                                <div class="flex items-center gap-3 flex-wrap">
-                                    <span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-lg text-xs font-bold uppercase">
-                                        {{ exercise.type }}
-                                    </span>
-
-                                    <div class="flex items-center gap-2 text-gray-400 text-sm">
-                                        <i class="far fa-clock"></i>
-                                        <span class="font-semibold">{{ exercise.duree }} sec</span>
-                                    </div>
-                                </div>
-
-                                <p class="text-gray-500 text-sm mt-2 hidden lg:block truncate">
-                                    {{ exercise.description|default('No description') }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Right Section - Actions -->
-                        <div class="flex items-center gap-3">
-                            <a href="{{ path('coach_exercise_edit', {id: exercise.id}) }}" 
-                               class="w-11 h-11 bg-gray-900 hover:bg-gray-800 rounded-xl flex items-center justify-center transition-all border border-gray-800"
-                               title="Edit Exercise">
-                                <i class="fas fa-edit text-gray-400"></i>
-                            </a>
-
-                            <form method="post" 
-                                  action="{{ path('coach_exercise_delete', {id: exercise.id}) }}"
-                                  class="delete-form"
-                                  data-exercise-name="{{ exercise.nom }}">
-                                <button type="button"
-                                        class="delete-btn w-11 h-11 bg-red-500/10 hover:bg-red-500/20 rounded-xl flex items-center justify-center transition-all border border-red-500/20"
-                                        title="Delete Exercise">
-                                    <i class="fas fa-trash-alt text-red-400"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+            {% include 'coach/exercise_list/_list.html.twig' %}
         </div>
 
         <!-- No Results State -->
@@ -210,7 +153,6 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchInput');
-        const exerciseCards = document.querySelectorAll('.exercise-card');
         const resultsCounter = document.getElementById('resultsCounter');
         const noResultsState = document.getElementById('noResultsState');
         const exercisesList = document.getElementById('exercisesList');
@@ -221,19 +163,23 @@
         const cancelBtn = document.getElementById('cancelBtn');
         const confirmBtn = document.getElementById('confirmBtn');
         let currentForm = null;
+        let timeout = null;
 
-        // Delete confirmation modal
-        const deleteForms = document.querySelectorAll('.delete-form');
-        deleteForms.forEach(form => {
-            const deleteBtn = form.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                currentForm = form;
-                const exerciseName = form.dataset.exerciseName;
-                exerciseNameModal.textContent = exerciseName;
-                confirmModal.classList.remove('hidden');
+        function initDeleteModals() {
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(form => {
+                const deleteBtn = form.querySelector('.delete-btn');
+                deleteBtn.onclick = function(e) {
+                    e.preventDefault();
+                    currentForm = form;
+                    const exerciseName = form.dataset.exerciseName;
+                    exerciseNameModal.textContent = exerciseName;
+                    confirmModal.classList.remove('hidden');
+                };
             });
-        });
+        }
+
+        initDeleteModals();
 
         // Cancel deletion
         cancelBtn.addEventListener('click', function() {
@@ -264,54 +210,49 @@
             }
         });
 
-        // Fonction pour normaliser le texte (enlever accents, caractères spéciaux)
-        function normalizeText(text) {
-            if (!text) return '';
-            return text
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
-                .replace(/[^a-z0-9\s]/g, '') // Garder seulement lettres, chiffres et espaces
-                .trim();
+        function ajaxFilter() {
+            const query = searchInput.value;
+            
+            exercisesList.style.opacity = '0.5';
+
+            const url = new URL('{{ path('coach_exercise_list') }}', window.location.origin);
+            url.searchParams.set('q', query);
+            url.searchParams.set('ajax', '1');
+
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                exercisesList.innerHTML = html;
+                exercisesList.style.opacity = '1';
+                
+                const count = exercisesList.querySelectorAll('.exercise-card').length;
+                resultsCounter.textContent = `${count} exercise(s)`;
+                
+                if (count === 0) {
+                    exercisesList.style.display = 'none';
+                    noResultsState.style.display = 'flex';
+                } else {
+                    exercisesList.style.display = 'block';
+                    noResultsState.style.display = 'none';
+                }
+                
+                initDeleteModals();
+            })
+            .catch(error => {
+                console.error('Error fetching exercises:', error);
+                exercisesList.style.opacity = '1';
+            });
         }
 
-        // Search functionality with improved matching
+        // Search functionality with debouncing
         if (searchInput) {
             searchInput.addEventListener('input', function(e) {
-                const searchTerm = normalizeText(e.target.value);
-                let visibleCount = 0;
-                
-                exerciseCards.forEach(card => {
-                    // Récupérer le texte de recherche combiné
-                    const searchText = card.dataset.searchText || '';
-                    const normalizedSearchText = normalizeText(searchText);
-                    
-                    // Vérifier si le terme de recherche est contenu dans le texte
-                    const matchesSearch = !searchTerm || normalizedSearchText.includes(searchTerm);
-                    
-                    if (matchesSearch) {
-                        card.classList.remove('hidden');
-                        visibleCount++;
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
-                
-                // Update counter
-                if (resultsCounter) {
-                    resultsCounter.textContent = `${visibleCount} exercise(s)`;
-                }
-                
-                // Show/hide no results state
-                if (exercisesList && noResultsState) {
-                    if (visibleCount === 0 && exerciseCards.length > 0) {
-                        exercisesList.style.display = 'none';
-                        noResultsState.style.display = 'flex';
-                    } else {
-                        exercisesList.style.display = 'block';
-                        noResultsState.style.display = 'none';
-                    }
-                }
+                clearTimeout(timeout);
+                timeout = setTimeout(ajaxFilter, 300);
             });
         }
     });

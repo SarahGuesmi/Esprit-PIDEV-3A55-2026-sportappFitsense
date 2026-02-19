@@ -1,0 +1,102 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}FitSense - {{ workout.nom }}{% endblock %}
+
+{% block user_page_title %}{{ workout.nom }}{% endblock %}
+{% block user_page_subtitle %}{{ workout.duree }} minute session • {{ workout.niveau|capitalize }}{% endblock %}
+
+{% block user_content %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Info -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="glass-card p-8">
+                <h3 class="text-xl font-bold mb-4">Description</h3>
+                <p class="text-gray-400 leading-relaxed mb-6">
+                    {{ workout.description|default('Prepare yourself for an intensive session designed to help you reach your goals.') }}
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    {% for obj in workout.objectifs %}
+                        <span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-lg text-xs font-bold ring-1 ring-blue-500/20">
+                            {{ obj.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold px-2">Exercises ({{ workout.exercises|length }})</h3>
+                {% for exercise in workout.exercises %}
+                    <div class="glass-card p-6 flex items-center gap-6 group hover:bg-white/5 transition duration-300">
+                        <div class="w-16 h-16 bg-gray-800 rounded-xl overflow-hidden flex-shrink-0">
+                            {% if exercise.image %}
+                                <img src="/uploads/exercises/{{ exercise.image }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <i class="fas fa-running text-gray-600"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-lg mb-1">{{ exercise.nom }}</h4>
+                            <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">
+                                {{ exercise.type|default('General') }} • {{ exercise.musclesCibles|default('Full Body') }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-blue-400 font-bold mb-1">
+                                {% if exercise.duree %}
+                                    {{ exercise.duree }} secs
+                                {% else %}
+                                    {{ exercise.nbrSeries|default(3) }} x {{ exercise.nbrRepetitions|default(12) }}
+                                {% endif %}
+                            </div>
+                            <p class="text-[10px] text-gray-500 uppercase font-black">Performance</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="glass-card p-10 text-center">
+                        <p class="text-gray-500 italic">No exercises added to this workout yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar / Actions -->
+        <div class="space-y-6">
+            <div class="glass-card p-6 border-blue-500/30 ring-1 ring-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent">
+                <h3 class="font-bold mb-4">Training Controls</h3>
+                <div class="space-y-3">
+                    <button class="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl font-black uppercase text-sm tracking-widest shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition">
+                        Start Session
+                    </button>
+                    <button class="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-sm transition">
+                        Save for Later
+                    </button>
+                </div>
+                <div class="mt-6 pt-6 border-t border-gray-800">
+                    <div class="flex justify-between items-center text-xs text-gray-400">
+                        <span>Difficulty</span>
+                        <span class="text-gray-200 font-bold">{{ workout.niveau|capitalize }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6">
+                <h3 class="font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-info-circle text-gray-500"></i>
+                    Tips
+                </h3>
+                <ul class="text-sm text-gray-400 space-y-3">
+                    <li class="flex gap-2">
+                        <span class="text-blue-400">•</span>
+                        Stay hydrated throughout the session.
+                    </li>
+                    <li class="flex gap-2">
+                        <span class="text-blue-400">•</span>
+                        Maintain proper form over high reps.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}

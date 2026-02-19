@@ -11,10 +11,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardUserController extends AbstractController
 {
     #[Route('/dashboard', name: 'dashboard_user')]
-    public function index(): Response
+    public function index(\App\Repository\WorkoutRepository $workoutRepository): Response
     {
+        $user = $this->getUser();
+        $recommendedWorkouts = $workoutRepository->findByUserObjectifs($user);
+
         return $this->render('front/dashboarduser.html.twig', [
-            'user' => $this->getUser(),
+            'user' => $user,
+            'recommendedWorkouts' => array_slice($recommendedWorkouts, 0, 3), // Show top 3
         ]);
     }
 }

@@ -64,7 +64,7 @@ class EtatMentalController extends AbstractController
     }
 
     #[Route('/etat-mental/{id}', name: 'etat_mental_result')]
-    public function show(int $id, \App\Repository\EtatMentalRepository $repo): Response
+    public function show(int $id, \App\Repository\EtatMentalRepository $repo, EntityManagerInterface $em): Response
     {
         $etat = $repo->find($id);
 
@@ -72,8 +72,28 @@ class EtatMentalController extends AbstractController
             throw $this->createNotFoundException('The requested evaluation does not exist (ID: ' . $id . ')');
         }
 
+        $recommendation = $em->getRepository(\App\Entity\Recommendation::class)
+            ->findOneBy(['user' => $this->getUser()], ['createdAt' => 'DESC']);
+
         return $this->render('etat_mental/show.html.twig', [
-            'etat' => $etat
+            'etat' => $etat,
+            'recommendation' => $recommendation
+        ]);
+    }
+
+    #[Route('/etat-mental/recommendation/view', name: 'etat_mental_coach_recommendation')]
+    public function viewRecommendation(EntityManagerInterface $em): Response
+    {
+        $recommendation = $em->getRepository(\App\Entity\Recommendation::class)
+            ->findOneBy(['user' => $this->getUser()], ['createdAt' => 'DESC']);
+
+        if (!$recommendation) {
+            $this->addFlash('info', 'No recommendations found from your coach yet.');
+            return $this->redirectToRoute('etat_mental_index');
+        }
+
+        return $this->render('etat_mental/coach_recommendation.html.twig', [
+            'recommendation' => $recommendation
         ]);
     }
 

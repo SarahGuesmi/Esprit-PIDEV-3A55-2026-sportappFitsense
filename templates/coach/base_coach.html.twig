@@ -146,16 +146,74 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        /* Sidebar Transition */
+        .sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Collapsed Sidebar State */
+        .sidebar-collapsed {
+            width: 80px !important;
+        }
+
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .portal-label,
+        .sidebar-collapsed .logo-title {
+            display: none;
+        }
+
+        .sidebar-collapsed .sidebar-link {
+            justify-content: center;
+            padding: 0.875rem 0;
+            margin: 0.25rem 0.5rem;
+        }
+
+        .sidebar-collapsed .sidebar-link i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+
+        .sidebar-collapsed .logo-container {
+            padding: 1.5rem 0 !important;
+        }
+
+        .sidebar-collapsed .hero-logo {
+            width: 40px !important;
+        }
+
+        /* Content Area Dynamic Margin */
+        .content-expanded {
+            margin-left: 280px;
+        }
+
+        .content-collapsed {
+            margin-left: 80px;
+        }
+
+        @media (max-width: 1024px) {
+            .content-expanded, .content-collapsed {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Completely Hide Preloader in Coach */
+        #js-preloader, .js-preloader {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="admin-theme">
+    <div class="admin-theme bg-[#0B0C10]">
         <!-- Sidebar -->
         {% include 'coach/partials/sidebar_coach.html.twig' %}
 
-        <!-- Main content area with margin for sidebar -->
-        <div class="lg:ml-64 flex flex-col h-screen">
+        <!-- Main content area -->
+        <div id="main-content" class="relative flex flex-col flex-1 h-screen overflow-hidden transition-all duration-300 content-expanded">
             <!-- Navbar -->
             {% embed 'admin/partials/navbar.html.twig' with {'role_label': 'Coach'} %}
                 {% block page_title %}
@@ -194,53 +252,64 @@
         </div>
     </div>
 
-    <!-- Modal Script -->
+    <!-- Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('main-content');
+            const desktopToggle = document.getElementById('desktop-sidebar-toggle');
+            const mobileToggle = document.getElementById('mobileSidebarToggle'); 
+            const overlay = document.getElementById('sidebar-overlay');
+
+            // Desktop Toggle
+            function toggleDesktopSidebar() {
+                sidebar.classList.toggle('sidebar-collapsed');
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    mainContent.classList.remove('content-expanded');
+                    mainContent.classList.add('content-collapsed');
+                    localStorage.setItem('coach-sidebar-collapsed', 'true');
+                } else {
+                    mainContent.classList.add('content-expanded');
+                    mainContent.classList.remove('content-collapsed');
+                    localStorage.setItem('coach-sidebar-collapsed', 'false');
+                }
+            }
+
+            // Restore state
+            if (localStorage.getItem('coach-sidebar-collapsed') === 'true') {
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('content-expanded');
+                mainContent.classList.add('content-collapsed');
+            }
+
+            if (desktopToggle) {
+                desktopToggle.addEventListener('click', toggleDesktopSidebar);
+            }
+
+            // Mobile Toggle
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.remove('-translate-x-full');
+                    // Add overlay if needed, or handle as per current mobile menu
+                });
+            }
+
+            // Logout Modal Toggle logic (existing)
             const modal = document.getElementById('logoutModal');
-
-            // Force hide on load
             modal.style.display = 'none';
-
-            // Find all logout links
             const logoutLinks = document.querySelectorAll('.logout-link');
 
             logoutLinks.forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
                     modal.style.display = 'flex';
-                    setTimeout(() => {
-                        modal.classList.add('active');
-                    }, 10);
+                    setTimeout(() => modal.classList.add('active'), 10);
                 });
             });
 
-            // Cancel button
             document.getElementById('cancelLogout')?.addEventListener('click', function () {
                 modal.classList.remove('active');
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
-            });
-
-            // Click outside to close
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                    setTimeout(() => {
-                        modal.style.display = 'none';
-                    }, 300);
-                }
-            });
-
-            // ESC key to close
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && modal.style.display !== 'none') {
-                    modal.classList.remove('active');
-                    setTimeout(() => {
-                        modal.style.display = 'none';
-                    }, 300);
-                }
+                setTimeout(() => modal.style.display = 'none', 300);
             });
         });
     </script>

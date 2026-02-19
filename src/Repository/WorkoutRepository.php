@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Workout;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,15 +22,15 @@ class WorkoutRepository extends ServiceEntityRepository
      */
     public function findByUserObjectifs(User $user): array
     {
-        $objectifs = $user->getObjectifs();
-        if ($objectifs->isEmpty()) {
+        $names = $user->getObjectifNames();
+        if (empty($names)) {
             return [];
         }
 
         return $this->createQueryBuilder('w')
             ->innerJoin('w.objectifs', 'o')
-            ->andWhere('o.id IN (:objectifs)')
-            ->setParameter('objectifs', $objectifs)
+            ->andWhere('o.name IN (:names)')
+            ->setParameter('names', $names)
             ->getQuery()
             ->getResult();
     }
