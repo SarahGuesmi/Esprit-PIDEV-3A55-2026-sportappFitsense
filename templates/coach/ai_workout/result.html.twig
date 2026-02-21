@@ -1,0 +1,34 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block coach_page_title %}AI Generated Workout{% endblock %}
+
+{% block coach_content %}
+<div class="max-w-2xl mx-auto bg-gray-900 p-8 rounded-2xl border border-gray-800">
+
+    <h2 class="text-xl font-bold mb-4 text-purple-400">
+        {{ level }} - {{ goal }} ({{ duration }} min)
+    </h2>
+
+    <div class="space-y-3">
+        {% for ex in workout %}
+            <div class="bg-gray-800 p-4 rounded-lg flex justify-between">
+                <span class="font-semibold text-white">{{ ex.name }}</span>
+                    <span class="text-gray-400">
+                        {{ ex.sets }} sets - {{ ex.reps }} | Rest: {{ ex.rest }}
+                    </span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <form method="post" action="{{ path('coach_ai_workout_save') }}">
+    <input type="hidden" name="level" value="{{ level }}">
+    <input type="hidden" name="goal" value="{{ goal }}">
+    <input type="hidden" name="duration" value="{{ duration }}">
+
+    <button class="mt-6 w-full bg-green-600 hover:bg-green-700 p-3 rounded-lg font-bold">
+        Save as Workout
+    </button>
+    </form>
+
+</div>
+{% endblock %}
