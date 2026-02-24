@@ -67,6 +67,14 @@ class EtatMentalType extends AbstractType
                     'Not tired at all' => 5,
                 ],
                 'placeholder' => 'Choose an answer...',
+            ])
+            ->add('description', \Symfony\Component\Form\Extension\Core\Type\TextareaType::class, [
+                'label' => '💭 Tell us more about how you feel (optional)',
+                'attr' => [
+                    'placeholder' => 'Share your thoughts, feelings, or anything else on your mind...',
+                    'rows' => 4,
+                ],
+                'required' => false,
             ]);
     }
 

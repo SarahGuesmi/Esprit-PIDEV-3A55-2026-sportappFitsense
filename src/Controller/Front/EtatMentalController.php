@@ -13,13 +13,16 @@ use Symfony\Component\Routing\Annotation\Route;
 class EtatMentalController extends AbstractController
 {
     #[Route('/etat-mental', name: 'etat_mental_index')]
-    public function index(\App\Repository\EtatMentalRepository $repo): Response
+    public function index(\App\Repository\EtatMentalRepository $repo, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
         $evaluations = $repo->findBy(['user' => $user], ['createdAt' => 'DESC']);
+        $recommendation = $em->getRepository(\App\Entity\Recommendation::class)
+            ->findOneBy(['user' => $user], ['createdAt' => 'DESC']);
 
         return $this->render('etat_mental/index.html.twig', [
             'evaluations' => $evaluations,
+            'recommendation' => $recommendation,
         ]);
     }
 

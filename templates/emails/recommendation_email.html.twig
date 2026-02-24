@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 32px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; }
+        .content { padding: 40px; }
+        .greeting { font-size: 18px; font-weight: 600; margin-bottom: 24px; }
+        .coach-note { background-color: #f9fafb; border-left: 4px solid #4f46e5; padding: 20px; margin-bottom: 32px; font-style: italic; color: #4b5563; }
+        .exercise-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .exercise-title { font-weight: 600; color: #111827; margin-bottom: 4px; }
+        .exercise-duration { font-size: 14px; color: #6b7280; margin-bottom: 8px; }
+        .footer { padding: 32px; text-align: center; font-size: 14px; color: #9ca3af; border-top: 1px solid #f3f4f6; }
+        .btn { display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>New Wellness Recommendation</h1>
+        </div>
+        <div class="content">
+            <p class="greeting">Hi {{ user_name }},</p>
+            <p>Your coach, <strong>{{ coach_name }}</strong>, has just shared a new wellness plan to support your mental health journey.</p>
+            
+            {% if notes %}
+                <div class="coach-note">
+                    "{{ notes }}"
+                </div>
+            {% endif %}
+
+            {% if exercises|length > 0 %}
+                <h3 style="margin-bottom: 16px;">Recommended Exercises:</h3>
+                {% for exercise in exercises %}
+                    <div class="exercise-card">
+                        <div class="exercise-title">{{ exercise.title }}</div>
+                        <div class="exercise-duration">Duration: {{ exercise.duration }} minutes</div>
+                        <div style="font-size: 14px; color: #4b5563;">{{ exercise.description }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <p style="margin-top: 24px;">Consistency is the key to progress. Take a small step today!</p>
+            
+            <a href="{{ absolute_url(path('etat_mental_coach_recommendation')) }}" class="btn">View My Dashboard</a>
+        </div>
+        <div class="footer">
+            &copy; {{ "now"|date("Y") }} FitSense Wellness. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,157 +1,133 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_user.html.twig' %}
 
 {% block title %}Mental Assessment - FitSense{% endblock %}
 
-{% block stylesheets %}
-<style>
-:root {
-    --blue-light: #38BDF8;
-    --violet-light: #A78BFA;
-    --dark-bg: #111318;
-    --dark-card: #1B1E26;
-    --dark-input: #262A35;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A1A1AA;
-    --border-color: #343846;
-    --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
-}
+{% block user_page_title %}Mental Health Assessment{% endblock %}
+{% block user_page_subtitle %}Answer these 5 questions to assess your current mental state{% endblock %}
 
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: var(--dark-bg);
-    color: var(--text-primary);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    padding: 20px;
-}
+{% block user_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-700/50">
+        <!-- Decorative background elements -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-3xl"></div>
 
-.setup-card {
-    max-width: 620px;
-    width: 100%;
-    background: var(--dark-card);
-    padding: 48px 40px;
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
+        <div class="relative">
+            <div class="flex items-center gap-4 mb-10">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <i class="fas fa-brain text-white text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Your Daily Check-in</h2>
+                    <p class="text-gray-400 text-sm">Takes less than 2 minutes</p>
+                </div>
+            </div>
 
-h2 {
-    font-size: 32px;
-    margin-bottom: 12px;
-    background: var(--gradient-main);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-    text-align: center;
-}
+            {{ form_start(form, {'attr': {'class': 'space-y-8', 'novalidate': 'novalidate'}}) }}
+                
+                {% set field_icons = {
+                    'mood': '😊',
+                    'stressLevel': '🧘',
+                    'sleepQuality': '😴',
+                    'motivation': '⚡',
+                    'mentalFatigue': '🧠',
+                    'description': '💭'
+                } %}
 
-.subtitle {
-    color: var(--text-secondary);
-    font-size: 15px;
-    margin-bottom: 40px;
-    text-align: center;
-    line-height: 1.6;
-}
+                {% for child in form %}
+                    {% if child.vars.name != '_token' %}
+                        <div class="group transition-all duration-300">
+                            <label class="block text-gray-300 font-semibold mb-3 flex items-center gap-2 group-hover:text-purple-400 transition-colors">
+                                <span class="text-xl">
+                                    {{ field_icons[child.vars.name] ?? '❓' }}
+                                </span>
+                                {{ form_label(child, null, {'label_attr': {'class': 'text-inherit'}}) }}
+                            </label>
+                            
+                            <div class="relative">
+                                {{ form_widget(child, {
+                                    'attr': {
+                                        'class': 'w-full bg-gray-900/50 border border-gray-700 text-white px-5 py-4 rounded-xl focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/50 outline-none transition-all duration-300 appearance-none'
+                                    }
+                                }) }}
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                    <i class="fas fa-chevron-down text-sm"></i>
+                                </div>
+                            </div>
+                            
+                            {% if form_errors(child) %}
+                                <div class="mt-2 text-red-400 text-sm bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/20">
+                                    {{ form_errors(child) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
 
-.form-group {
-    margin-bottom: 32px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: var(--text-primary);
-    line-height: 1.5;
-}
-
-select.form-control {
-    width: 100%;
-    background-color: var(--dark-input);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 16px;
-    border-radius: 12px;
-    font-size: 15px;
-    outline: none;
-    transition: all 0.2s;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23A1A1AA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    background-size: 20px;
-}
-
-select.form-control:focus {
-    border-color: var(--blue-light);
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-}
-
-.btn-continue {
-    width: 100%;
-    padding: 18px;
-    background: #DFFF00;
-    color: #000;
-    font-size: 17px;
-    font-weight: 700;
-    border: none;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.25s;
-    margin-top: 24px;
-}
-
-.btn-continue:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(223,255,0,0.35);
-}
-
-</style>
-{% endblock %}
-
-{% block body %}
-{% block header %}{% endblock %}
-<div class="setup-card">
-    <h2>Mental Health Assessment</h2>
-    <p class="subtitle">
-        Answer these 5 questions to assess your current mental state
-    </p>
-
-    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-
-    <div class="form-group">
-        {{ form_label(form.mood) }}
-        {{ form_widget(form.mood, {'attr': {'class': 'form-control'}}) }}
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-5 rounded-2xl shadow-xl shadow-purple-500/20 transition-all duration-300 flex items-center justify-center gap-3 group relative overflow-hidden">
+                        <span class="relative z-10 flex items-center gap-2">
+                            Calculate My Wellbeing Score
+                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </span>
+                        <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </button>
+                    
+                    <p class="text-center text-gray-500 text-xs mt-6">
+                        Your data is used to provide personalized recommendations.
+                    </p>
+                </div>
+            {{ form_end(form) }}
+        </div>
     </div>
 
-    <div class="form-group">
-        {{ form_label(form.stressLevel) }}
-        {{ form_widget(form.stressLevel, {'attr': {'class': 'form-control'}}) }}
+    <!-- Description Block -->
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gray-900/40 rounded-3xl p-8 border border-gray-700/30 backdrop-blur-sm">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                <i class="fas fa-heartbeat text-red-400"></i>
+                Why track your mental state?
+            </h3>
+            <ul class="space-y-4">
+                <li class="flex items-start gap-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0"></div>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        <strong class="text-gray-300">Emotional Intelligence:</strong> Identifying your feelings is the first step toward managing them effectively.
+                    </p>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0"></div>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        <strong class="text-gray-300">Pattern Recognition:</strong> Spot triggers and trends in your stress and energy levels over weeks.
+                    </p>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0"></div>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        <strong class="text-gray-300">Optimized Performance:</strong> Align your physical training with your mental capacity for better results.
+                    </p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-3xl p-8 border border-purple-500/20 backdrop-blur-sm flex flex-col justify-center">
+            <div class="flex items-center gap-2 text-purple-400 mb-2">
+                <i class="fas fa-shield-alt"></i>
+                <span class="text-xs font-bold uppercase tracking-wider">Confidential & Private</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-4">You're in safe hands</h3>
+            <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                Your assessments are private and used solely to personalize your FitSense experience. We use this data to adjust your workout intensity and suggest recovery activities.
+            </p>
+            <div class="flex items-center gap-4">
+                <div class="flex -space-x-2">
+                    <div class="w-8 h-8 rounded-full border-2 border-gray-900 bg-gray-700 flex items-center justify-center text-[10px] font-bold">JD</div>
+                    <div class="w-8 h-8 rounded-full border-2 border-gray-900 bg-purple-600 flex items-center justify-center text-[10px] font-bold">AS</div>
+                    <div class="w-8 h-8 rounded-full border-2 border-gray-900 bg-blue-600 flex items-center justify-center text-[10px] font-bold">ML</div>
+                </div>
+                <span class="text-xs text-gray-500 font-medium">Joined by 1,200+ members today</span>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        {{ form_label(form.sleepQuality) }}
-        {{ form_widget(form.sleepQuality, {'attr': {'class': 'form-control'}}) }}
-    </div>
-
-    <div class="form-group">
-        {{ form_label(form.motivation) }}
-        {{ form_widget(form.motivation, {'attr': {'class': 'form-control'}}) }}
-    </div>
-
-    <div class="form-group">
-        {{ form_label(form.mentalFatigue) }}
-        {{ form_widget(form.mentalFatigue, {'attr': {'class': 'form-control'}}) }}
-    </div>
-
-    <button type="submit" class="btn-continue">Calculate my score →</button>
-
-    {{ form_end(form) }}
 </div>
-{% block footer %}{% endblock %}
 {% endblock %}

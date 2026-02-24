@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FitSense - User{% endblock %}</title>
+    {{ importmap('app') }}
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,6 +205,305 @@
     </div>
 
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden glass-card backdrop-blur-sm opacity-0 transition-opacity"></div>
+
+    <!-- ================================================================
+         AURA — Mental Wellness Chatbot Widget
+         ================================================================ -->
+    <div id="chatbot-container" style="position:fixed;bottom:28px;right:28px;z-index:9999;">
+        <button id="chatbot-toggle"
+            style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#38BDF8,#A78BFA);
+                   border:none;cursor:pointer;box-shadow:0 8px 30px rgba(56,189,248,.45);
+                   display:flex;align-items:center;justify-content:center;transition:transform .2s;">
+            <i class="fas fa-comment-medical" style="color:#fff;font-size:1.35rem;"></i>
+        </button>
+        <span id="chatbot-dot"
+              style="position:absolute;top:4px;right:4px;width:12px;height:12px;background:#10B981;
+                     border-radius:50%;border:2px solid #111318;"></span>
+
+        <div id="chatbot-panel"
+             style="display:none;position:absolute;bottom:76px;right:0;width:370px;
+                    background:rgba(17,19,24,.97);border:1px solid rgba(56,189,248,.2);
+                    border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.7);
+                    backdrop-filter:blur(20px);overflow:hidden;flex-direction:column;">
+
+            <div style="background:linear-gradient(135deg,#1e2a38,#1a2030);padding:16px 20px;
+                        border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px;">
+                <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#38BDF8,#A78BFA);
+                             display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;">🧠</div>
+                <div style="flex:1;">
+                    <p style="margin:0;color:#fff;font-weight:700;font-size:.95rem;">Aura</p>
+                    <p style="margin:0;color:#10B981;font-size:.72rem;">● Mental Wellness Coach · Online</p>
+                </div>
+                <button id="chatbot-close"
+                        style="background:rgba(255,255,255,.06);border:none;cursor:pointer;
+                               width:32px;height:32px;border-radius:8px;color:#aaa;font-size:1rem;
+                               display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="chatbot-messages"
+                 style="overflow-y:auto;padding:16px;display:flex;flex-direction:column;
+                        gap:12px;max-height:340px;min-height:200px;scroll-behavior:smooth;">
+                <div style="display:flex;gap:10px;align-items:flex-start;">
+                    <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#38BDF8,#A78BFA);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">🧠</div>
+                    <div style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.15);
+                                padding:10px 14px;border-radius:0 14px 14px 14px;max-width:80%;
+                                color:#e2e8f0;font-size:.83rem;line-height:1.55;">
+                        Hi! I'm <strong style="color:#38BDF8;">Aura</strong>, your mental wellness companion. 💙<br>
+                        How are you feeling today?
+                    </div>
+                </div>
+            </div>
+
+            <div id="chatbot-typing" style="display:none;padding:0 20px 8px;">
+                <div style="display:flex;gap:5px;align-items:center;">
+                    <span style="width:7px;height:7px;background:#38BDF8;border-radius:50%;animation:dot-bounce .6s infinite alternate;display:inline-block;"></span>
+                    <span style="width:7px;height:7px;background:#38BDF8;border-radius:50%;animation:dot-bounce .6s .2s infinite alternate;display:inline-block;"></span>
+                    <span style="width:7px;height:7px;background:#38BDF8;border-radius:50%;animation:dot-bounce .6s .4s infinite alternate;display:inline-block;"></span>
+                    <span style="color:#6b7280;font-size:.75rem;margin-left:6px;">Aura is thinking…</span>
+                </div>
+            </div>
+
+            <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:10px;align-items:flex-end;">
+                <textarea id="chatbot-input" rows="1"
+                    placeholder="How are you feeling…"
+                    style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+                           border-radius:12px;padding:10px 14px;color:#f1f5f9;font-size:.83rem;resize:none;
+                           outline:none;font-family:inherit;max-height:90px;transition:border .2s;"></textarea>
+                <button id="chatbot-send"
+                    style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#38BDF8,#A78BFA);
+                           border:none;cursor:pointer;color:#fff;font-size:1rem;display:flex;
+                           align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes dot-bounce { from{transform:translateY(0)} to{transform:translateY(-5px)} }
+        #chatbot-messages::-webkit-scrollbar{width:4px}
+        #chatbot-messages::-webkit-scrollbar-thumb{background:#2d3748;border-radius:4px}
+    </style>
+    <script>
+    (function() {
+        var toggle   = document.getElementById('chatbot-toggle');
+        var closeBtn = document.getElementById('chatbot-close');
+        var sendBtn  = document.getElementById('chatbot-send');
+        var panel    = document.getElementById('chatbot-panel');
+        var dot      = document.getElementById('chatbot-dot');
+        var msgs     = document.getElementById('chatbot-messages');
+        var typing   = document.getElementById('chatbot-typing');
+        var input    = document.getElementById('chatbot-input');
+        var history  = [];
+        var lastTopic = null; // tracks what we last talked about
+        var open = false;
+
+        function toggle_panel() {
+            open = !open;
+            panel.style.display = open ? 'flex' : 'none';
+            dot.style.display   = open ? 'none'  : 'block';
+            if (open) { input.focus(); scrollBottom(); }
+        }
+        toggle.addEventListener('click', toggle_panel);
+        closeBtn.addEventListener('click', toggle_panel);
+
+        function scrollBottom() { setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 50); }
+
+        function bubble(role, text) {
+            var isBot = role === 'assistant';
+            var wrap  = document.createElement('div');
+            wrap.style.cssText = 'display:flex;gap:10px;align-items:flex-start;' + (isBot ? '' : 'flex-direction:row-reverse;');
+            var av = document.createElement('div');
+            av.style.cssText = 'width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,' + (isBot ? '#38BDF8,#A78BFA' : '#A78BFA,#38BDF8') + ');display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+            av.textContent = isBot ? '🧠' : '👤';
+            var bub = document.createElement('div');
+            bub.style.cssText = isBot
+                ? 'background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.15);padding:10px 14px;border-radius:0 14px 14px 14px;max-width:80%;color:#e2e8f0;font-size:.83rem;line-height:1.55;'
+                : 'background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.2);padding:10px 14px;border-radius:14px 0 14px 14px;max-width:80%;color:#e2e8f0;font-size:.83rem;line-height:1.55;';
+            bub.innerHTML = text.replace(/\n/g,'<br>');
+            wrap.appendChild(av);
+            wrap.appendChild(bub);
+            msgs.appendChild(wrap);
+            scrollBottom();
+        }
+
+        // ── Local conversation engine ──────────────────────────────────────
+        var KB = {
+            greet:     /\b(hi|hello|hey|bonjour|salut|yo|hola)\b/i,
+            thanks:    /\b(thanks|thank you|merci|thx|ty)\b/i,
+            bye:       /\b(bye|goodbye|ciao|au revoir|see you)\b/i,
+            howAreYou: /\b(how are you|ça va|ca va)\b/i,
+
+            dizzy:     /\b(dizzy|dizziness|vertigo|lightheaded|tête qui tourne)\b/i,
+            headache:  /\b(headache|migraine|head hurts|head pain)\b/i,
+            nausea:    /\b(nausea|nauseous|vomit|sick to my stomach)\b/i,
+            back:      /\b(back|neck|shoulder|spine)\b/i,
+            pain:      /\b(pain|hurt|ache|sore)\b/i,
+
+            anxious:   /\b(anxious|anxiety|panic|nervous|worr(y|ied)|anxiuos|anxi)\b/i,
+            stressed:  /\b(stress(ed)?|overwhelm|burnout|too much)\b/i,
+            sad:       /\b(sad|depress(ed)?|unhappy|down|blue|cry)\b/i,
+            angry:     /\b(ang(er|ry)|frustrat|rage|irritat)\b/i,
+            lonely:    /\b(lone(ly|liness)|alone|isolated)\b/i,
+
+            tired:     /\b(tired|fatigue|exhaust|no energy|drained)\b/i,
+            sleep:     /\b(sleep|insomnia|can't sleep|no sleep)\b/i,
+            motivat:   /\b(motivat|lazy|productiv|procrastinat)\b/i,
+
+            exercise:  /\b(exercise|workout|sport|training|routine|movement|yoga|stretch|run)\b/i,
+            breathe:   /\b(breath(e|ing)|respir|meditat|calm down|relax)\b/i,
+            better:    /\b(feel better|improve|get better|what (can|should) i do|help me|suggest|how to)\b/i,
+
+            feelHow:   /\b(feel(ing)?|i am|i'm|i feel)\b/i,
+            yes:       /^(yes|yeah|yep|sure|ok|okay|oui|yep|certainly|absolutely)[\s.!]*$/i,
+            no:        /^(no|nope|nah|non|not really)[\s.!]*$/i,
+        };
+
+        var replies = {
+            greet:    ["Hello! 👋 It's great to see you. How are you feeling today?",
+                       "Hey there! 👋 I'm Aura, your wellness companion. How can I support you right now?"],
+            thanks:   ["You're always welcome! 💙 Is there anything else I can help you with?",
+                       "Glad I could help! 🌿 Remember, I'm always here for you."],
+            bye:      ["Take care of yourself! 💙 Come back anytime you need support.",
+                       "Goodbye! 🌿 Be kind to yourself today."],
+            howAreYou:["I'm always here and ready to support you! 😊 More importantly — how are *you* feeling today?"],
+
+            dizzy:    ["Dizziness can be unsettling. 🌀 Please sit or lie down right away, sip some water slowly, and take calm steady breaths. If it doesn't pass in a few minutes or you have chest pain, please see a doctor.",
+                       "For dizziness, the first step is to stop moving and sit somewhere safe. 🌀 Sip cold water, breathe slowly, and avoid screens for a bit. Do you feel it's getting better or worse?"],
+            headache: ["Headaches can really drain you. 😣 Try drinking a full glass of water, dimming your screen brightness, and gently massaging your temples in small circles for 2 minutes.",
+                       "For headaches, hydration is key — drink water first. 💧 Then apply a cold pack to your forehead, close your eyes, and rest for 10 minutes in a quiet room."],
+            nausea:   ["Feeling nauseous is rough. 🤢 Try slow belly breaths through your nose, sip cold water in small amounts, and avoid strong smells. A plain cracker can help settle your stomach.",
+                       "For nausea — sit upright (don't lie flat), breathe slowly through your nose, and sip ginger tea or cold water. 🤢 Avoid eating heavy food until it passes."],
+            back:     ["Tension in your back or neck is so common, especially from screens. 💪 Try this: roll your shoulders backward 5 times, then gently tilt your head side to side holding 10 seconds each. How does that feel?",
+                       "For back or neck pain, try the Cat-Cow stretch: get on all fours, arch your back up (cat), then drop it down (cow). 🐱🐄 Do 10 slow repetitions — it releases spinal tension really well."],
+            pain:     ["I'm sorry you're in pain. 💛 Rest the area, apply a warm compress for muscle pain or cold for swelling. Stay hydrated and avoid pushing through it. If the pain is sharp or persistent, please see a doctor."],
+
+            anxious:  ["I hear you — anxiety can feel overwhelming. 💙 Let's try something together right now: breathe in slowly for 4 counts, hold for 4, breathe out for 4. Do 3 rounds. How do you feel after?",
+                       "Feeling anxious is your mind on high alert. 💙 Try the 4-7-8 technique: inhale for 4s, hold for 7s, exhale for 8s. Also, can you name 5 things you can see around you right now? That grounds you quickly.",
+                       "Anxiety is tough. 💙 One of the most effective quick techniques is 'box breathing': 4s in, 4s hold, 4s out, 4s hold — repeat 4 times. Do you want me to guide you through it?"],
+            stressed: ["Stress often comes from feeling like there's too much to handle. 🌿 Let's simplify: what's the ONE thing causing you the most stress right now? Sometimes naming it makes it smaller.",
+                       "When stressed, try the 5-4-3-2-1 grounding technique: name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste. 🌿 It brings you back to the present fast."],
+            sad:      ["I'm sorry you're feeling sad. 💛 You are not alone, and it's okay to feel this way. Even a short 10-minute walk in fresh air or some sunlight can gently lift your mood. Would you like to talk about what's on your mind?",
+                       "Sadness needs to be seen, not pushed away. 💛 Can you identify what triggered it? Sometimes journaling for just 5 minutes helps process feelings. I'm here to listen."],
+            angry:    ["Anger is valid — your feelings matter. 🔥 A quick release: take 5 very fast breaths in and then one very long exhale. Repeat twice. This slows your nervous system down fast.",
+                       "When angry, physical movement helps release the energy. 🔥 Try 20 jumping jacks, a brisk 5-minute walk, or even punching a pillow. Then take 3 slow breaths before re-engaging."],
+            lonely:   ["Feeling lonely is one of the hardest emotions. 💙 Even a small connection helps — send a quick message to someone you care about, or join a community activity. You matter more than you know.",
+                       "Loneliness often grows in silence. 💙 Is there someone — even one person — you could reach out to today? A simple 'thinking of you' text can open a door."],
+
+            tired:    ["Feeling drained? Your body is asking for recovery time. 🌙 Step away from screens for 10 minutes, drink a glass of water, and take 5 slow deep breaths. A 20-minute nap (no longer!) can also restore energy.",
+                       "Chronic fatigue often links to hydration, sleep, or emotional load. 🌙 Are you sleeping enough? Eating enough? Sometimes tiredness is our body communicating stress."],
+            sleep:    ["Sleep struggles are so common. 🌙 Try keeping a consistent sleep time, no screens 30 min before bed, and try a body scan: starting from your toes, slowly relax each muscle group up to your head.",
+                       "For better sleep tonight: dim your lights an hour before bed, keep your room cool, and try the 4-7-8 breathing technique as you lie down. 🌙 Avoid caffeine after 2pm."],
+            motivat:  ["Motivation is a muscle — it needs a warm-up, not a running start. 🌟 Pick ONE task that takes under 5 minutes and do only that. The momentum you build from completing it naturally leads to more.",
+                       "Low motivation often hides exhaustion or overwhelm. 🌟 Be honest with yourself: is this laziness, or is your mind/body asking for rest? Both are valid. What do you think it is?"],
+
+            exercise: ["Here are 3 gentle exercises great for mental wellness:\n1. 🧘 **5-min box breathing** — 4s in, 4s hold, 4s out, 4s hold\n2. 🚶 **10-min brisk walk** — boosts serotonin fast\n3. 🤸 **Body shake** — stand and shake your arms/legs for 2 min to release tension\nWhich sounds doable right now?",
+                       "For anxiety or stress, I recommend:\n• **Progressive muscle relaxation** — tense each muscle for 5s then release (feet → head)\n• **Cat-Cow yoga stretch** — great for back tension\n• **4-7-8 breathing** — powerful for calming the nervous system\nWould you like step-by-step instructions for any of these?"],
+            breathe:  ["Let's do a quick breathing exercise together. 🌬️\n\n**Box Breathing (60 seconds):**\n• Breathe IN for 4 counts\n• HOLD for 4 counts\n• Breathe OUT for 4 counts\n• HOLD for 4 counts\n\nRepeat 4 times. Ready? Start now — I'll wait 💙",
+                       "Here's a calming breath technique called 4-7-8: 🌬️\n• Inhale through your nose for **4 seconds**\n• Hold your breath for **7 seconds**\n• Exhale completely through your mouth for **8 seconds**\n\nDo this 3-4 times. It activates your parasympathetic nervous system and reduces anxiety fast."],
+            better:   ["Here's a simple wellness reset right now: 💙\n1. 💧 Drink a full glass of water\n2. 🌬️ Take 5 slow, belly breaths\n3. 🚶 Step outside for 3-5 minutes of fresh air\n4. 📝 Write down 1 thing you're grateful for\n\nThese small actions shift your nervous system. Which one can you do right now?",
+                       "To feel better fast, start with your body before your mind: 💙\n• Stretch your arms above your head for 30 seconds\n• Splash cold water on your face\n• Drink some water\n• Take 3 deep breaths\n\nThen tell me: what's the main thing weighing on you?"],
+
+            followUp_breathe_yes: ["Amazing! 🌬️ Start now:\n• IN for 4... 2... 3... 4\n• HOLD... 2... 3... 7\n• OUT... 2... 3... 4... 5... 6... 7... 8\n\nDo that 3 more times. How do you feel after? 💙"],
+            followUp_breathe_no:  ["No worries at all! 💙 What would feel more natural — a short walk, a stretch, or just talking? I'm here."],
+            followUp_better:      ["That's a great start! 💙 Even just one of those steps can make a real difference. Keep listening to your body. You're doing the right thing by taking care of yourself. 🌿"],
+        };
+
+        function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function localReply(text) {
+            var m = text;
+            // Follow-up context
+            if (lastTopic === 'breathe' && KB.yes.test(m))  return pick([replies.followUp_breathe_yes]);
+            if (lastTopic === 'breathe' && KB.no.test(m))   return pick([replies.followUp_breathe_no]);
+            if (lastTopic === 'better'  && KB.yes.test(m))  return pick([replies.followUp_better]);
+
+            if (KB.greet.test(m))    { lastTopic='greet';    return pick(replies.greet); }
+            if (KB.thanks.test(m))   { lastTopic='thanks';   return pick(replies.thanks); }
+            if (KB.bye.test(m))      { lastTopic='bye';      return pick(replies.bye); }
+            if (KB.howAreYou.test(m)){ lastTopic='greet';    return pick(replies.howAreYou); }
+
+            if (KB.dizzy.test(m))    { lastTopic='physical'; return pick(replies.dizzy); }
+            if (KB.headache.test(m)) { lastTopic='physical'; return pick(replies.headache); }
+            if (KB.nausea.test(m))   { lastTopic='physical'; return pick(replies.nausea); }
+            if (KB.back.test(m))     { lastTopic='physical'; return pick(replies.back); }
+            if (KB.pain.test(m))     { lastTopic='physical'; return pick(replies.pain); }
+
+            if (KB.anxious.test(m))  { lastTopic='anxious';  return pick(replies.anxious); }
+            if (KB.stressed.test(m)) { lastTopic='stressed'; return pick(replies.stressed); }
+            if (KB.sad.test(m))      { lastTopic='sad';      return pick(replies.sad); }
+            if (KB.angry.test(m))    { lastTopic='angry';    return pick(replies.angry); }
+            if (KB.lonely.test(m))   { lastTopic='lonely';   return pick(replies.lonely); }
+
+            if (KB.tired.test(m))    { lastTopic='tired';    return pick(replies.tired); }
+            if (KB.sleep.test(m))    { lastTopic='sleep';    return pick(replies.sleep); }
+            if (KB.motivat.test(m))  { lastTopic='motivat';  return pick(replies.motivat); }
+
+            if (KB.exercise.test(m)) { lastTopic='exercise'; return pick(replies.exercise); }
+            if (KB.breathe.test(m))  { lastTopic='breathe';  return pick(replies.breathe); }
+            if (KB.better.test(m))   { lastTopic='better';   return pick(replies.better); }
+
+            // Generic — contextual fallbacks based on last topic
+            var contextuals = {
+                anxious:  "Remember — anxiety is temporary. 💙 Your nervous system is just trying to protect you. What do you think is triggering these feelings?",
+                stressed: "Still feeling the weight of it? 🌿 Let's take one thing at a time. What's the most urgent item on your plate right now?",
+                sad:      "Sitting with sadness is okay. 💛 Is there something specific making you feel this way, or does it feel more like a general heaviness?",
+                exercise: "Which exercise would you like to try first? I can give you step-by-step instructions for breathing, walking, or stretching. 💪",
+                breathe:  "Would you like to try the breathing exercise now? Just say 'yes' and I'll guide you through it. 🌬️",
+                better:   "You're already taking a great step just by being here. 💙 Which of those suggestions feels most doable right now?",
+            };
+            if (lastTopic && contextuals[lastTopic]) return contextuals[lastTopic];
+
+            var generic = [
+                "I'm here with you. 💙 Can you tell me more about how you're feeling right now?",
+                "Thank you for sharing that. 🌿 How long have you been feeling this way?",
+                "I hear you. 💛 Is this feeling new, or something you've been carrying for a while?",
+                "You're not alone in this. 💙 What's one small thing that might help you feel even slightly better right now?",
+            ];
+            lastTopic = 'general';
+            return pick(generic);
+        }
+        // ── End local engine ───────────────────────────────────────────────
+
+        function send() {
+            var text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            input.style.height = 'auto';
+            bubble('user', text);
+            history.push({role:'user',content:text});
+            typing.style.display = 'block';
+            scrollBottom();
+
+            // Try API first; fall back to local engine
+            fetch('{{ path("chatbot_message") }}', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({message:text, history:history.slice(-6)})
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                typing.style.display = 'none';
+                var reply = (d.reply && d.reply.length > 10) ? d.reply : localReply(text);
+                bubble('assistant', reply);
+                history.push({role:'assistant',content:reply});
+            })
+            .catch(function(){
+                typing.style.display = 'none';
+                bubble('assistant', localReply(text));
+            });
+        }
+
+        sendBtn.addEventListener('click', send);
+        input.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
+        input.addEventListener('input', function(){ this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,90)+'px'; });
+    })();
+    </script>
+
+
 
     <!-- Logout Modal -->
     <div id="logoutModal" class="modal fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center backdrop-blur-sm">

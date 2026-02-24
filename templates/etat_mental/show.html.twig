@@ -1,341 +1,193 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_user.html.twig' %}
 
-{% block title %}Résultat - Évaluation Mentale{% endblock %}
+{% block title %}Mental Assessment Result - FitSense{% endblock %}
 
-{% block stylesheets %}
-<style>
-:root {
-    --blue-light: #38BDF8;
-    --violet-light: #A78BFA;
-    --dark-bg: #111318;
-    --dark-card: #1B1E26;
-    --dark-input: #262A35;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A1A1AA;
-    --border-color: #343846;
-    --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
-    --success-color: #10B981;
-    --warning-color: #F59E0B;
-    --danger-color: #EF4444;
-}
+{% block user_page_title %}Assessment Result{% endblock %}
+{% block user_page_subtitle %}Understanding your current mental wellbeing{% endblock %}
 
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: var(--dark-bg);
-    color: var(--text-primary);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    padding: 20px;
-}
+{% block user_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-700/50">
+        <div class="p-8 md:p-12">
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <!-- Score Visualization -->
+                <div class="relative w-48 h-48 flex-shrink-0">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <!-- Background Circle -->
+                        <circle class="text-gray-800" stroke-width="8" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50" />
+                        <!-- Progress Circle -->
+                        <circle class="text-purple-500 transition-all duration-1000 ease-out" 
+                            stroke-width="8" 
+                            stroke-dasharray="264" 
+                            stroke-dashoffset="{{ 264 - (264 * etat.totalScore / 25) }}" 
+                            stroke-linecap="round" 
+                            stroke="currentColor" 
+                            fill="transparent" 
+                            r="42" cx="50" cy="50" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center transform rotate-0">
+                        <span class="text-5xl font-black text-white">{{ etat.totalScore }}</span>
+                        <span class="text-gray-400 text-sm font-bold uppercase tracking-widest">/ 25</span>
+                    </div>
+                </div>
 
-.result-card {
-    max-width: 680px;
-    width: 100%;
-    background: var(--dark-card);
-    padding: 48px 40px;
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    text-align: center;
-}
+                <!-- Status Info -->
+                <div class="flex-1 text-center md:text-left">
+                    {% set status_config = {
+                        'Low Well-being': {
+                            'icon': '😔',
+                            'label': 'Needs Attention',
+                            'color': 'text-red-400',
+                            'bg': 'bg-red-500/10',
+                            'border': 'border-red-500/20',
+                            'msg': 'Your mental state seems fragile at the moment. It is important to prioritize rest and self-care.'
+                        },
+                        'Moderate': {
+                            'icon': '😐',
+                            'label': 'Moderate State',
+                            'color': 'text-yellow-400',
+                            'bg': 'bg-yellow-500/10',
+                            'border': 'border-yellow-500/20',
+                            'msg': 'You are maintaining a steady balance, but there is room for improvement in your daily routine.'
+                        },
+                        'Good': {
+                            'icon': '🎉',
+                            'label': 'Excellent Condition',
+                            'color': 'text-green-400',
+                            'bg': 'bg-green-500/10',
+                            'border': 'border-green-500/20',
+                            'msg': 'You are in great mental shape! Keep up the good habits and positive outlook.'
+                        }
+                    } %}
 
-h2 {
-    font-size: 32px;
-    margin-bottom: 8px;
-    background: var(--gradient-main);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-}
+                    {% set current_status = status_config[etat.status == 'Good Well-being' ? 'Good' : (etat.status == 'Low Well-being' ? 'Low Well-being' : 'Moderate')] %}
 
-.subtitle {
-    color: var(--text-secondary);
-    font-size: 15px;
-    margin-bottom: 48px;
-}
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full {{ current_status.bg }} {{ current_status.color }} border {{ current_status.border }} font-bold text-sm mb-4">
+                        <span>{{ current_status.icon }}</span>
+                        {{ current_status.label }}
+                    </div>
 
-.score-container {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 0 auto 32px;
-}
+                    <h2 class="text-3xl font-bold text-white mb-4">You're doing {{ current_status.label|lower }}</h2>
+                    <p class="text-gray-400 leading-relaxed max-w-lg">
+                        {{ current_status.msg }} Comparison with previous tests shows your resilience levels are 
+                        <span class="text-purple-400 font-semibold">stable</span>.
+                    </p>
+                </div>
+            </div>
 
-.score-circle {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-}
+            <!-- Detailed Breakdowns -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- User Note section -->
+                {% if etat.description %}
+                <div class="col-span-1 md:col-span-2 bg-gray-900/40 rounded-2xl p-6 border border-gray-700/30">
+                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-comment-dots text-blue-400"></i>
+                        Your Personal Note
+                    </h3>
+                    <p class="text-gray-400 text-sm italic leading-relaxed">
+                        "{{ etat.description }}"
+                    </p>
+                </div>
+                {% endif %}
 
-.score-circle-bg {
-    fill: none;
-    stroke: var(--dark-input);
-    stroke-width: 12;
-}
+                <div class="bg-gray-900/40 rounded-2xl p-6 border border-gray-700/30">
+                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-purple-400"></i>
+                        Personalized Tips
+                    </h3>
+                    <ul class="space-y-4">
+                        {% if etat.status == 'Low Well-being' %}
+                            <li class="flex items-start gap-3 text-gray-400 text-sm">
+                                <div class="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0"></div>
+                                Prioritize 7-9 hours of consistent sleep tonight.
+                            </li>
+                            <li class="flex items-start gap-3 text-gray-400 text-sm">
+                                <div class="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0"></div>
+                                Try a 10-minute guided meditation.
+                            </li>
+                        {% elseif etat.status == 'Moderate' %}
+                            <li class="flex items-start gap-3 text-gray-400 text-sm">
+                                <div class="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0"></div>
+                                Incorporate a light 15-minute walk into your afternoon.
+                            </li>
+                            <li class="flex items-start gap-3 text-gray-400 text-sm">
+                                <div class="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0"></div>
+                                Track your water intake to ensure proper hydration.
+                            </li>
+                        {% else %}
+                            <li class="flex items-start gap-3 text-gray-400 text-sm">
+                                <div class="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0"></div>
+                                Share your positive energy with a friend or colleague.
+                            </li>
+                            <li class="flex items-start gap-3 text-gray-400 text-sm">
+                                <div class="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0"></div>
+                                It's a great time to challenge yourself with a new workout.
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
 
-.score-circle-progress {
-    fill: none;
-    stroke: url(#gradient);
-    stroke-width: 12;
-    stroke-linecap: round;
-    stroke-dasharray: 565.48;
-    stroke-dashoffset: 565.48;
-    animation: fillCircle 1.5s ease-out forwards;
-}
+                {% if recommendation is defined and recommendation is not null %}
+                <div class="col-span-1 md:col-span-2 bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-3xl p-8 border border-blue-500/30 shadow-xl">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+                                <i class="fas fa-user-md text-blue-400"></i>
+                                Coach's Prescription
+                            </h3>
+                            <p class="text-gray-400 text-sm mt-1">Personalized exercises from Coach {{ recommendation.coach.firstname }}</p>
+                        </div>
+                        <div class="bg-blue-500/20 px-4 py-2 rounded-xl border border-blue-500/20">
+                            <span class="text-blue-300 text-xs font-bold uppercase tracking-widest">
+                                {{ recommendation.createdAt|date('d M Y') }}
+                            </span>
+                        </div>
+                    </div>
 
-@keyframes fillCircle {
-    to {
-        stroke-dashoffset: calc(565.48 - (565.48 * {{ etat.totalScore }} / 25));
-    }
-}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for exercise in recommendation.recommendedExercises %}
+                            <div class="bg-gray-900/60 p-6 rounded-2xl border border-gray-700/50 hover:border-blue-500/50 transition-all group">
+                                <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                    <i class="fas fa-dumbbell"></i>
+                                </div>
+                                <h4 class="text-white font-bold mb-2">{{ exercise.title }}</h4>
+                                <p class="text-gray-400 text-xs leading-relaxed mb-4 line-clamp-2">
+                                    {{ exercise.description }}
+                                </p>
+                                <div class="flex items-center gap-2 text-blue-400 text-xs font-bold">
+                                    <i class="far fa-clock"></i>
+                                    {{ exercise.duration }} min
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
-.score-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 56px;
-    font-weight: 800;
-    background: var(--gradient-main);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.score-label {
-    position: absolute;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-top: 20px;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 12px 32px;
-    border-radius: 24px;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 24px;
-}
-
-.status-low {
-    background: linear-gradient(135deg, #EF4444, #DC2626);
-    color: white;
-}
-
-.status-medium {
-    background: linear-gradient(135deg, #F59E0B, #D97706);
-    color: white;
-}
-
-.status-good {
-    background: linear-gradient(135deg, #10B981, #059669);
-    color: white;
-}
-
-.message-box {
-    background: var(--dark-input);
-    border-radius: 16px;
-    padding: 24px;
-    margin: 32px 0;
-    border-left: 4px solid;
-}
-
-.message-box.low {
-    border-left-color: var(--danger-color);
-}
-
-.message-box.medium {
-    border-left-color: var(--warning-color);
-}
-
-.message-box.good {
-    border-left-color: var(--success-color);
-}
-
-.message-box p {
-    margin: 0;
-    font-size: 16px;
-    line-height: 1.6;
-    color: var(--text-primary);
-}
-
-.recommendations {
-    text-align: left;
-    background: var(--dark-input);
-    border-radius: 16px;
-    padding: 24px;
-    margin: 24px 0;
-}
-
-.recommendations h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: var(--text-primary);
-}
-
-.recommendations ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.recommendations li {
-    padding: 12px 0;
-    padding-left: 32px;
-    position: relative;
-    color: var(--text-secondary);
-    font-size: 15px;
-}
-
-.recommendations li:before {
-    content: "✓";
-    position: absolute;
-    left: 0;
-    color: var(--violet-light);
-    font-weight: 700;
-    font-size: 18px;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 16px;
-    margin-top: 32px;
-}
-
-.btn {
-    flex: 1;
-    padding: 16px;
-    font-size: 16px;
-    font-weight: 700;
-    border: none;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.25s;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.btn-primary {
-    background: #DFFF00;
-    color: #000;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(223,255,0,0.35);
-}
-
-.btn-secondary {
-    background: var(--dark-input);
-    color: var(--text-primary);
-    border: 2px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-    border-color: var(--violet-light);
-    transform: translateY(-2px);
-}
-
-@media (max-width: 600px) {
-    .result-card {
-        padding: 32px 24px;
-    }
-    h2 {
-        font-size: 26px;
-    }
-    .score-container {
-        width: 160px;
-        height: 160px;
-    }
-    .score-text {
-        font-size: 44px;
-    }
-    .action-buttons {
-        flex-direction: column;
-    }
-}
-</style>
-{% endblock %}
-
-{% block body %}
-{% block header %}{% endblock %}
-<div class="result-card">
-    <h2>Votre Évaluation Mentale</h2>
-    <p class="subtitle">Résultats de votre état mental</p>
-
-    <div class="score-container">
-        <svg class="score-circle" viewBox="0 0 200 200">
-            <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#38BDF8;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <circle class="score-circle-bg" cx="100" cy="100" r="90"></circle>
-            {# Calculation based on 25 max score #}
-            <circle class="score-circle-progress" cx="100" cy="100" r="90"></circle>
-        </svg>
-        <div class="score-text">{{ etat.totalScore }}</div>
-        <div class="score-label">/ 25</div>
-    </div>
-
-    {% if etat.status == 'Low Well-being' %}
-        <div class="status-badge status-low">😔 Low Mental State</div>
-        <div class="message-box low">
-            <p>Score between 5 and 10. Your mental state seems fragile. It is important to slow down, prioritize rest, and consult a professional if this feeling persists.</p>
+                <div class="bg-gray-900/40 rounded-2xl p-6 border border-gray-700/30">
+                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-tasks text-blue-400"></i>
+                        Next Steps
+                    </h3>
+                    <div class="space-y-4">
+                        {% if recommendation is defined and recommendation is not null %}
+                            <a href="{{ path('etat_mental_coach_recommendation') }}" class="flex items-center justify-between p-4 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl border border-blue-500/20 transition-all group">
+                                <span class="text-blue-300 font-semibold">Details & Notes</span>
+                                <i class="fas fa-chevron-right text-blue-500 group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                        {% endif %}
+                        <div class="flex gap-4">
+                            <a href="{{ path('etat_mental_new') }}" class="flex-1 text-center py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl border border-gray-700 font-bold transition-all">
+                                Retake Test
+                            </a>
+                            <a href="{{ path('etat_mental_index') }}" class="flex-1 text-center py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl border border-gray-700 font-bold transition-all">
+                                History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="recommendations">
-            <h3>💡 Recommendations</h3>
-            <ul>
-                <li>Prioritize sleep and rest</li>
-                <li>Try relaxing activities (reading, calm walking)</li>
-                <li>Talk to someone you trust</li>
-                <li>Reduce workload if possible</li>
-            </ul>
-        </div>
-    {% elseif etat.status == 'Moderate' %}
-        <div class="status-badge status-medium">😐 Moderate State</div>
-        <div class="message-box medium">
-            <p>Score between 11 and 17. Things could be better. You might be going through a period of fatigue or temporary stress. Take some time for yourself.</p>
-        </div>
-        <div class="recommendations">
-            <h3>💡 Recommendations</h3>
-            <ul>
-                <li>Maintain moderate physical activity</li>
-                <li>Structure your days to avoid burnout</li>
-                <li>Treat yourself to daily small pleasures</li>
-                <li>Watch your diet and hydration</li>
-            </ul>
-        </div>
-    {% else %}
-        <div class="status-badge status-good">🎉 Good Mental Health</div>
-        <div class="message-box good">
-            <p>Score between 18 and 25. You are in great mental shape! Continue to maintain this balance between activity, rest, and social life.</p>
-        </div>
-        <div class="recommendations">
-            <h3>💡 Recommendations</h3>
-            <ul>
-                <li>Take the opportunity to start new projects</li>
-                <li>Share your positive energy</li>
-                <li>Maintain your good habits (sport, sleep)</li>
-                <li>Stay tuned to your needs</li>
-            </ul>
-        </div>
-    {% endif %}
-
-    <div class="action-buttons">
-        {% if recommendation is defined and recommendation is not null %}
-            <a href="{{ path('etat_mental_coach_recommendation') }}" class="btn btn-primary">View Recommended Exercises</a>
-        {% endif %}
-        <a href="{{ path('etat_mental_new') }}" class="btn btn-secondary">Retake</a>
-        <a href="{{ path('etat_mental_index') }}" class="btn btn-secondary">Review Mental Health</a>
     </div>
 </div>
-{% block footer %}{% endblock %}
 {% endblock %}

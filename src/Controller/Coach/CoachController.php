@@ -11,6 +11,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mime\Address;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -112,7 +116,7 @@ class CoachController extends AbstractController
     }
 
     #[Route('/mental-health/recommendation/add', name: 'coach_mental_health_recommend_add', methods: ['POST'])]
-    public function addRecommendation(Request $request, EntityManagerInterface $em): Response
+    public function addRecommendation(Request $request, EntityManagerInterface $em, MailerInterface $mailer, LoggerInterface $logger): Response
     {
         $userId = $request->request->get('user_id');
         $exerciseTitles = $request->request->all('exercise_titles');
@@ -146,6 +150,27 @@ class CoachController extends AbstractController
 
         $em->persist($recommendation);
         $em->flush();
+
+        // Send Email Notification
+        try {
+            $email = (new TemplatedEmail())
+                ->from(new Address('sarahguesmi223@gmail.com', 'FitSense Wellness'))
+                ->to($user->getEmail())
+                ->subject('New Wellness Recommendation from your Coach')
+                ->htmlTemplate('emails/recommendation_email.html.twig')
+                ->context([
+                    'user_name' => $user->getFirstname(),
+                    'coach_name' => $this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname(),
+                    'notes' => $notes,
+                    'exercises' => $recommendation->getRecommendedExercises()
+                ]);
+
+            $mailer->send($email);
+        } catch (\Exception $e) {
+            $logger->error('Failed to send recommendation email: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+        }
 
         $this->addFlash('success', 'Recommendation saved successfully.');
         return $this->redirectToRoute('coach_mental_health_recommendations_list');

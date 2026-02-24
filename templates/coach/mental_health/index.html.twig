@@ -136,9 +136,10 @@
                         </div>
 
                         <div class="pt-2">
-                            <button type="button" class="w-full py-3 px-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 opacity-50 cursor-not-allowed">
-                                <i class="fas fa-robot"></i>
-                                Fill with AI (Coming Soon)
+                            <button type="button" id="fillWithAiBtn" class="w-full py-3 px-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300">
+                                <i class="fas fa-robot" id="aiIcon"></i>
+                                <span id="aiBtnText">Fill with AI</span>
+                                <i class="fas fa-spinner fa-spin hidden" id="aiSpinner"></i>
                             </button>
                         </div>
                     </div>
@@ -237,6 +238,77 @@
             });
 
             statusFilter.addEventListener('change', filterTable);
+
+            // AI Integration
+            const fillWithAiBtn = document.getElementById('fillWithAiBtn');
+            const aiSpinner = document.getElementById('aiSpinner');
+            const aiIcon = document.getElementById('aiIcon');
+            const aiBtnText = document.getElementById('aiBtnText');
+
+            fillWithAiBtn.addEventListener('click', function() {
+                const userId = document.getElementById('modalUserId').value;
+                if (!userId) return;
+
+                // UI Loading state
+                fillWithAiBtn.disabled = true;
+                aiSpinner.classList.remove('hidden');
+                aiIcon.classList.add('hidden');
+                aiBtnText.textContent = 'Analyzing with AI...';
+
+                fetch('{{ path("coach_ai_recommend") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('AI Error: ' + data.error);
+                    } else if (data.recommendations) {
+                        // Clear existing empty fields first if any
+                        const container = document.getElementById('exercisesContainer');
+                        const firstItem = container.querySelector('.exercise-item');
+                        const firstTitle = firstItem.querySelector('input[name="exercise_titles[]"]');
+                        if (!firstTitle.value) {
+                            // If first is empty, we'll use it for the first recommendation
+                        }
+
+                        data.recommendations.forEach((rec, index) => {
+                            if (index === 0 && !firstTitle.value) {
+                                // Fill the first one if it's empty
+                                firstTitle.value = rec.title;
+                                firstItem.querySelector('input[name="exercise_durations[]"]').value = rec.duration;
+                                firstItem.querySelector('textarea[name="exercise_descriptions[]"]').value = rec.description;
+                            } else {
+                                // Add new fields
+                                addExerciseFieldWithData(rec.title, rec.duration, rec.description);
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('AI Request Error:', error);
+                    alert('Failed to get AI recommendations.');
+                })
+                .finally(() => {
+                    fillWithAiBtn.disabled = false;
+                    aiSpinner.classList.add('hidden');
+                    aiIcon.classList.remove('hidden');
+                    aiBtnText.textContent = 'Fill with AI';
+                });
+            });
+
+            function addExerciseFieldWithData(title, duration, description) {
+                addExerciseField();
+                const container = document.getElementById('exercisesContainer');
+                const lastItem = container.lastElementChild;
+                lastItem.querySelector('input[name="exercise_titles[]"]').value = title;
+                lastItem.querySelector('input[name="exercise_durations[]"]').value = duration;
+                lastItem.querySelector('textarea[name="exercise_descriptions[]"]').value = description;
+            }
         });
     </script>
 {% endblock %}

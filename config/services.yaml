@@ -19,3 +19,7 @@ services:
     App\EventListener\AuthenticationSuccessListener:
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+
+    App\Service\OpenAiService:
+        arguments:
+            $apiKey: '%env(API_KEY)%'
