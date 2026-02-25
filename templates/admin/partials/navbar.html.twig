@@ -35,11 +35,12 @@
             <div class="relative group">
                 <button class="flex items-center gap-4 px-4 py-2 rounded-xl hover:bg-gray-700/50 transition-all duration-200">
                     <div class="text-right hidden sm:block">
-                        <p class="text-sm font-semibold text-white">{{ app.user.firstname }} {{ app.user.lastname }}</p>
+                        <p class="text-sm font-semibold text-white">{{ app.user ? app.user.firstname|slice(0,1)|upper ~ app.user.lastname|slice(0,1)|upper : '?' }}</p>
                         <p class="text-xs text-gray-400">{{ role_label|default('Administrator') }}</p>
                     </div>
+                    {# APRÈS - tout protégé #}
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-purple-500/30">
-                        {{ app.user.firstname|slice(0, 1)|upper }}{{ app.user.lastname|slice(0, 1)|upper }}
+                        {{ app.user ? app.user.firstname|slice(0, 1)|upper ~ app.user.lastname|slice(0, 1)|upper : '' }}
                     </div>
                 </button>
 

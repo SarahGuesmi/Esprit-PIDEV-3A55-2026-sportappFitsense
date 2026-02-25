@@ -5,36 +5,40 @@
 {% block coach_content %}
 <div class="max-w-xl mx-auto bg-gray-900 p-8 rounded-2xl border border-gray-800">
 
-    <form method="post" action="{{ path('coach_ai_workout_generate') }}" class="space-y-6">
+<form method="post"
+      action="{{ path('coach_ai_workout_generate') }}"
+      data-turbo-frame="ai-result"
+      class="space-y-6">
 
-        <div>
-            <label class="text-gray-300">Level</label>
-            <select name="level" class="w-full p-3 bg-gray-800 rounded-lg text-white">
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-            </select>
-        </div>
+    <div>
+        <label class="text-gray-300">Level</label>
+        <select name="level" class="w-full p-3 bg-gray-800 rounded-lg text-white">
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+        </select>
+    </div>
 
-        <div>
-            <label class="text-gray-300">Goal</label>
-            <select name="goal" class="w-full p-3 bg-gray-800 rounded-lg text-white">
-                <option value="Weight Loss">Weight Loss</option>
-                <option value="Muscle Gain">Muscle Gain</option>
-                <option value="Endurance">Endurance</option>
-            </select>
-        </div>
+    <div>
+        <label class="text-gray-300">Goal</label>
+        <select name="goal" class="w-full p-3 bg-gray-800 rounded-lg text-white">
+            <option value="Weight Loss">Weight Loss</option>
+            <option value="Muscle Gain">Muscle Gain</option>
+            <option value="Endurance">Endurance</option>
+        </select>
+    </div>
 
-        <div>
-            <label class="text-gray-300">Duration (minutes)</label>
-            <input type="number" name="duration" value="30"
-                   class="w-full p-3 bg-gray-800 rounded-lg text-white">
-        </div>
+    <div>
+        <label class="text-gray-300">Duration (minutes)</label>
+        <input type="number" name="duration" value="30"
+               class="w-full p-3 bg-gray-800 rounded-lg text-white">
+    </div>
 
-        <button class="w-full bg-purple-600 hover:bg-purple-700 p-3 rounded-lg font-bold">
-            Generate Workout
-        </button>
+    <button class="w-full bg-purple-600 hover:bg-purple-700 p-3 rounded-lg font-bold">
+        Generate Workout
+    </button>
 
-    </form>
+</form>
+<turbo-frame id="ai-result"></turbo-frame>
 </div>
 {% endblock %}

@@ -9,7 +9,9 @@
 {% block footer %}
     {# Override to hide the footer in coach pages #}
 {% endblock %}
-
+{% block importmap %}
+    {{ importmap('app') }}
+{% endblock %}
 {% block stylesheets %}
     {{ parent() }}
     <script src="https://cdn.tailwindcss.com"></script>

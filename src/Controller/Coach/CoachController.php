@@ -13,16 +13,114 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Repository\WorkoutRepository;
+use App\Repository\ExerciseRepository;
+use Symfony\UX\Chartjs\Model\Chart;
+use Symfony\UX\Chartjs\Model\Dataset\PieDataset;
+use Symfony\UX\Chartjs\Model\Dataset\BarDataset;
+use Symfony\UX\Chartjs\Model\Dataset\DoughnutDataset;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+
 
 #[Route('/coach')]
 #[IsGranted('ROLE_COACH')]
 class CoachController extends AbstractController
 {
-    #[Route('/dashboard', name: 'coach_dashboard')]
-    public function index(): Response
-    {
-        return $this->render('coach/dashboard.html.twig', []);
+#[Route('/dashboard', name: 'coach_dashboard')]
+public function dashboard(
+    WorkoutRepository $workoutRepo,
+    ExerciseRepository $exerciseRepo,
+    ChartBuilderInterface $chartBuilder
+): Response
+{
+    // ================= Total workouts =================
+    $totalWorkouts = $workoutRepo->count([]);
+
+    // ================= Durée moyenne =================
+    $workouts = $workoutRepo->findAll();
+    $totalDuration = array_sum(array_map(fn($w) => $w->getDuree() ?? 0, $workouts));
+    $avgDuration = $workouts ? round($totalDuration / count($workouts), 2) : 0;
+
+    // ================= Exercices les plus utilisés =================
+    $exercises = $exerciseRepo->findAll();
+    $exerciseUsage = [];
+    foreach ($exercises as $ex) {
+        $count = count($ex->getWorkouts());
+        if ($count > 0) {
+            $exerciseUsage[$ex->getNom()] = $count;
+        }
     }
+    arsort($exerciseUsage);
+    $topExercise = array_key_first($exerciseUsage) ?? '—';
+
+    // ================= Chart - Exercises Bar =================
+    $exerciseChart = $chartBuilder->createChart(Chart::TYPE_BAR);
+    $exerciseChart->setData([
+        'labels' => array_keys($exerciseUsage),
+        'datasets' => [[
+            'label' => 'Uses',
+            'data' => array_values($exerciseUsage),
+            'backgroundColor' => [
+                '#00f5a0','#38bdf8','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#818cf8'
+            ],
+        ]]
+    ]);
+
+    // ================= Chart - Goals Doughnut =================
+    $goalDistribution = [];
+    foreach ($workouts as $w) {
+        $objectifs = $w->getObjectifs();
+        if ($objectifs->isEmpty()) {
+            $goalDistribution['Unknown'] = ($goalDistribution['Unknown'] ?? 0) + 1;
+        } else {
+            foreach ($objectifs as $obj) {
+                $goalDistribution[$obj->getName()] = ($goalDistribution[$obj->getName()] ?? 0) + 1;
+            }
+        }
+    }
+    arsort($goalDistribution);
+
+    $goalChart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+    $goalChart->setData([
+        'labels' => array_keys($goalDistribution),
+        'datasets' => [[
+            'data' => array_values($goalDistribution),
+            'backgroundColor' => [
+                '#00f5a0','#38bdf8','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#818cf8'
+            ],
+        ]]
+    ]);
+
+    // ================= Chart - Levels Pie =================
+    $levelDistribution = [];
+    foreach ($workouts as $w) {
+        $level = ucfirst(strtolower(trim($w->getNiveau() ?? 'Unknown')));
+        $levelDistribution[$level] = ($levelDistribution[$level] ?? 0) + 1;
+    }
+    arsort($levelDistribution);
+
+    $levelChart = $chartBuilder->createChart(Chart::TYPE_PIE);
+    $levelChart->setData([
+        'labels' => array_keys($levelDistribution),
+        'datasets' => [[
+            'data' => array_values($levelDistribution),
+            'backgroundColor' => [
+                '#00f5a0','#38bdf8','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#818cf8'
+            ],
+        ]]
+    ]);
+
+    return $this->render('coach/dashboard.html.twig', [
+        'totalWorkouts' => $totalWorkouts,
+        'avgDuration' => $avgDuration,
+        'topExercise' => $topExercise,
+        'exerciseChart' => $exerciseChart,
+        'goalChart' => $goalChart,
+        'levelChart' => $levelChart,
+    ]);
+}
+
+
 
     #[Route('/users', name: 'coach_users_index')]
     public function users(Request $request, EntityManagerInterface $em): Response
@@ -65,6 +163,10 @@ class CoachController extends AbstractController
             'users' => $users,
         ]);
     }
+
+
+
+
 
     #[Route('/mental-health', name: 'coach_mental_health_index')]
     public function mentalHealth(Request $request, EntityManagerInterface $em): Response

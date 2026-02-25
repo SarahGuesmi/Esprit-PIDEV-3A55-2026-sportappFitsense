@@ -157,4 +157,18 @@ class Workout
         }
         return $this;
     }
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+private ?string $status = null;
+
+public function getStatus(): ?string
+{
+    return $this->status;
+}
+
+public function setStatus(?string $status): static
+{
+    $this->status = $status;
+    return $this;
+}
 }

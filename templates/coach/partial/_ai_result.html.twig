@@ -1,0 +1,34 @@
+<turbo-frame id="ai-result">
+<div class="max-w-2xl mx-auto bg-gray-900 p-8 rounded-2xl border border-gray-800">
+    <h2 class="text-xl font-bold mb-4 text-purple-400">
+        {{ level }} - {{ goal }} ({{ duration }} min)
+    </h2>
+    <div class="space-y-3">
+        {% for ex in workout %}
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="flex justify-between mb-2">
+                    <span class="font-semibold text-white text-lg">{{ ex.name }}</span>
+                    <span class="text-purple-400">{{ ex.sets }} sets × {{ ex.reps }} reps</span>
+                </div>
+                <div class="flex gap-4 text-sm text-gray-400">
+                    <span>💪 {{ ex.muscle }}</span>
+                    <span>🏋️ {{ ex.equipment }}</span>
+                    <span>⏱️ Rest: {{ ex.rest }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <form method="post"
+          action="{{ path('coach_ai_workout_save') }}"
+          data-turbo-frame="_top">
+        <input type="hidden" name="level" value="{{ level }}">
+        <input type="hidden" name="goal" value="{{ goal }}">
+        <input type="hidden" name="duration" value="{{ duration }}">
+        <input type="hidden" name="exercises" value="{{ workout|json_encode }}">
+        <button class="mt-6 w-full bg-green-600 hover:bg-green-700 p-3 rounded-lg font-bold">
+            💾 Save as Workout
+        </button>
+    </form>
+</div>
+</turbo-frame>
