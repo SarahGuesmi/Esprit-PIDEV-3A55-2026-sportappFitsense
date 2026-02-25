@@ -171,7 +171,7 @@ public function gender(Request $request): Response
 
             $session->remove('profile_data');
 
-            return $this->redirectToRoute('dashboard_user'); // Adjust to your dashboard route
+            return $this->redirectToRoute('profile_setup_avatar');
         }
 
         return $this->render('profile_setup/objectives.html.twig', ['form' => $form->createView()]);

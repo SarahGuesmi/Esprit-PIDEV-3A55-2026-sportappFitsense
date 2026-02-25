@@ -3,19 +3,44 @@
 namespace App\Service;
 
 use App\Entity\EtatMental;
-use OpenAI;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class OpenAiService
 {
-    private $client;
+    private string $apiKey;
+    private HttpClientInterface $httpClient;
+    private string $baseUrl = 'https://api.groq.com/openai/v1';
+    private string $model = 'llama-3.3-70b-versatile';
 
-    public function __construct(string $apiKey)
+    public function __construct(string $apiKey, HttpClientInterface $httpClient)
     {
-        // Groq is compatible with the OpenAI SDK by changing the base URI
-        $this->client = OpenAI::factory()
-            ->withApiKey($apiKey)
-            ->withBaseUri('https://api.groq.com/openai/v1')
-            ->make();
+        $this->apiKey = $apiKey;
+        $this->httpClient = $httpClient;
+    }
+
+    /**
+     * Make a chat completion request to the Groq API.
+     */
+    private function chatCompletion(array $messages, ?array $responseFormat = null): array
+    {
+        $body = [
+            'model' => $this->model,
+            'messages' => $messages,
+        ];
+
+        if ($responseFormat) {
+            $body['response_format'] = $responseFormat;
+        }
+
+        $response = $this->httpClient->request('POST', $this->baseUrl . '/chat/completions', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $body,
+        ]);
+
+        return $response->toArray();
     }
 
     public function chat(string $userMessage, array $history, $user): string
@@ -38,32 +63,90 @@ class OpenAiService
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
         try {
-            $result = $this->client->chat()->create([
-                'model' => 'llama-3.3-70b-versatile',
-                'messages' => $messages,
-            ]);
-            return $result->choices[0]->message->content;
+            $result = $this->chatCompletion($messages);
+            return $result['choices'][0]['message']['content'];
         } catch (\Exception $e) {
             error_log('[Aura AI] API Error: ' . $e->getMessage());
             return "AI Error: " . $e->getMessage();
         }
     }
 
+    /**
+     * Generate creative fitness-themed username suggestions for a new user.
+     *
+     * @return string[] Array of 5 unique username suggestions
+     */
+    public function generateUsernameSuggestions(string $firstname, string $lastname): array
+    {
+        try {
+            $result = $this->chatCompletion([
+                [
+                    'role' => 'system',
+                    'content' => 'You are a creative username generator for a fitness platform called FitSense. Generate unique, catchy, fitness-themed usernames. Return ONLY a JSON array of exactly 5 strings, no explanation, no markdown, no code blocks. Example: ["FitWarrior42","IronPulse","SweatStar99","PeakVibes","ZenRunner"]'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => "Generate 5 unique fitness-themed usernames for a user named {$firstname} {$lastname}. Mix creativity with fitness culture. Make them catchy and memorable. Return only a JSON array of 5 strings."
+                ],
+            ]);
+
+            $content = trim($result['choices'][0]['message']['content']);
+
+            // Strip markdown code blocks if present
+            $content = preg_replace('/^```(?:json)?\s*/i', '', $content);
+            $content = preg_replace('/\s*```$/', '', $content);
+            $content = trim($content);
+
+            $suggestions = json_decode($content, true);
+
+            if (is_array($suggestions) && count($suggestions) >= 1) {
+                return array_slice(array_values($suggestions), 0, 5);
+            }
+
+            // Fallback: extract quoted strings
+            preg_match_all('/"([^"]+)"/', $content, $matches);
+            if (!empty($matches[1])) {
+                return array_slice($matches[1], 0, 5);
+            }
+
+            return $this->fallbackUsernames($firstname);
+        } catch (\Exception $e) {
+            error_log('[Aura AI] Username suggestion error: ' . $e->getMessage());
+            return $this->fallbackUsernames($firstname);
+        }
+    }
+
+    /**
+     * Fallback usernames if the AI call fails.
+     */
+    private function fallbackUsernames(string $firstname): array
+    {
+        $base = preg_replace('/[^a-zA-Z]/', '', $firstname);
+        $base = $base ?: 'Athlete';
+        return [
+            $base . 'Fit' . rand(10, 99),
+            'Iron' . $base . rand(10, 99),
+            $base . 'Pulse',
+            'Peak' . $base,
+            $base . 'Runner' . rand(10, 99),
+        ];
+    }
+
+
     public function generateRecommendations(EtatMental $etatMental): array
     {
         $prompt = $this->buildPrompt($etatMental);
 
         try {
-            $result = $this->client->chat()->create([
-                'model' => 'llama-3.3-70b-versatile',
-                'messages' => [
+            $result = $this->chatCompletion(
+                [
                     ['role' => 'system', 'content' => 'You are a professional fitness and mental health coach. You provide personalized exercise recommendations in JSON format.'],
                     ['role' => 'user', 'content' => $prompt],
                 ],
-                'response_format' => ['type' => 'json_object'],
-            ]);
+                ['type' => 'json_object']
+            );
 
-            $content = $result->choices[0]->message->content;
+            $content = $result['choices'][0]['message']['content'];
             $data = json_decode($content, true);
 
             if (!isset($data['recommendations'])) {

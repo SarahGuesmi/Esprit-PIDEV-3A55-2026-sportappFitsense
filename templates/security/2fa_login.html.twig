@@ -1,0 +1,182 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Two-Factor Authentication - FitSense{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+:root {
+    --violet-primary: #8B5CF6;
+    --violet-light: #A78BFA;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #FFFFFF;
+    --text-secondary: #94A3B8;
+    --dark-bg: #030405;
+}
+
+/* Reset body positioning to prevent header/footer interference */
+body {
+    background: var(--dark-bg) !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 24px !important;
+    margin: 0 !important;
+    position: relative !important;
+}
+
+/* Hide footer */
+footer {
+    display: none !important;
+}
+
+/* Ensure header doesn't interfere with card positioning */
+.header-area {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 10 !important;
+}
+
+/* Ensure header logo doesn't overflow */
+.header-area .main-nav .logo img {
+    max-height: 40px !important;
+    width: auto !important;
+    object-fit: contain !important;
+}
+
+/* Card styling with proper z-index */
+.twofa-box {
+    width: 100%;
+    max-width: 420px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+    margin-top: 80px; /* Space for header */
+}
+
+.twofa-box h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.twofa-box p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.twofa-box input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    letter-spacing: 0.4em;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.twofa-box input:focus {
+    outline: none;
+    border-color: var(--violet-primary);
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+}
+
+.twofa-box input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.twofa-box button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    margin-top: 1rem;
+    background: linear-gradient(135deg, var(--violet-primary), #38BDF8);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.twofa-box button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139,92,246,0.4);
+}
+
+.twofa-error {
+    color: #F87171;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{# Force hide the preloader if it's lingering #}
+<style>
+    #js-preloader, .js-preloader {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+</style>
+
+<div class="twofa-box">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #8B5CF6, #38BDF8); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
+            <i class="fas fa-shield-alt" style="color: white; font-size: 1.75rem;"></i>
+        </div>
+        <h1 style="font-weight: 800; tracking-tighter; margin-bottom: 0.75rem;">Secure Access</h1>
+        <p style="margin-bottom: 0;">Enter the 6-digit verification code from your authenticator app to continue.</p>
+    </div>
+
+    <form method="post" action="/2fa_check">
+        <div style="position: relative; margin-bottom: 1.5rem;">
+            <input type="text" name="_auth_code" placeholder="000000" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" autofocus required
+                   style="font-family: 'Inter', sans-serif; font-weight: 700;">
+            <div style="position: absolute; bottom: 0; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, transparent, #8B5CF6, transparent); opacity: 0.5;"></div>
+        </div>
+        
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('two_factor') }}">
+        
+        <button type="submit" style="text-transform: uppercase; letter-spacing: 1px; font-weight: 800; height: 55px;">
+            Verify Identity
+        </button>
+    </form>
+
+    {% if authenticationError is defined and authenticationError %}
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); border-radius: 12px; color: #F87171; font-size: 0.85rem; text-align: center;">
+            <i class="fas fa-exclamation-circle" style="margin-right: 6px;"></i>
+            {{ authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle') }}
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{{ path('app_logout') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-secondary)'">
+            <i class="fas fa-arrow-left" style="margin-right: 6px; font-size: 0.75rem;"></i> Cancel and Logout
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{# Footer removed for 2FA page #}
+{% endblock %}

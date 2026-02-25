@@ -1,0 +1,342 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Identify Yourself - FitSense{% endblock %}
+
+{% block stylesheets %}
+<style>
+:root {
+    --violet-primary: #8B5CF6;
+    --violet-light: #A78BFA;
+    --violet-dark: #6D28D9;
+    --dark-bg: #030405;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #FFFFFF;
+    --text-secondary: #94A3B8;
+    --gradient-main: linear-gradient(135deg, #8B5CF6, #D8B4FE);
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 80% 10%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 10% 90%, rgba(216, 180, 254, 0.1) 0%, transparent 40%);
+    z-index: -1;
+}
+
+.setup-wrapper {
+    width: 95%;
+    max-width: 1000px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    padding: 60px;
+    animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.setup-header h1 {
+    font-size: 38px;
+    font-weight: 900;
+    margin-bottom: 15px;
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+}
+
+.setup-header p {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 40px;
+}
+
+/* Avatar Grid */
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 25px;
+    margin-bottom: 50px;
+}
+
+.avatar-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px solid transparent;
+    border-radius: 24px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.avatar-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    transition: transform 0.5s ease;
+}
+
+.avatar-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.avatar-card:hover img {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.avatar-card.selected {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: var(--violet-primary);
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
+}
+
+.avatar-card.selected::after {
+    content: "✓";
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 28px;
+    height: 28px;
+    background: var(--violet-primary);
+    border-radius: 50%;
+    color: white;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* Action Area */
+.action-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    margin-top: 40px;
+}
+
+.btn-confirm {
+    width: 100%;
+    max-width: 400px;
+    padding: 18px;
+    border-radius: 14px;
+    border: none;
+    background: var(--gradient-main);
+    color: white;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-confirm.active {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.btn-confirm.active:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(139, 92, 246, 0.5);
+}
+
+.btn-regenerate {
+    background: none;
+    border: 1px solid var(--violet-light);
+    color: var(--violet-light);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-regenerate:hover {
+    background: rgba(139, 92, 246, 0.1);
+    transform: rotate(-2deg);
+}
+
+/* Loading Overlay */
+#loading-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--dark-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 25px;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(139, 92, 246, 0.1);
+    border-top: 4px solid var(--violet-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.hidden { display: none !important; }
+
+@media (max-width: 768px) {
+    .setup-wrapper { padding: 40px 20px; }
+    .setup-header h1 { font-size: 30px; }
+    .avatar-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block body %}
+<div id="loading-overlay" class="hidden">
+    <div class="loader"></div>
+    <p style="font-weight: 700; color: var(--violet-light); animation: pulse 1.5s infinite;">Aura is designing your look...</p>
+</div>
+
+<div class="setup-wrapper">
+    <div class="setup-header">
+        <h1>Discover Your Look</h1>
+        <p>Aura has generated these unique personas based on your profile.</p>
+    </div>
+
+    <div id="avatar-container" class="avatar-grid">
+        {% for seed in seeds %}
+            <div class="avatar-card" data-seed="{{ seed }}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ seed }}" alt="AI Avatar">
+                <span style="font-size: 11px; font-weight: 800; color: var(--violet-light); text-transform: uppercase; letter-spacing: 1px;">Selected Variant</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="action-area">
+        <button id="regenerate-btn" class="btn-regenerate">
+            <i class="fas fa-sync-alt"></i> Redesign Avatars
+        </button>
+
+        <button id="confirm-selection" class="btn-confirm" disabled>
+            Confirm & Finish Setup
+        </button>
+        
+        <p style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">
+            This will be your identity across FitSense. You can change this later.
+        </p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('avatar-container');
+    const loading = document.getElementById('loading-overlay');
+    const confirmBtn = document.getElementById('confirm-selection');
+    const regenerateBtn = document.getElementById('regenerate-btn');
+    let selectedAvatarUrl = '';
+
+    function bindCardEvents() {
+        document.querySelectorAll('.avatar-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedAvatarUrl = card.querySelector('img').src;
+                confirmBtn.disabled = false;
+                confirmBtn.classList.add('active');
+            });
+        });
+    }
+
+    bindCardEvents();
+
+    regenerateBtn.addEventListener('click', () => {
+        loading.classList.remove('hidden');
+        fetch('{{ path("profile_setup_avatar_suggest") }}')
+            .then(r => r.json())
+            .then(data => {
+                container.innerHTML = '';
+                data.seeds.forEach(seed => {
+                    const card = document.createElement('div');
+                    card.className = 'avatar-card';
+                    card.dataset.seed = seed;
+                    card.innerHTML = `
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}" alt="AI Avatar">
+                        <span style="font-size: 11px; font-weight: 800; color: var(--violet-light); text-transform: uppercase; letter-spacing: 1px;">Selected Variant</span>
+                    `;
+                    container.appendChild(card);
+                });
+                bindCardEvents();
+                selectedAvatarUrl = '';
+                confirmBtn.disabled = true;
+                confirmBtn.classList.remove('active');
+                loading.classList.add('hidden');
+            });
+    });
+
+    confirmBtn.addEventListener('click', () => {
+        if (!selectedAvatarUrl) return;
+
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = 'SAVING PERSONA...';
+
+        fetch('{{ path("profile_setup_avatar_save") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({avatar_url: selectedAvatarUrl})
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                window.location.href = '{{ path("dashboard_user") }}';
+            } else {
+                alert(d.error || 'Failed to save avatar');
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = 'Confirm & Finish Setup';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% block footer %}{% endblock %}

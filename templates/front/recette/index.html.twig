@@ -38,6 +38,7 @@
       >
         Check calories
       </button>
+      <div id="foodResult" class="text-sm text-gray-300 mt-2"></div>
       
 
       <form method="POST" action="{{ path('user_food_add') }}" class="flex-1 flex gap-3">
@@ -192,37 +193,48 @@
     });
 
     // =========================
-    // FAVORITE HEART
+    // FAVORITE HEART (direct listeners)
     // =========================
-    document.querySelectorAll('.js-fav-btn').forEach(btn => {
+    document.querySelectorAll('.js-fav-btn').forEach((btn) => {
       btn.addEventListener('click', async (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+        e.stopPropagation(); // avoid opening the modal
 
         const recipeId = btn.dataset.recipeId;
         const icon = btn.querySelector('i');
 
+        btn.disabled = true;
+
         try {
           const res = await fetch(`/user/recipes/${recipeId}/favorite`, {
             method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
           });
 
-          const data = await res.json();
-          if (!data.success) return;
+          if (!res.ok) {
+            throw new Error('Favorite API error: ' + res.status);
+          }
 
-          if (data.favorited) {
-            icon.classList.remove('far', 'text-gray-300');
-            icon.classList.add('fas', 'text-red-500');
-          } else {
-            icon.classList.remove('fas', 'text-red-500');
-            icon.classList.add('far', 'text-gray-300');
+          const data = await res.json();
+          if (data.success) {
+            if (data.favorited) {
+              icon.classList.remove('far', 'text-gray-300');
+              icon.classList.add('fas', 'text-red-500');
+              btn.dataset.fav = '1';
+            } else {
+              icon.classList.remove('fas', 'text-red-500');
+              icon.classList.add('far', 'text-gray-300');
+              btn.dataset.fav = '0';
+            }
           }
         } catch (err) {
-          console.error(err);
+          console.error('Favorite toggle failed:', err);
+        } finally {
+          btn.disabled = false;
         }
-      }, true);
+      });
     });
 
     // ==========================

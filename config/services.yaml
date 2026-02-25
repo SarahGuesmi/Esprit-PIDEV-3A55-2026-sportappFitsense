@@ -32,3 +32,6 @@ services:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
 
+    App\Service\OpenAiService:
+        arguments:
+            $apiKey: '%env(default::API_KEY)%'

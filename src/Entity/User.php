@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -12,9 +13,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity()]
 #[UniqueEntity(fields: ['email'], message: 'This email address already exists.')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
 {
-
     #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'integer')]
     private ?int $id = null;
 
@@ -25,7 +25,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string')]
     #[Assert\NotBlank(message: "Password is required")]
-    #[Assert\Length(min: 6, max: 50, minMessage: "Password must be at least 6 characters")]
+    #[Assert\Length(min: 6, minMessage: "Password must be at least 6 characters")]
     private ?string $password = null;
 
     #[ORM\Column(type: 'json')]
@@ -47,7 +47,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $dateCreation = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: EtatMental::class)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: EtatMental::class, cascade: ['remove'])]
     private Collection $etatMentals;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfilePhysique::class, cascade: ['remove'])]
@@ -60,15 +60,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $recettesConsommees;
 
     #[ORM\ManyToMany(targetEntity: RecetteNutritionnelle::class, mappedBy: 'favoritedBy')]
-private Collection $favoriteRecipes;
+    private Collection $favoriteRecipes;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: PasskeyCredential::class, cascade: ['remove'], orphanRemoval: true)]
+    private Collection $passkeyCredentials;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $googleAuthenticatorSecret = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $phone = null;
+
+    /** Stored filename in uploads/profiles/ (user-uploaded photo). */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $photo = null;
+
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
+    private ?string $username = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: LoginAttempt::class, cascade: ['remove'])]
+    private Collection $loginAttempts;
 
     public function __construct()
     {
-        $this->favoriteRecipes = new ArrayCollection();
         $this->etatMentals = new ArrayCollection();
         $this->profilesPhysiques = new ArrayCollection();
         $this->recettes = new ArrayCollection();
         $this->recettesConsommees = new ArrayCollection();
+        $this->favoriteRecipes = new ArrayCollection();
+        $this->passkeyCredentials = new ArrayCollection();
+        $this->loginAttempts = new ArrayCollection();
     }
 
     // -------------------------
@@ -84,11 +105,6 @@ private Collection $favoriteRecipes;
     {
         return $this->email;
     }
-
-    public function getFavoriteRecipes(): Collection
-{
-    return $this->favoriteRecipes;
-}
 
     public function setEmail(string $email): self
     {
@@ -273,22 +289,6 @@ private Collection $favoriteRecipes;
 
         return $this;
     }
-    public function addFavoriteRecipe(RecetteNutritionnelle $recipe): self
-{
-    if (!$this->favoriteRecipes->contains($recipe)) {
-        $this->favoriteRecipes->add($recipe);
-        $recipe->addFavoritedBy($this);
-    }
-    return $this;
-}
-
-public function removeFavoriteRecipe(RecetteNutritionnelle $recipe): self
-{
-    if ($this->favoriteRecipes->removeElement($recipe)) {
-        $recipe->removeFavoritedBy($this);
-    }
-    return $this;
-}
 
     /**
      * @return Collection<int, RecetteConsommee>
@@ -317,6 +317,169 @@ public function removeFavoriteRecipe(RecetteNutritionnelle $recipe): self
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RecetteNutritionnelle>
+     */
+    public function getFavoriteRecipes(): Collection
+    {
+        return $this->favoriteRecipes;
+    }
+
+    public function addFavoriteRecipe(RecetteNutritionnelle $recipe): self
+    {
+        if (!$this->favoriteRecipes->contains($recipe)) {
+            $this->favoriteRecipes->add($recipe);
+            $recipe->addFavoritedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFavoriteRecipe(RecetteNutritionnelle $recipe): self
+    {
+        if ($this->favoriteRecipes->removeElement($recipe)) {
+            $recipe->removeFavoritedBy($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PasskeyCredential>
+     */
+    public function getPasskeyCredentials(): Collection
+    {
+        return $this->passkeyCredentials;
+    }
+
+    /**
+     * @return Collection<int, LoginAttempt>
+     */
+    public function getLoginAttempts(): Collection
+    {
+        return $this->loginAttempts;
+    }
+
+    // --------------- Two-Factor (TOTP / Google Authenticator) ---------------
+
+    public function isGoogleAuthenticatorEnabled(): bool
+    {
+        return $this->googleAuthenticatorSecret !== null && $this->googleAuthenticatorSecret !== '';
+    }
+
+    public function getGoogleAuthenticatorUsername(): string
+    {
+        return (string) $this->email;
+    }
+
+    public function getGoogleAuthenticatorSecret(): ?string
+    {
+        return $this->googleAuthenticatorSecret;
+    }
+
+    public function setGoogleAuthenticatorSecret(?string $googleAuthenticatorSecret): void
+    {
+        $this->googleAuthenticatorSecret = $googleAuthenticatorSecret;
+    }
+
+    // --------------- Profile (phone, photo) ---------------
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): self
+    {
+        $this->phone = $phone;
+        return $this;
+    }
+
+    public function getPhoto(): ?string
+    {
+        return $this->photo;
+    }
+
+    public function setPhoto(?string $photo): self
+    {
+        $this->photo = $photo;
+        return $this;
+    }
+
+    /**
+     * Alias for getPhoto() to ensure compatibility.
+     */
+    public function getAvatar(): ?string
+    {
+        return $this->getPhoto();
+    }
+
+    /**
+     * Path for displaying profile photo. Relative to web root, e.g. "uploads/profiles/user_1_abc.jpg".
+     */
+    public function getPhotoPath(): ?string
+    {
+        if ($this->photo === null || $this->photo === '') {
+            return null;
+        }
+
+        // If it's a full URL (like DiceBear), return it directly
+        if (str_starts_with($this->photo, 'http')) {
+            return $this->photo;
+        }
+
+        return 'uploads/profiles/' . $this->photo;
+    }
+
+    /**
+     * Alias for getPhotoPath() to ensure compatibility.
+     */
+    public function getAvatarPath(): ?string
+    {
+        return $this->getPhotoPath();
+    }
+
+    public function __serialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'email' => $this->email,
+            'password' => $this->password,
+            'roles' => $this->roles,
+            'firstname' => $this->firstname,
+            'lastname' => $this->lastname,
+            'accountStatus' => $this->accountStatus,
+            'photo' => $this->photo,
+            'phone' => $this->phone,
+            'googleAuthenticatorSecret' => $this->googleAuthenticatorSecret,
+        ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->id = $data['id'] ?? null;
+        $this->email = $data['email'] ?? null;
+        $this->password = $data['password'] ?? null;
+        $this->roles = $data['roles'] ?? [];
+        $this->firstname = $data['firstname'] ?? null;
+        $this->lastname = $data['lastname'] ?? null;
+        $this->accountStatus = $data['accountStatus'] ?? null;
+        $this->photo = $data['photo'] ?? null;
+        $this->phone = $data['phone'] ?? null;
+        $this->googleAuthenticatorSecret = $data['googleAuthenticatorSecret'] ?? null;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(?string $username): self
+    {
+        $this->username = $username;
         return $this;
     }
 }

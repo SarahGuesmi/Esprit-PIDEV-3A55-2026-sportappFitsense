@@ -3,6 +3,7 @@
 namespace App\Controller\Front;
 use App\Entity\DailyNutrition;
 use App\Entity\RecetteConsommee;
+use App\Entity\Notification;
 use App\Repository\DailyNutritionRepository;
 use App\Repository\ProfilePhysiqueRepository;
 use App\Repository\RecetteNutritionnelleRepository;
@@ -110,7 +111,24 @@ $weeklyChart = $chartBuilder->createChart(Chart::TYPE_BAR);
         $user = $this->getUser();
 
         $daily = $this->getOrCreateToday($user, $dailyRepo, $profileRepo, $em);
-        $daily->setWaterMl($daily->getWaterMl() + 500);
+        $before = $daily->getWaterMl();
+        $goal   = $daily->getWaterGoal();
+        $after  = $before + 500;
+
+        $daily->setWaterMl($after);
+
+        // Send one-time notification when user reaches/exceeds water goal
+        if ($before < $goal && $after >= $goal) {
+            $notif = new Notification();
+            $notif
+                ->setRelatedUser($user)
+                ->setType('water_goal_reached')
+                ->setMessage(sprintf(
+                    'Great job! You have reached %d ml of water today.',
+                    $after
+                ));
+            $em->persist($notif);
+        }
 
         $em->flush();
         return $this->redirectToRoute('user_dashboard');
@@ -150,8 +168,26 @@ $weeklyChart = $chartBuilder->createChart(Chart::TYPE_BAR);
         $em->persist($cons);
         $em->flush();
 
-        $daily = $this->getOrCreateToday($user, $dailyRepo, $profileRepo, $em);
-        $daily->setCalories($daily->getCalories() + $cons->getKcal());
+        $daily   = $this->getOrCreateToday($user, $dailyRepo, $profileRepo, $em);
+        $beforeC = $daily->getCalories();
+        $goalC   = $daily->getCaloriesGoal();
+        $afterC  = $beforeC + $cons->getKcal();
+
+        $daily->setCalories($afterC);
+
+        // Notify when the user reaches/exceeds their daily calories goal via recipes
+        if ($beforeC < $goalC && $afterC >= $goalC) {
+            $notif = new Notification();
+            $notif
+                ->setRelatedUser($user)
+                ->setType('calories_exceeded')
+                ->setMessage(sprintf(
+                    'You have reached your calorie goal for today: %d kcal consumed.',
+                    $afterC
+                ));
+            $em->persist($notif);
+        }
+
         $em->flush();
 
         $this->addFlash('success', 'Meal tracked successfully ✅');
@@ -276,8 +312,26 @@ public function previewFood(Request $request, HttpClientInterface $httpClient): 
             return $this->redirectToRoute('user_dashboard');
         }
 
-        $daily = $this->getOrCreateToday($user, $dailyRepo, $profileRepo, $em);
-        $daily->setCalories($daily->getCalories() + $kcal);
+        $daily   = $this->getOrCreateToday($user, $dailyRepo, $profileRepo, $em);
+        $beforeC = $daily->getCalories();
+        $goalC   = $daily->getCaloriesGoal();
+        $afterC  = $beforeC + $kcal;
+
+        $daily->setCalories($afterC);
+
+        // Same calories-goal notification logic for quick food additions
+        if ($beforeC < $goalC && $afterC >= $goalC) {
+            $notif = new Notification();
+            $notif
+                ->setRelatedUser($user)
+                ->setType('calories_exceeded')
+                ->setMessage(sprintf(
+                    'You have reached your calorie goal for today: %d kcal consumed.',
+                    $afterC
+                ));
+            $em->persist($notif);
+        }
+
         $em->flush();
 
         $this->addFlash('success', "$food added: $kcal kcal ✅");
@@ -287,39 +341,49 @@ public function previewFood(Request $request, HttpClientInterface $httpClient): 
     // =======================
     // Helpers
     // =======================
-    private function getOrCreateToday(
-        $user,
-        DailyNutritionRepository $dailyRepo,
-        ProfilePhysiqueRepository $profileRepo,
-        EntityManagerInterface $em
-    ): DailyNutrition {
-        $daily = $dailyRepo->findTodayForUser($user);
-        if ($daily) return $daily;
+private function getOrCreateToday(
+    $user,
+    DailyNutritionRepository $dailyRepo,
+    ProfilePhysiqueRepository $profileRepo,
+    EntityManagerInterface $em
+): DailyNutrition {
 
-        $profile = $profileRepo->findOneBy(['user' => $user], ['id' => 'DESC']);
-$weight = $profile?->getWeight();
+    $profile = $profileRepo->findOneBy(['user' => $user], ['id' => 'DESC']);
+    $weight = $profile?->getWeight();
 
-$objectiveCodes = $this->getUserObjectiveCodes($user);
+    $objectiveCodes = $this->getUserObjectiveCodes($user);
 
-// ✅ eau
-$waterGoal = ($weight && $weight > 0) ? (int) round($weight * 30) : 2300;
+    $waterGoal = ($weight && $weight > 0) ? (int) round($weight * 30) : 2300;
+    $caloriesGoal = $this->computeCaloriesGoalMulti($weight ? (float)$weight : null, $objectiveCodes);
 
-// ✅ calories dépend de TOUS les objectifs sélectionnés
-$caloriesGoal = $this->computeCaloriesGoalMulti($weight ? (float)$weight : null, $objectiveCodes);
+    $daily = $dailyRepo->findTodayForUser($user);
 
-
-        $daily = new DailyNutrition();
-        $daily->setUser($user);
-        $daily->setDayDate((new \DateTimeImmutable('today'))->setTime(0,0,0));
-        $daily->setCalories(0);
-        $daily->setWaterMl(0);
-        $daily->setCaloriesGoal($caloriesGoal);
-        $daily->setWaterGoal($waterGoal);
-        $em->persist($daily);
+    // ✅ si daily existe -> update goals si différent
+    if ($daily) {
+        if ($daily->getWaterGoal() !== $waterGoal) {
+            $daily->setWaterGoal($waterGoal);
+        }
+        if ($daily->getCaloriesGoal() !== $caloriesGoal) {
+            $daily->setCaloriesGoal($caloriesGoal);
+        }
         $em->flush();
-
         return $daily;
     }
+
+    // ✅ sinon create
+    $daily = new DailyNutrition();
+    $daily->setUser($user);
+    $daily->setDayDate((new \DateTimeImmutable('today'))->setTime(0,0,0));
+    $daily->setCalories(0);
+    $daily->setWaterMl(0);
+    $daily->setCaloriesGoal($caloriesGoal);
+    $daily->setWaterGoal($waterGoal);
+
+    $em->persist($daily);
+    $em->flush();
+
+    return $daily;
+}
     private function computeCaloriesGoalMulti(?float $weight, array $objectiveCodes): int
 {
     if (!$weight || $weight <= 0) return 2000; // fallback
@@ -356,21 +420,48 @@ $caloriesGoal = $this->computeCaloriesGoalMulti($weight ? (float)$weight : null,
 
 private function getUserObjectiveCodes(\App\Entity\User $user): array
 {
-    // ✅ Cas 1 : User stocke un array/json de codes (ex: ["WEIGHT_LOSS","ENDURANCE"])
-    if (method_exists($user, 'getObjectifs') && is_array($user->getObjectifs())) {
-        return $user->getObjectifs();
+    $codes = [];
+
+    // getObjectifs() peut être Collection (iterable)
+    if (method_exists($user, 'getObjectifs')) {
+        $objs = $user->getObjectifs();
+
+        if (is_iterable($objs)) {
+            foreach ($objs as $obj) {
+                if (is_string($obj)) {
+                    $codes[] = $obj;
+                } elseif (is_object($obj)) {
+                    if (method_exists($obj, 'getCode')) $codes[] = $obj->getCode();
+                    elseif (method_exists($obj, 'getName')) $codes[] = $obj->getName();
+                }
+            }
+        }
     }
 
-    // ✅ Cas 2 : ManyToMany avec ObjectifSportif (ex: getObjectifsSportifs())
-    if (method_exists($user, 'getObjectifsSportifs')) {
-        $codes = [];
+    // fallback autre méthode
+    if (empty($codes) && method_exists($user, 'getObjectifsSportifs')) {
         foreach ($user->getObjectifsSportifs() as $obj) {
             if (method_exists($obj, 'getCode')) $codes[] = $obj->getCode();
             elseif (method_exists($obj, 'getName')) $codes[] = $obj->getName();
         }
-        return $codes;
     }
 
-    return [];
+    // mapping Name -> Code (si tu stockes des noms)
+    $map = [
+        'Weight Loss' => 'WEIGHT_LOSS',
+        'Muscle Gain' => 'MUSCLE_GAIN',
+        'Endurance'   => 'ENDURANCE',
+        'Well-being'  => 'WELL_BEING',
+    ];
+
+    $final = [];
+    foreach ($codes as $c) {
+        $c = trim((string)$c);
+        $final[] = $map[$c] ?? strtoupper($c);
+    }
+
+    return array_values(array_unique($final));
 }
+
+
 }

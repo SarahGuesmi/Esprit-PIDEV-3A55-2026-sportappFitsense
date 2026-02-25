@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login with Face ID - FitSense</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0B0C10;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { font-size: 22px; margin-bottom: 8px; }
+        p { color: #94A3B8; font-size: 15px; margin-bottom: 24px; }
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #8B5CF6, #D8B4FE);
+            color: #fff;
+            margin-top: 8px;
+        }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-secondary { background: rgba(255,255,255,0.1); margin-top: 12px; }
+        input[type="email"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        .status { margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 14px; }
+        .status.success { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .status.error { background: rgba(239,68,68,0.2); color: #f87171; }
+        .status.pending { color: #94A3B8; }
+        .register-form { display: none; margin-top: 20px; text-align: left; }
+        .register-form.visible { display: block; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Login with Face ID</h1>
+        <p id="subtitle">Use your phone's Face ID to sign in</p>
+
+        <div id="loginSection">
+            <button type="button" class="btn" id="btnFaceId">Continue with Face ID</button>
+            <button type="button" class="btn btn-secondary" id="btnRegister">First time? Register Face ID</button>
+        </div>
+
+        <div id="registerSection" class="register-form">
+            <p style="margin-bottom:12px;text-align:center;">Enter your account email to register this device.</p>
+            <input type="email" id="registerEmail" placeholder="your@email.com" autocomplete="email">
+            <button type="button" class="btn" id="btnDoRegister">Register Face ID</button>
+        </div>
+
+        <div id="status" class="status" style="display:none;"></div>
+        <div id="secureContextWarning" class="status" style="display:none; background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);"></div>
+    </div>
+
+    <script>
+(function() {
+    const sessionId = {{ sessionId|json_encode|raw }};
+    const baseUrl = {{ baseUrl|json_encode|raw }};
+
+    // Face ID / WebAuthn requires a secure context (HTTPS or localhost).
+    // On phone via http://192.168.x.x the API is not available.
+    if (!window.PublicKeyCredential || !navigator.credentials || typeof navigator.credentials.create !== 'function') {
+        var warn = document.getElementById('secureContextWarning');
+        warn.innerHTML = 'Face ID requires a <strong>secure connection (HTTPS)</strong>. This page was opened over HTTP. Use HTTPS (e.g. the link from your QR code must start with https://) or try from a deployed app.';
+        warn.style.display = 'block';
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('registerSection').classList.remove('visible');
+    }
+
+    function base64UrlToBuffer(base64url) {
+        const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = base64.length % 4;
+        const padded = base64 + (pad ? '===='.slice(0, 4 - pad) : '');
+        const bin = atob(padded);
+        const buf = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+        return buf.buffer;
+    }
+
+    function bufferToBase64Url(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function showStatus(msg, type) {
+        const el = document.getElementById('status');
+        el.textContent = msg;
+        el.className = 'status ' + (type || 'pending');
+        el.style.display = 'block';
+    }
+
+    async function doLogin() {
+        if (!sessionId) { showStatus('Invalid link.', 'error'); return; }
+        showStatus('Opening Face ID…', 'pending');
+        try {
+            const res = await fetch(baseUrl + '/passkey/connect/options?session=' + encodeURIComponent(sessionId));
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                if (res.status === 410 || res.status === 404) {
+                    showStatus('This link expired. Scan the QR code again.', 'error');
+                    return;
+                }
+                throw new Error(err.error || res.statusText);
+            }
+            const options = await res.json();
+            const publicKey = options.publicKey || options;
+            publicKey.challenge = base64UrlToBuffer(publicKey.challenge);
+            if (publicKey.allowCredentials && publicKey.allowCredentials.length) {
+                publicKey.allowCredentials = publicKey.allowCredentials.map(function(c) {
+                    return { ...c, id: base64UrlToBuffer(c.id) };
+                });
+            }
+            const cred = await navigator.credentials.get({ publicKey });
+            if (!cred) { showStatus('No credential returned.', 'error'); return; }
+            const r = cred.response;
+            const body = {
+                sessionId: sessionId,
+                id: cred.id,
+                clientDataJSON: bufferToBase64Url(r.clientDataJSON),
+                authenticatorData: bufferToBase64Url(r.authenticatorData),
+                signature: bufferToBase64Url(r.signature),
+                userHandle: r.userHandle ? bufferToBase64Url(r.userHandle) : null
+            };
+            const verifyRes = await fetch(baseUrl + '/passkey/connect/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams(body).toString()
+            });
+            const data = await verifyRes.json().catch(() => ({}));
+            if (data.success) {
+                showStatus('Success! You can close this tab and return to the app.', 'success');
+                document.getElementById('loginSection').style.display = 'none';
+            } else if (data.error === 'account_deactivated') {
+                const msg = 'Your account is deactivated. Contact the admin for more information.' +
+                    (data.adminEmail ? ' Admin email: ' + data.adminEmail : '');
+                showStatus(msg, 'error');
+            } else {
+                showStatus(data.error || 'Verification failed.', 'error');
+            }
+        } catch (e) {
+            if (e.name === 'NotAllowedError') {
+                showStatus('Face ID was cancelled.', 'error');
+            } else {
+                showStatus(e.message || 'Something went wrong.', 'error');
+            }
+        }
+    }
+
+    async function doRegister() {
+        const email = document.getElementById('registerEmail').value.trim();
+        if (!email) { showStatus('Please enter your email.', 'error'); return; }
+        if (!sessionId) { showStatus('Invalid link.', 'error'); return; }
+        showStatus('Loading…', 'pending');
+        try {
+            const optRes = await fetch(baseUrl + '/passkey/register/options?email=' + encodeURIComponent(email));
+            if (!optRes.ok) {
+                const err = await optRes.json().catch(() => ({}));
+                throw new Error(err.error || optRes.statusText);
+            }
+            const options = await optRes.json();
+            const publicKey = options.publicKey || options;
+            publicKey.challenge = base64UrlToBuffer(publicKey.challenge);
+            publicKey.user.id = base64UrlToBuffer(publicKey.user.id);
+            if (publicKey.excludeCredentials && publicKey.excludeCredentials.length) {
+                publicKey.excludeCredentials = publicKey.excludeCredentials.map(function(c) {
+                    return { ...c, id: base64UrlToBuffer(c.id) };
+                });
+            }
+            const cred = await navigator.credentials.create({ publicKey });
+            if (!cred) { showStatus('Creation cancelled.', 'error'); return; }
+            const r = cred.response;
+            const body = new URLSearchParams({
+                sessionId: sessionId,
+                clientDataJSON: bufferToBase64Url(r.clientDataJSON),
+                attestationObject: bufferToBase64Url(r.attestationObject)
+            });
+            const verifyRes = await fetch(baseUrl + '/passkey/register/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                body: body.toString()
+            });
+            
+            let data;
+            try {
+                data = await verifyRes.json();
+            } catch (e) {
+                const text = await verifyRes.text();
+                console.error('Failed to parse response:', text);
+                showStatus('Registration failed: Server returned invalid response (status ' + verifyRes.status + ')', 'error');
+                return;
+            }
+            
+            if (data.success) {
+                showStatus('Face ID registered! Now click "Continue with Face ID" to log in.', 'success');
+                document.getElementById('registerSection').classList.remove('visible');
+                document.getElementById('loginSection').style.display = 'block';
+            } else {
+                const errorMsg = data.error || ('HTTP ' + verifyRes.status + ': ' + (data.message || 'Unknown error'));
+                console.error('Registration error:', {
+                    status: verifyRes.status,
+                    statusText: verifyRes.statusText,
+                    data: data,
+                    error: errorMsg
+                });
+                showStatus('Registration failed: ' + errorMsg, 'error');
+            }
+        } catch (e) {
+            if (e.name === 'NotAllowedError') {
+                showStatus('Face ID was cancelled.', 'error');
+            } else {
+                showStatus(e.message || 'Something went wrong.', 'error');
+            }
+        }
+    }
+
+    document.getElementById('btnFaceId').addEventListener('click', doLogin);
+    document.getElementById('btnRegister').addEventListener('click', function() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('registerSection').classList.add('visible');
+    });
+    document.getElementById('btnDoRegister').addEventListener('click', doRegister);
+})();
+    </script>
+</body>
+</html>

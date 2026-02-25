@@ -1,0 +1,120 @@
+{% extends base_template is defined and base_template ? base_template : 'base_user.html.twig' %}
+
+{% block title %}Profile | FitSense{% endblock %}
+
+{% block user_content %}
+{% block coach_content %}
+{% block admin_content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+    {# Profile photo at top #}
+    <div class="flex flex-col items-center mb-8">
+        {% if app.user.avatarPath %}
+            <img src="{{ asset(app.user.avatarPath) }}" alt="Your photo" class="w-28 h-28 rounded-full object-cover border-4 border-violet-500/40 shadow-lg shadow-violet-500/20">
+        {% else %}
+            <div class="w-28 h-28 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center border-4 border-violet-500/30">
+                <i class="fas fa-user text-4xl text-violet-400"></i>
+            </div>
+        {% endif %}
+        <h1 class="text-2xl font-bold mt-4">{{ app.user.firstname }} {{ app.user.lastname }}</h1>
+        <p class="text-gray-400 text-sm">Manage your personal info and photo</p>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-xl {{ label == 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : (label == 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20') }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% if form.vars.errors|length > 0 %}
+        <div class="mb-4 p-4 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
+            {{ form_errors(form) }}
+        </div>
+    {% endif %}
+
+    {{ form_start(form, { 'attr': { 'class': 'space-y-8', 'enctype': 'multipart/form-data' } }) }}
+    {{ form_widget(form._token) }}
+
+    <div class="glass-card p-6">
+        <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-user text-violet-400"></i>
+            Personal info
+        </h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+                {{ form_label(form.firstname) }}
+                {{ form_widget(form.firstname) }}
+                {{ form_errors(form.firstname) }}
+            </div>
+            <div>
+                {{ form_label(form.lastname) }}
+                {{ form_widget(form.lastname) }}
+                {{ form_errors(form.lastname) }}
+            </div>
+        </div>
+        <div class="mt-4">
+            {{ form_label(form.phone) }}
+            {{ form_widget(form.phone) }}
+            {{ form_errors(form.phone) }}
+        </div>
+    </div>
+
+    <div class="glass-card p-6">
+        <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-camera text-violet-400"></i>
+            Profile photo
+        </h2>
+        <div class="flex flex-wrap items-center gap-6">
+            <div class="flex-shrink-0">
+                {% if app.user.avatarPath %}
+                    <img src="{{ asset(app.user.avatarPath) }}" alt="Your photo" class="w-20 h-20 rounded-full object-cover border-2 border-violet-500/30">
+                {% else %}
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center border-2 border-violet-500/30">
+                        <i class="fas fa-user text-2xl text-violet-400"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+                {{ form_label(form.photoFile) }}
+                {{ form_widget(form.photoFile) }}
+                {{ form_errors(form.photoFile) }}
+                <p class="text-gray-500 text-xs mt-1">JPEG, PNG, GIF or WebP. Max 2 MB.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-end">
+        <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-medium hover:opacity-90 transition shadow-lg shadow-violet-500/25">
+            <i class="fas fa-save mr-2"></i>Save changes
+        </button>
+    </div>
+
+    {{ form_end(form, { 'render_rest': false }) }}
+</div>
+
+<style>
+    .glass-card input.form-control {
+        background: #262A35;
+        border: 1px solid #343846;
+        color: #fff;
+        border-radius: 0.75rem;
+        padding: 0.625rem 1rem;
+        width: 100%;
+    }
+    .glass-card input.form-control:focus {
+        border-color: #8B5CF6;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+    }
+    .glass-card label {
+        display: block;
+        color: #A1A1AA;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.375rem;
+    }
+</style>
+{% endblock %}
+{% endblock %}
+{% endblock %}

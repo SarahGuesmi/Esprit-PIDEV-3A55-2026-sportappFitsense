@@ -1,0 +1,911 @@
+{% extends base_template %}
+
+{% block title %}Chatroom - FitSense{% endblock %}
+
+{% block admin_content %}
+    {{ block('chat_body') }}
+{% endblock %}
+
+{% block coach_content %}
+    {{ block('chat_body') }}
+{% endblock %}
+
+{% block user_content %}
+    {{ block('chat_body') }}
+{% endblock %}
+
+{% block user_page_title %}Chatroom{% endblock %}
+{% block user_page_subtitle %}Message your coaches{% endblock %}
+
+{% block coach_page_title %}Chatroom{% endblock %}
+{% block coach_page_subtitle %}Real-time communication with admin and athletes{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --chat-panel-bg: linear-gradient(145deg, rgba(15, 18, 28, 0.92) 0%, rgba(22, 28, 45, 0.88) 100%);
+            --chat-panel-solid: rgba(18, 22, 35, 0.95);
+            --chat-border: rgba(99, 102, 241, 0.12);
+            --chat-border-glow: rgba(99, 102, 241, 0.25);
+            --chat-accent: #6366F1;
+            --chat-accent-light: #818CF8;
+            --chat-accent-dim: #4F46E5;
+            --chat-cyan: #22D3EE;
+            --chat-emerald: #34D399;
+            --chat-text: #E2E8F0;
+            --chat-text-muted: #94A3B8;
+            --chat-surface: rgba(255, 255, 255, 0.04);
+            --chat-surface-hover: rgba(99, 102, 241, 0.08);
+            --chat-radius: 20px;
+            --chat-radius-sm: 14px;
+            --chat-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
+            --chat-font: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .chatroom-wrapper {
+            font-family: var(--chat-font);
+            height: calc(100vh - 180px);
+            min-height: 420px;
+            display: flex;
+            gap: 0;
+            background: var(--chat-panel-solid);
+            background-image: var(--chat-panel-bg);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid var(--chat-border);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: var(--chat-shadow);
+            position: relative;
+        }
+
+        .chatroom-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(145deg, rgba(99, 102, 241, 0.15), transparent 40%, transparent 60%, rgba(34, 211, 238, 0.1));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .chatroom-contacts {
+            width: 300px;
+            min-width: 300px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--chat-border);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%);
+        }
+
+        .chatroom-contacts-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--chat-border);
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--chat-accent-light);
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.06), transparent);
+        }
+
+        .chatroom-contacts-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+        }
+
+        .chatroom-contact:nth-child(n) {
+            animation: contactSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+        }
+        .chatroom-contact:nth-child(1) { animation-delay: 0.02s; }
+        .chatroom-contact:nth-child(2) { animation-delay: 0.05s; }
+        .chatroom-contact:nth-child(3) { animation-delay: 0.08s; }
+        .chatroom-contact:nth-child(4) { animation-delay: 0.11s; }
+        .chatroom-contact:nth-child(5) { animation-delay: 0.14s; }
+        .chatroom-contact:nth-child(6) { animation-delay: 0.17s; }
+        .chatroom-contact:nth-child(7) { animation-delay: 0.2s; }
+        .chatroom-contact:nth-child(8) { animation-delay: 0.23s; }
+        .chatroom-contact:nth-child(9) { animation-delay: 0.26s; }
+        .chatroom-contact:nth-child(n+10) { animation-delay: 0.29s; }
+
+        @keyframes contactSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .chatroom-contact {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            margin-bottom: 6px;
+            border-radius: var(--chat-radius-sm);
+            color: var(--chat-text-muted);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chatroom-contact::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.06), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .chatroom-contact:hover {
+            background: var(--chat-surface-hover);
+            color: var(--chat-text);
+            transform: translateX(6px);
+            border: 1px solid var(--chat-border);
+        }
+
+        .chatroom-contact:hover::before {
+            opacity: 1;
+        }
+
+        .chatroom-contact.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(34, 211, 238, 0.12));
+            color: #fff;
+            border: 1px solid var(--chat-border-glow);
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .chatroom-contact.active .chatroom-contact-avatar {
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5), 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .chatroom-contact-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--chat-accent) 0%, var(--chat-cyan) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            flex-shrink: 0;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .chatroom-contact:hover .chatroom-contact-avatar {
+            transform: scale(1.05);
+        }
+
+        .chatroom-contact-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            flex: 1;
+        }
+
+        .chatroom-contact-unread {
+            min-width: 22px;
+            height: 22px;
+            padding: 0 7px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #F43F5E, #FB923C);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(244, 63, 94, 0.4);
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        .chatroom-conversation {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: radial-gradient(ellipse 120% 80% at 50% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+        }
+
+        .chatroom-conversation-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--chat-text-muted);
+            text-align: center;
+        }
+
+        .chatroom-conversation-empty i {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--chat-accent), var(--chat-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.6;
+            animation: float-icon 4s ease-in-out infinite;
+        }
+
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .chatroom-conversation-empty p {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--chat-text);
+        }
+
+        .chatroom-conversation-empty span {
+            font-size: 0.9rem;
+            opacity: 0.85;
+        }
+
+        .chatroom-conversation-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--chat-border);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, transparent 100%);
+        }
+
+        .chatroom-conversation-header .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--chat-accent), var(--chat-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        .chatroom-conversation-header .name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--chat-text);
+            flex: 1;
+        }
+
+        .chatroom-delete-conversation-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.08);
+            color: #EF4444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .chatroom-delete-conversation-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #EF4444;
+            transform: scale(1.05);
+        }
+
+        .chatroom-conversation-deleted-notice {
+            padding: 2.5rem;
+            text-align: center;
+            color: var(--chat-text-muted);
+        }
+
+        .chatroom-conversation-deleted-notice i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+            color: var(--chat-accent-light);
+        }
+
+        .chatroom-conversation-deleted-notice p {
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .chatroom-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1.75rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .chatroom-message {
+            max-width: 78%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            animation: msgIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .chatroom-message.mine {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .chatroom-message.others {
+            align-self: flex-start;
+        }
+
+        .chatroom-message-bubble {
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 0.9375rem;
+            line-height: 1.55;
+            position: relative;
+        }
+
+        .chatroom-message.mine .chatroom-message-bubble {
+            background: linear-gradient(135deg, var(--chat-accent) 0%, var(--chat-accent-dim) 50%, #4338CA 100%);
+            color: #fff;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .chatroom-message.mine .chatroom-message-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -6px;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(225deg, var(--chat-accent-dim) 50%, transparent 50%);
+            border-radius: 0 0 4px 0;
+        }
+
+        .chatroom-message.others .chatroom-message-bubble {
+            background: var(--chat-surface);
+            color: var(--chat-text);
+            border: 1px solid var(--chat-border);
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .chatroom-message.others .chatroom-message-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -6px;
+            width: 12px;
+            height: 12px;
+            background: var(--chat-surface);
+            border-left: 1px solid var(--chat-border);
+            border-radius: 0 0 0 4px;
+        }
+
+        .chatroom-message-meta {
+            font-size: 0.7rem;
+            color: var(--chat-text-muted);
+            font-weight: 600;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chatroom-message.mine .chatroom-message-meta {
+            justify-content: flex-end;
+        }
+
+        .chatroom-message-sender {
+            color: var(--chat-accent-light);
+        }
+
+        .chatroom-input-area {
+            padding: 1.25rem 1.75rem 1.5rem;
+            border-top: 1px solid var(--chat-border);
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0%, transparent 100%);
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .chatroom-input-area input {
+            flex: 1;
+            background: var(--chat-surface);
+            border: 1px solid var(--chat-border);
+            border-radius: 18px;
+            padding: 16px 22px;
+            color: var(--chat-text);
+            font-size: 0.9375rem;
+            font-family: var(--chat-font);
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .chatroom-input-area input::placeholder {
+            color: var(--chat-text-muted);
+        }
+
+        .chatroom-input-area input:focus {
+            border-color: var(--chat-accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-1px);
+        }
+
+        .chatroom-send-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--chat-accent), var(--chat-cyan));
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .chatroom-send-btn:hover {
+            transform: scale(1.08) rotate(5deg);
+            box-shadow: 0 8px 28px rgba(99, 102, 241, 0.5);
+        }
+
+        .chatroom-send-btn:active {
+            transform: scale(0.98);
+        }
+
+        .chatroom-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-delete-msg {
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            color: #F87171;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+
+        .chatroom-message:hover .btn-delete-msg {
+            opacity: 1;
+        }
+
+        @keyframes msgIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .custom-scrollbar-chat::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar-chat::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar-chat::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--chat-accent), var(--chat-cyan));
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar-chat::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--chat-accent-light), var(--chat-cyan));
+        }
+
+        @media (max-width: 768px) {
+            .chatroom-wrapper {
+                flex-direction: column;
+                height: calc(100vh - 140px);
+                border-radius: 20px;
+            }
+            .chatroom-contacts {
+                width: 100%;
+                min-width: 0;
+                max-height: 200px;
+                border-right: none;
+                border-bottom: 1px solid var(--chat-border);
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block chat_body %}
+<div class="chatroom-wrapper">
+    <aside class="chatroom-contacts">
+        <div class="chatroom-contacts-header">Conversations</div>
+        <div class="chatroom-contacts-list custom-scrollbar-chat">
+            {% for contact in contacts %}
+                <a href="{{ path('app_chat_index', { with: contact.id }) }}" class="chatroom-contact {{ (selectedUser and selectedUser.id == contact.id) ? 'active' : '' }}" data-contact-id="{{ contact.id }}">
+                    <div class="chatroom-contact-avatar">{{ contact.firstname|first }}{{ contact.lastname|first }}</div>
+                    <span class="chatroom-contact-name">{{ contact.firstname }} {{ contact.lastname }}</span>
+                    {% if unreadCounts[contact.id] is defined and unreadCounts[contact.id] > 0 %}
+                        <span class="chatroom-contact-unread" data-unread-contact="{{ contact.id }}">{{ unreadCounts[contact.id] > 99 ? '99+' : unreadCounts[contact.id] }}</span>
+                    {% endif %}
+                </a>
+            {% else %}
+                <p class="px-4 py-6 text-gray-500 text-sm">No contacts available.</p>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <section class="chatroom-conversation">
+        {% if selectedUser %}
+            <div class="chatroom-conversation-header">
+                <div class="avatar">{{ selectedUser.firstname|first }}{{ selectedUser.lastname|first }}</div>
+                <span class="name">{{ selectedUser.firstname }} {{ selectedUser.lastname }}</span>
+                <button type="button" class="chatroom-delete-conversation-btn" id="deleteConversationBtn" title="Delete conversation">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+            {% if conversationDeleted|default(false) %}
+            <div class="chatroom-messages custom-scrollbar-chat" id="chatMessages">
+                <div class="chatroom-conversation-deleted-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Conversation deleted. Send a new message to restore it.</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="chatroom-messages custom-scrollbar-chat" id="chatMessages">
+                {% for message in messages %}
+                    <div class="chatroom-message {{ message.sender.id == app.user.id ? 'mine' : 'others' }}" data-id="{{ message.id }}">
+                        <div class="chatroom-message-meta">
+                            <span class="chatroom-message-sender">{{ message.sender.firstname }} {{ message.sender.lastname }}</span>
+                            <span class="chatroom-message-time">{{ message.createdAt|date('H:i') }}</span>
+                            {% if message.sender.id == app.user.id %}
+                                <i class="fas fa-trash btn-delete-msg" data-msg-id="{{ message.id }}"></i>
+                            {% endif %}
+                        </div>
+                        <div class="chatroom-message-bubble">{{ message.content }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="chatroom-input-area">
+                <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+                <button type="button" id="sendBtn" class="chatroom-send-btn" title="Send">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        {% else %}
+            <div class="chatroom-conversation-empty">
+                <i class="fas fa-comments"></i>
+                <p>Select a conversation</p>
+                <span>Choose a contact from the list to start messaging.</span>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+{# Modals: single message delete + conversation delete #}
+<div id="modal-delete-message" class="chat-modal" style="display: none;">
+    <div class="chat-modal-backdrop"></div>
+    <div class="chat-modal-content">
+        <div class="chat-modal-icon chat-modal-icon-danger"><i class="fas fa-trash-alt"></i></div>
+        <h3 class="chat-modal-title">Delete message</h3>
+        <p class="chat-modal-text">Are you sure you want to delete this message? This cannot be undone.</p>
+        <div class="chat-modal-actions">
+            <button type="button" class="chat-modal-btn chat-modal-btn-cancel">Cancel</button>
+            <button type="button" class="chat-modal-btn chat-modal-btn-confirm" id="confirmDeleteMessage">Delete</button>
+        </div>
+    </div>
+</div>
+<div id="modal-delete-conversation" class="chat-modal" style="display: none;">
+    <div class="chat-modal-backdrop"></div>
+    <div class="chat-modal-content">
+        <div class="chat-modal-icon chat-modal-icon-danger"><i class="fas fa-trash-alt"></i></div>
+        <h3 class="chat-modal-title">Delete conversation</h3>
+        <p class="chat-modal-text">This will delete the conversation only for you. The other person will still see it. You can send a new message to restore it.</p>
+        <div class="chat-modal-actions">
+            <button type="button" class="chat-modal-btn chat-modal-btn-cancel">Cancel</button>
+            <button type="button" class="chat-modal-btn chat-modal-btn-confirm" id="confirmDeleteConversation">Delete conversation</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    font-family: var(--chat-font);
+}
+.chat-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.chat-modal-content {
+    position: relative;
+    background: var(--chat-panel-solid);
+    background-image: var(--chat-panel-bg);
+    border: 1px solid var(--chat-border);
+    border-radius: 24px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.chat-modal-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 1.5rem;
+}
+.chat-modal-icon-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.15));
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.chat-modal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--chat-text);
+    margin: 0 0 0.5rem;
+}
+.chat-modal-text {
+    font-size: 0.9rem;
+    color: var(--chat-text-muted);
+    margin: 0 0 1.75rem;
+    line-height: 1.55;
+}
+.chat-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+.chat-modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: var(--chat-font);
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.chat-modal-btn-cancel {
+    background: var(--chat-surface);
+    color: var(--chat-text);
+    border: 1px solid var(--chat-border);
+}
+.chat-modal-btn-cancel:hover {
+    background: var(--chat-surface-hover);
+    transform: translateY(-1px);
+}
+.chat-modal-btn-confirm {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
+}
+.chat-modal-btn-confirm:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+}
+</style>
+
+{% if selectedUser %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+<script>
+(function() {
+    var $messages = $('#chatMessages');
+    var $input = $('#messageInput');
+    var $sendBtn = $('#sendBtn');
+    var currentUserId = {{ app.user.id }};
+    var otherUserId = {{ selectedUser.id }};
+    var sendUrl = '{{ path('app_chat_send') }}';
+    var fetchUrl = '{{ path('app_chat_fetch_new') }}';
+    var unreadCountUrl = '{{ path('app_chat_unread_count') }}';
+    var deleteMessageUrlTemplate = '{{ path('app_chat_delete', { id: '__ID__' }) }}';
+    var deleteConversationUrl = '{{ path('app_chat_delete_conversation') }}';
+    var lastMessageId = {{ (messages|length > 0 and not conversationDeleted|default(false)) ? messages|last.id : 0 }};
+
+    function scrollToBottom() {
+        if ($messages.length) $messages[0].scrollTop = $messages[0].scrollHeight;
+    }
+    scrollToBottom();
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function updateSidebarUnread() {
+        $.ajax({
+            url: unreadCountUrl,
+            type: 'GET',
+            dataType: 'json',
+            success: function(d) {
+                var $badge = $('#chat-sidebar-unread');
+                if ($badge.length) {
+                    $badge.text(d.total > 99 ? '99+' : d.total).toggle(d.total > 0);
+                }
+            }
+        });
+    }
+
+    function clearContactUnread(contactId) {
+        $('.chatroom-contact-unread[data-unread-contact="' + contactId + '"]').remove();
+    }
+
+    function sendMessage() {
+        var content = $.trim($input.val());
+        if (!content) return;
+
+        $input.val('');
+        $sendBtn.prop('disabled', true);
+
+        $.ajax({
+            url: sendUrl,
+            type: 'POST',
+            data: { content: content, receiver: otherUserId },
+            dataType: 'json',
+            success: function(data) {
+                if (data.id) {
+                    if ($('.chatroom-conversation-deleted-notice').length) {
+                        window.location.reload();
+                        return;
+                    }
+                    lastMessageId = Math.max(lastMessageId, data.id);
+                    var delBtn = '<i class="fas fa-trash btn-delete-msg" data-msg-id="' + data.id + '"></i>';
+                    var html = '<div class="chatroom-message mine" data-id="' + data.id + '">' +
+                        '<div class="chatroom-message-meta">' +
+                        '<span class="chatroom-message-sender">' + escapeHtml(data.sender) + '</span>' +
+                        '<span class="chatroom-message-time">' + data.createdAt + '</span>' + delBtn + '</div>' +
+                        '<div class="chatroom-message-bubble">' + escapeHtml(data.content) + '</div></div>';
+                    $messages.append(html);
+                    scrollToBottom();
+                }
+            },
+            error: function(xhr) { console.error('Send error', xhr); },
+            complete: function() {
+                $sendBtn.prop('disabled', false);
+                $input.focus();
+            }
+        });
+    }
+
+    $sendBtn.on('click', sendMessage);
+    $input.on('keydown', function(e) {
+        if (e.which === 13 && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+
+    function fetchNewMessages() {
+        if (otherUserId <= 0) return;
+        $.ajax({
+            url: fetchUrl,
+            type: 'GET',
+            data: { with: otherUserId, lastId: lastMessageId },
+            dataType: 'json',
+            success: function(data) {
+                if (data && data.length > 0) {
+                    $.each(data, function(_, msg) {
+                        if ($messages.find('[data-id="' + msg.id + '"]').length) return;
+                        var isMine = msg.senderId === currentUserId;
+                        var deleteBtn = isMine ? '<i class="fas fa-trash btn-delete-msg" data-msg-id="' + msg.id + '"></i>' : '';
+                        var html = '<div class="chatroom-message ' + (isMine ? 'mine' : 'others') + '" data-id="' + msg.id + '">' +
+                            '<div class="chatroom-message-meta">' +
+                            '<span class="chatroom-message-sender">' + escapeHtml(msg.sender) + '</span>' +
+                            '<span class="chatroom-message-time">' + msg.createdAt + '</span>' + deleteBtn + '</div>' +
+                            '<div class="chatroom-message-bubble">' + escapeHtml(msg.content) + '</div></div>';
+                        $messages.append(html);
+                        lastMessageId = Math.max(lastMessageId, msg.id);
+                    });
+                    scrollToBottom();
+                    clearContactUnread(otherUserId);
+                    updateSidebarUnread();
+                }
+            },
+            error: function(xhr) { console.error('Fetch error', xhr); }
+        });
+    }
+
+    var pendingDeleteMessageId = null;
+    $(document).on('click', '.btn-delete-msg', function() {
+        pendingDeleteMessageId = $(this).data('msg-id');
+        if (pendingDeleteMessageId) $('#modal-delete-message').show();
+    });
+
+    $('#confirmDeleteMessage').on('click', function() {
+        if (!pendingDeleteMessageId) return;
+        var url = deleteMessageUrlTemplate.replace('__ID__', pendingDeleteMessageId);
+        $.ajax({
+            url: url,
+            type: 'DELETE',
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    $messages.find('[data-id="' + pendingDeleteMessageId + '"]').remove();
+                }
+            },
+            error: function(xhr) { console.error('Delete message error', xhr); },
+            complete: function() {
+                $('#modal-delete-message').hide();
+                pendingDeleteMessageId = null;
+            }
+        });
+    });
+
+    $('#deleteConversationBtn').on('click', function() {
+        $('#modal-delete-conversation').show();
+    });
+
+    $('#confirmDeleteConversation').on('click', function() {
+        $.ajax({
+            url: deleteConversationUrl,
+            type: 'POST',
+            data: { other: otherUserId },
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    window.location.href = '{{ path('app_chat_index', { with: selectedUser.id }) }}';
+                }
+            },
+            error: function(xhr) { console.error('Delete conversation error', xhr); },
+            complete: function() {
+                $('#modal-delete-conversation').hide();
+            }
+        });
+    });
+
+    $('.chat-modal .chat-modal-btn-cancel, .chat-modal .chat-modal-backdrop').on('click', function() {
+        $(this).closest('.chat-modal').hide();
+        pendingDeleteMessageId = null;
+    });
+
+    setInterval(fetchNewMessages, 2500);
+})();
+</script>
+{% endif %}
+{% endblock %}

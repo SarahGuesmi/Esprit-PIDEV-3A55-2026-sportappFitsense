@@ -127,8 +127,12 @@
           <div class="flex-1">
             <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Water</p>
             <p class="text-white font-extrabold mt-1 text-lg">
-              {{ (waterMl/1000)|round(1) }}L / {{ (waterGoal/1000)|round(1) }}L
-            </p>
+            {{ waterMl }} / {{ waterGoal }} ml
+            <span class="text-gray-400 text-sm">
+              ({{ (waterMl/1000)|round(2) }}L / {{ (waterGoal/1000)|round(2) }}L)
+            </span>
+          </p>
+
 
             <form method="POST" action="{{ path('user_water_add_500') }}" class="mt-4">
               <input type="hidden" name="_token" value="{{ csrf_token('water_add') }}">
@@ -264,11 +268,7 @@
         circle.style.strokeDashoffset = `${offset}`;
       });
 
-      const kcal = {{ (daily is defined and daily) ? (daily.calories ?? 0) : 0 }};
-      const goal = {{ (daily is defined and daily) ? (daily.caloriesGoal ?? 2000) : 2000 }};
-      if (kcal > goal) {
-        alert("⚠️ You exceeded your daily calories goal!");
-      }
+      {# Calorie-exceeded alert is handled as a DB notification (bell icon) — no JS popup needed #}
     });
   </script>
 {% endblock %}

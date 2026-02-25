@@ -1,0 +1,158 @@
+{% extends base_template is defined and base_template ? base_template : 'base_user.html.twig' %}
+
+{% block title %}Security - Two-Factor Authentication | FitSense{% endblock %}
+
+{% block user_content %}
+    {{ block('security_content') }}
+{% endblock %}
+
+{% block coach_content %}
+    {{ block('security_content') }}
+{% endblock %}
+
+{% block admin_content %}
+    {{ block('security_content') }}
+{% endblock %}
+
+{% block security_content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <div class="flex items-center gap-4 mb-8">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-cyan-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+            <i class="fas fa-shield-alt text-white text-xl"></i>
+        </div>
+        <div>
+            <h1 class="text-3xl font-bold text-white tracking-tight">Security Settings</h1>
+            <p class="text-gray-400 text-sm">Enhance your account protection with Two-Factor Authentication</p>
+        </div>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 rounded-2xl {{ label == 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : (label == 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20') }} animate-fadeIn">
+                <i class="fas {{ label == 'error' ? 'fa-exclamation-circle' : 'fa-check-circle' }} mr-2"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="glass-card p-8 mb-6 border border-white/5 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-violet-600/10 blur-3xl rounded-full"></div>
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <h2 class="text-xl font-bold text-white">Authenticator App</h2>
+                    {% if two_factor_enabled %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                            <i class="fas fa-check"></i> Protected
+                        </span>
+                    {% endif %}
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed max-w-md">
+                    {% if two_factor_enabled %}
+                        Your account is currently secured. You'll be asked for a verification code from your authenticator app cada vez que inicie sesión.
+                    {% else %}
+                        Protect your account from unauthorized access by requiring a second verification step during login.
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="flex-shrink-0">
+                {% if two_factor_enabled %}
+                    <button type="button" data-modal-toggle="disable-2fa-modal" class="px-6 py-3 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all font-bold text-sm">
+                        <i class="fas fa-trash-alt mr-2"></i> Disable 2FA
+                    </button>
+                {% else %}
+                    <a href="{{ path('security_2fa_enable') }}" class="group/btn inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:shadow-xl hover:shadow-violet-600/30 transition-all duration-300">
+                        <span>Setup 2FA Now</span>
+                        <i class="fas fa-arrow-right transition-transform group-hover/btn:translate-x-1"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-5 rounded-2xl bg-white/5 border border-white/5">
+            <i class="fas fa-mobile-alt text-violet-400 mb-3 text-lg"></i>
+            <h4 class="text-white font-semibold mb-1">Modern Apps</h4>
+            <p class="text-xs text-gray-400">Works with Google Authenticator, Authy, Microsoft Authenticator, and more.</p>
+        </div>
+        <div class="p-5 rounded-2xl bg-white/5 border border-white/5">
+            <i class="fas fa-clock text-cyan-400 mb-3 text-lg"></i>
+            <h4 class="text-white font-semibold mb-1">Time-based</h4>
+            <p class="text-xs text-gray-400">Codes regenerate every 30 seconds to ensure temporary and secure access.</p>
+        </div>
+    </div>
+</div>
+
+{# Disable 2FA confirmation modal #}
+{% if two_factor_enabled %}
+<div id="disable-2fa-modal" class="fixed inset-0 z-50 hidden overflow-y-auto overflow-x-hidden flex items-center justify-center p-4" aria-hidden="true">
+    <div class="fixed inset-0 bg-black/80 backdrop-blur-md" data-modal-close="disable-2fa-modal" aria-label="Close"></div>
+    <div class="relative z-10 w-full max-w-md rounded-3xl bg-[#1B1E26] border border-white/10 shadow-2xl overflow-hidden animate-zoomIn">
+        <div class="p-1 w-full bg-gradient-to-r from-red-500 to-transparent"></div>
+        <div class="p-8">
+            <div class="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Disable 2FA?</h3>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">This will reduce your account security. Please enter your password to confirm this action.</p>
+            
+            <form method="post" action="{{ path('security_2fa_disable') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('disable_2fa') }}">
+                <div class="mb-6">
+                    <label for="disable-2fa-password" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Account Password</label>
+                    <input type="password" id="disable-2fa-password" name="_password" placeholder="••••••••"
+                        class="w-full rounded-2xl bg-black/20 border border-white/10 px-4 py-4 text-white focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all outline-none"
+                        autocomplete="current-password">
+                </div>
+                
+                <div class="flex gap-3">
+                    <button type="button" data-modal-close="disable-2fa-modal"
+                        class="flex-1 px-6 py-4 rounded-2xl bg-white/5 text-gray-400 hover:text-white transition-all font-bold text-sm">
+                        Keep Secure
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-6 py-4 rounded-2xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all">
+                        Confirm Disable
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.animate-zoomIn { animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+</style>
+
+<script>
+(function () {
+    var modal = document.getElementById('disable-2fa-modal');
+    if (!modal) return;
+    var toggles = document.querySelectorAll('[data-modal-toggle="disable-2fa-modal"]');
+    var closers = document.querySelectorAll('[data-modal-close="disable-2fa-modal"]');
+    function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+    toggles.forEach(function (el) { el.addEventListener('click', openModal); });
+    closers.forEach(function (el) { el.addEventListener('click', closeModal); });
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -99,8 +99,38 @@ public function consumeMeal(
     $em->persist($cons);
     $em->flush();
 
+    // ✅ Sync with DailyNutrition for the chart
+    $dailyRepo = $em->getRepository(\App\Entity\DailyNutrition::class);
+    $profileRepo = $em->getRepository(\App\Entity\ProfilePhysique::class);
+    $daily = $this->getOrCreateDaily($user, $dailyRepo, $profileRepo, $em);
+    $daily->setCalories($daily->getCalories() + $cons->getKcal());
+    $em->flush();
+
     $this->addFlash('success', 'Saved ✅');
     return $this->redirectToRoute('user_nutrition');
+}
+
+private function getOrCreateDaily($user, $dailyRepo, $profileRepo, $em): \App\Entity\DailyNutrition
+{
+    $today = new \DateTimeImmutable('today');
+    $daily = $dailyRepo->findTodayForUser($user);
+    if ($daily) return $daily;
+
+    $profile = $profileRepo->findOneBy(['user' => $user], ['id' => 'DESC']);
+    $weight = $profile?->getWeight() ?: 70;
+
+    $daily = new \App\Entity\DailyNutrition();
+    $daily->setUser($user);
+    $daily->setDayDate($today->setTime(0, 0, 0));
+    $daily->setCalories(0);
+    $daily->setWaterMl(0);
+    $daily->setCaloriesGoal((int)($weight * 28)); // Fallback logic
+    $daily->setWaterGoal((int)($weight * 30));
+
+    $em->persist($daily);
+    $em->flush();
+
+    return $daily;
 }
 
 #[Route('/user/recipes/themealdb-search', name: 'user_recipes_themealdb_search', methods: ['GET'])]

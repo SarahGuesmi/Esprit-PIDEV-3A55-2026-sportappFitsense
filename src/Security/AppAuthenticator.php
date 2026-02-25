@@ -114,6 +114,11 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($this->urlGenerator->generate('coach_dashboard'));
         }
 
+        // If user has no username yet (new sign-up), redirect to username setup
+        if ($user instanceof User && !$user->getUsername()) {
+            return new RedirectResponse($this->urlGenerator->generate('username_setup'));
+        }
+
         // Check if user has a profile
         $profile = $this->entityManager->getRepository(ProfilePhysique::class)->findOneBy(['user' => $user]);
         

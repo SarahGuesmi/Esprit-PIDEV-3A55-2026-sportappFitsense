@@ -60,29 +60,4 @@ class RecetteNutritionnelleRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
-    public function sumForDay(int $userId, \DateTimeImmutable $day): array
-{
-    $start = $day->setTime(0, 0, 0);
-    $end   = $day->setTime(23, 59, 59);
-
-    $res = $this->createQueryBuilder('c')
-        ->select('
-            COALESCE(SUM(c.kcal), 0) as totalKcal,
-            COALESCE(SUM(c.proteins), 0) as totalProteins,
-            COUNT(c.id) as mealCount
-        ')
-        ->andWhere('c.user = :userId')
-        ->andWhere('c.dateConsommation BETWEEN :start AND :end')
-        ->setParameter('userId', $userId)
-        ->setParameter('start', $start)
-        ->setParameter('end', $end)
-        ->getQuery()
-        ->getSingleResult();
-
-    return [
-        'kcal' => (int) $res['totalKcal'],
-        'proteins' => (float) $res['totalProteins'],
-        'mealCount' => (int) $res['mealCount'],
-    ];
-}
 }

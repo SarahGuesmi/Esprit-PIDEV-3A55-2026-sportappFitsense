@@ -1,0 +1,84 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}My Notifications{% endblock %}
+{% block user_page_title %}Notifications{% endblock %}
+{% block user_page_subtitle %}Your alerts (calories & water){% endblock %}
+
+{% block user_content %}
+
+<div class="glass-card p-6 border border-white/10 bg-white/5 rounded-2xl">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-white font-extrabold text-xl flex items-center gap-2">
+            🔔 Notifications
+        </h2>
+
+        <span class="text-sm text-gray-400">
+            Unread: <span class="text-purple-400 font-bold">{{ unreadCount }}</span>
+        </span>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="divide-y divide-white/10">
+
+        {% for n in notifications %}
+
+            <div class="py-5 flex items-start justify-between gap-4 
+                {% if not n.isRead %}
+                    bg-purple-500/5 px-4 rounded-xl border border-purple-500/10
+                {% endif %}
+            ">
+
+                <!-- Message -->
+                <div class="flex-1">
+                    <div class="text-white font-semibold text-sm md:text-base">
+                        {{ n.message }}
+                    </div>
+
+                    <div class="text-xs text-gray-400 mt-2 flex items-center gap-2">
+                        <span>{{ n.createdAt|date('d/m/Y H:i') }}</span>
+                        <span class="uppercase text-purple-400 font-semibold">
+                            {{ n.type|replace({'_':' '}) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Action -->
+                <div class="flex items-center">
+                    {% if not n.isRead %}
+                        <a href="{{ path('user_notifications_mark_read', {id: n.id}) }}"
+                           class="px-3 py-2 text-xs font-bold rounded-lg
+                                  bg-purple-500/15 border border-purple-500/30
+                                  text-purple-200 hover:bg-purple-500/25 transition">
+                            Mark read
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-2 text-xs font-bold rounded-lg
+                                     bg-white/5 border border-white/10
+                                     text-gray-400">
+                            Read
+                        </span>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <!-- No notifications -->
+            <div class="py-16 text-center">
+                <div class="text-gray-400 text-sm">
+                    🚀 No notifications yet.
+                </div>
+                <div class="text-xs text-gray-500 mt-2">
+                    Your calories and water alerts will appear here.
+                </div>
+            </div>
+
+        {% endfor %}
+
+    </div>
+</div>
+
+{% endblock %}

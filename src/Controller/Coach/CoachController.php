@@ -22,12 +22,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_COACH')]
 class CoachController extends AbstractController
 {
-    #[Route('/dashboard', name: 'coach_dashboard')]
-    public function index(): Response
-    {
-        return $this->render('coach/dashboard.html.twig', []);
-    }
-
     #[Route('/users', name: 'coach_users_index')]
     public function users(Request $request, EntityManagerInterface $em): Response
     {

@@ -1,0 +1,10 @@
+# Two-Factor Authentication (TOTP / Google Authenticator)
+# https://symfony.com/bundles/SchebTwoFactorBundle/current/providers/google.html
+scheb_two_factor:
+    google:
+        enabled: true
+        server_name: FitSense
+        issuer: FitSense
+        digits: 6
+        leeway: 1  # allow 1 step (30s) time drift
+        template: security/2fa_login.html.twig

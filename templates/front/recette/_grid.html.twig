@@ -25,12 +25,12 @@
   {# ❤️ Favorite button #}
   <button
     type="button"
-    class="js-fav-btn absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-900/50 backdrop-blur-md border border-white/10 flex items-center justify-center transition hover:scale-105"
+    class="js-fav-btn absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-900/50 backdrop-blur-md border border-white/10 flex items-center justify-center transition hover:scale-105 z-30"
     data-recipe-id="{{ r.id }}"
     data-fav="{{ app.user and r.favoritedBy.contains(app.user) ? '1' : '0' }}"
     aria-label="Toggle favorite"
   >
-    <i class="fa-heart {{ app.user and r.favoritedBy.contains(app.user) ? 'fas text-red-500' : 'far text-gray-300' }}"></i>
+    <i class="fa-heart {{ app.user and r.favoritedBy.contains(app.user) ? 'fas text-red-500' : 'far text-gray-300' }} pointer-events-none"></i>
   </button>
 </div>
 
