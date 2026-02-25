@@ -313,4 +313,9 @@
             });
         });
     </script>
+    {% block javascripts %}
+  {{ parent() }}
+  {{ importmap('app') }}
+{% endblock %}
+    
 {% endblock %}

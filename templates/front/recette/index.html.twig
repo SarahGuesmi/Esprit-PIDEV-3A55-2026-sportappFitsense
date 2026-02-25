@@ -8,102 +8,396 @@
 {% block user_content %}
     <div class="space-y-8">
         {% include 'front/recette/_filters.html.twig' with { q: q|default(''), kcal: kcal|default(''), proteins: proteins|default('') } %}
-        {% include 'front/recette/_grid.html.twig' with { recipes: recipes } %}
+        
+{# ======================
+   Quick calories (API)
+   ====================== #}
+<div class="glass-card p-5 border border-white/10 bg-white/5">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h3 class="text-lg font-extrabold text-white">🍽️ Add what you ate</h3>
+      <p class="text-sm text-gray-400">Example: <b>1 apple</b>, <b>1 bowl lentil soup</b>, <b>2 eggs</b></p>
+    </div>
+  </div>
+
+  <div class="mt-4 flex flex-col gap-3">
+    <input type="hidden" id="foodPreviewToken" value="{{ csrf_token('food_preview') }}">
+
+    <input
+      id="foodInput"
+      type="text"
+      placeholder="Type food... (ex: 1 apple)"
+      class="flex-1 h-11 px-4 rounded-xl bg-black/30 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+    >
+
+    <div class="flex flex-col md:flex-row gap-3">
+      <button
+        type="button"
+        id="btnCheck"
+        class="h-11 px-6 rounded-xl font-bold bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/20 text-blue-200 transition"
+      >
+        Check calories
+      </button>
+      
+
+      <form method="POST" action="{{ path('user_food_add') }}" class="flex-1 flex gap-3">
+        <input type="hidden" name="_token" value="{{ csrf_token('food_add') }}">
+        <input type="hidden" name="food" id="apiFoodHidden">
+        <input type="hidden" name="kcal" id="apiKcalHidden">
+
+        <button
+          type="submit"
+          id="btnAdd"
+          disabled
+          class="h-11 w-full px-6 rounded-xl font-bold bg-purple-500/20 border border-purple-500/20 text-purple-200 transition opacity-50 cursor-not-allowed"
+        >
+          + Add calories
+        </button>
+      </form>
     </div>
 
+    <div class="flex justify-end mb-4">
+  <button type="button" id="btnToggleMealDB"
+    class="h-11 px-6 rounded-xl font-bold bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/20 text-emerald-200 transition">
+    🔎 Search recipes 
+  </button>
+</div>
+
+<div id="mealdbBox" class="glass-card p-5 border border-white/10 bg-white/5 hidden mb-6">
+  <h3 class="text-lg font-extrabold text-white">Discover Recipes</h3>
+  <p class="text-sm text-gray-400">Type what you have (ex: oeuf tomate épinard). Max 4 recipes.</p>
+
+  <div class="mt-4 flex flex-col md:flex-row gap-3">
+    <input id="mealdbInput" type="text"
+      placeholder="ex: oeuf tomate épinard"
+      class="flex-1 h-11 px-4 rounded-xl bg-black/30 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
+    <button type="button" id="mealdbSearchBtn"
+      class="h-11 px-6 rounded-xl font-bold bg-emerald-500/20 border border-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 transition">
+      Search
+    </button>
+  </div>
+
+  <div id="mealdbStatus" class="text-sm text-gray-300 mt-4"></div>
+  <div id="mealdbResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4"></div>
+</div>
+        {% include 'front/recette/_grid.html.twig' with { recipes: recipes } %}
+    </div>
+<div id="mealdbModal" class="fixed inset-0 hidden items-center justify-center bg-black/70 z-50">
+  <div class="w-[92%] md:w-[820px] rounded-2xl bg-[#0b1220] border border-white/10 overflow-hidden">
+    <div class="p-5 flex justify-between items-start">
+      <div>
+        <h3 id="mmTitle" class="text-white font-extrabold text-lg"></h3>
+        <p id="mmMeta" class="text-gray-400 text-sm mt-1"></p>
+      </div>
+      <button id="mmClose" class="text-gray-300 hover:text-white text-xl">✕</button>
+    </div>
+
+    <div class="px-5 pb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <img id="mmImg" class="w-full h-52 object-cover rounded-xl mb-4">
+        <h4 class="text-white font-bold mb-2">Ingredients</h4>
+        <ul id="mmIng" class="text-gray-300 text-sm space-y-1"></ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold mb-2">Preparation</h4>
+        <div id="mmPrep" class="text-gray-300 text-sm whitespace-pre-line leading-relaxed"></div>
+      </div>
+    </div>
+  </div>
+</div>
     {% include 'front/recette/_modal.html.twig' %}
+
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Modal logic
-        const modal = document.getElementById('recipeModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const closeModalFooter = document.getElementById('closeModalFooter');
-        const triggers = document.querySelectorAll('.js-open-modal');
+  {{ parent() }}
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
 
-        function openModal(data) {
-            document.getElementById('mTitle').textContent = data.title;
-            document.getElementById('mDesc').textContent = data.description;
-            document.getElementById('mKcalChip').innerHTML = `<i class="fas fa-fire-alt mr-1"></i> ${data.kcal} KCAL`;
-            document.getElementById('mProtChip').innerHTML = `<i class="fas fa-muscle mr-1"></i> ${data.proteins}g PROT`;
-            document.getElementById('mTypeChip').innerHTML = `<i class="fas fa-utensils mr-1"></i> ${data.type}`;
-            document.getElementById('mImg').src = data.image;
+    // =========================
+    // Modal logic
+    // =========================
+    const modal = document.getElementById('recipeModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeModalFooter = document.getElementById('closeModalFooter');
+    const triggers = document.querySelectorAll('.js-open-modal');
 
-            const ingredientsList = document.getElementById('mIngredientsList');
-            ingredientsList.innerHTML = data.ingredients.split('\n').map(i => i.trim() ? `<li><i class="fas fa-check text-blue-400 mr-2"></i> ${i}</li>` : '').join('');
+    function openModal(data) {
+      document.getElementById('mTitle').textContent = data.title;
+      document.getElementById('mDesc').textContent = data.description;
+      document.getElementById('mKcalChip').innerHTML = `<i class="fas fa-fire-alt mr-1"></i> ${data.kcal} KCAL`;
+      document.getElementById('mProtChip').innerHTML = `<i class="fas fa-muscle mr-1"></i> ${data.proteins}g PROT`;
+      document.getElementById('mTypeChip').innerHTML = `<i class="fas fa-utensils mr-1"></i> ${data.type}`;
+      document.getElementById('mImg').src = data.image;
 
-            const preparationList = document.getElementById('mPreparationList');
-            preparationList.innerHTML = data.preparation.split('\n').map((step, idx) => step.trim() ? `<li class="flex gap-4">
-                <span class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">${idx + 1}</span>
-                <span>${step}</span>
-            </li>` : '').join('');
+      document.getElementById('consumeRecipeId').value = data.id;
+      document.getElementById('consumePortion').value = 1;
 
-            // Update form action
-            const consumeForm = document.getElementById('consumeForm');
-            if (consumeForm) {
-                consumeForm.action = `/user/recipe/${data.id}/consume`;
-            }
+      const ingredientsList = document.getElementById('mIngredientsList');
+      ingredientsList.innerHTML = (data.ingredients || '').split('\n')
+        .map(i => i.trim() ? `<li><i class="fas fa-check text-blue-400 mr-2"></i> ${i}</li>` : '')
+        .join('');
 
-            // Reset image preview
-            document.getElementById('previewImg').classList.add('hidden');
-            document.getElementById('previewText').classList.remove('hidden');
+      const preparationList = document.getElementById('mPreparationList');
+      preparationList.innerHTML = (data.preparation || '').split('\n')
+        .map((step, idx) => step.trim() ? `<li class="flex gap-4">
+          <span class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">${idx + 1}</span>
+          <span>${step}</span>
+        </li>` : '')
+        .join('');
 
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.remove('hidden'), 10);
+      document.getElementById('previewImg').classList.add('hidden');
+      document.getElementById('previewText').classList.remove('hidden');
+
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.remove('hidden'), 10);
+    }
+
+    triggers.forEach(t => {
+      t.addEventListener('click', (e) => {
+        if (e.target.closest('.js-fav-btn')) return;
+        openModal(t.dataset);
+      });
+    });
+
+    const close = () => {
+      modal.classList.add('hidden');
+      setTimeout(() => modal.style.display = 'none', 300);
+    };
+
+    closeModalBtn?.addEventListener('click', close);
+    closeModalFooter?.addEventListener('click', close);
+    modal?.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+    // =========================
+    // Sliders (filters)
+    // =========================
+    const kcalRange = document.getElementById('kcalRange');
+    const kcalVal = document.getElementById('kcalVal');
+    const kcalHiddenFilter = document.getElementById('kcalHidden'); // هذا متاع filters
+
+    const protRange = document.getElementById('protRange');
+    const protVal = document.getElementById('protVal');
+    const protHidden = document.getElementById('protHidden');
+
+    kcalRange?.addEventListener('input', (e) => {
+      kcalVal.textContent = e.target.value;
+      kcalHiddenFilter.value = e.target.value;
+    });
+
+    protRange?.addEventListener('input', (e) => {
+      protVal.textContent = e.target.value;
+      protHidden.value = e.target.value;
+    });
+
+    // =========================
+    // FAVORITE HEART
+    // =========================
+    document.querySelectorAll('.js-fav-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const recipeId = btn.dataset.recipeId;
+        const icon = btn.querySelector('i');
+
+        try {
+          const res = await fetch(`/user/recipes/${recipeId}/favorite`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          });
+
+          const data = await res.json();
+          if (!data.success) return;
+
+          if (data.favorited) {
+            icon.classList.remove('far', 'text-gray-300');
+            icon.classList.add('fas', 'text-red-500');
+          } else {
+            icon.classList.remove('fas', 'text-red-500');
+            icon.classList.add('far', 'text-gray-300');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }, true);
+    });
+
+    // ==========================
+    // Quick calories - Preview (API)
+    // ==========================
+    const foodInput = document.getElementById('foodInput');
+    const btnCheck = document.getElementById('btnCheck');
+    const btnAdd = document.getElementById('btnAdd');
+    const foodResult = document.getElementById('foodResult');
+
+    // foodHidden => apiFoodHidden
+    // kcalHidden => apiKcalHidden
+    const apiFoodHidden = document.getElementById('apiFoodHidden');
+    const apiKcalHidden = document.getElementById('apiKcalHidden');
+
+    const previewToken = document.getElementById('foodPreviewToken')?.value;
+
+    function setAddEnabled(enabled) {
+      if (!btnAdd) return;
+      btnAdd.disabled = !enabled;
+      btnAdd.classList.toggle('opacity-50', !enabled);
+      btnAdd.classList.toggle('cursor-not-allowed', !enabled);
+    }
+    setAddEnabled(false);
+
+    async function previewCalories() {
+      btnCheck.disabled = true;
+      btnCheck.classList.add('opacity-50','cursor-not-allowed');
+      const food = (foodInput?.value || '').trim();
+
+      if (!food) {
+        foodResult.textContent = "⚠️ Type a food first (ex: 1 apple)";
+        setAddEnabled(false);
+        return;
+      }
+
+      foodResult.textContent = "⏳ Checking calories...";
+      setAddEnabled(false);
+
+      try {
+        const body = new URLSearchParams();
+        body.append('_token', previewToken || '');
+        body.append('food', food);
+
+        const res = await fetch("{{ path('user_food_preview') }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString()
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          foodResult.textContent = "❌ " + (data.message || "Food not found");
+          setAddEnabled(false);
+          return;
         }
 
-        // Image Preview Logic
-        const imageInput = document.getElementById('consumptionImage');
-        const previewImg = document.getElementById('previewImg');
-        const previewText = document.getElementById('previewText');
+        foodResult.innerHTML = `✅ <b>${data.food}</b> = <b>${data.kcal}</b> kcal`;
+        apiFoodHidden.value = data.food;
+        apiKcalHidden.value = data.kcal;
 
-        imageInput?.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    previewImg.classList.remove('hidden');
-                    previewText.classList.add('hidden');
-                }
-                reader.readAsDataURL(file);
-            }
-        });
+        setAddEnabled(true);
+      } catch (e) {
+        console.error(e);
+        foodResult.textContent = "❌ API error, try again.";
+        setAddEnabled(false);
+      }
+      btnCheck.disabled = false;
+      btnCheck.classList.remove('opacity-50','cursor-not-allowed');
+    }
 
-        triggers.forEach(t => {
-            t.addEventListener('click', () => openModal(t.dataset));
-        });
+    btnCheck?.addEventListener('click', previewCalories);
 
-        const close = () => {
-            modal.classList.add('hidden');
-            setTimeout(() => modal.style.display = 'none', 300);
-        };
-
-        closeModalBtn?.addEventListener('click', close);
-        closeModalFooter?.addEventListener('click', close);
-        modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
-
-        // Sliders logic
-        const kcalRange = document.getElementById('kcalRange');
-        const kcalVal = document.getElementById('kcalVal');
-        const kcalHidden = document.getElementById('kcalHidden');
-        
-        const protRange = document.getElementById('protRange');
-        const protVal = document.getElementById('protVal');
-        const protHidden = document.getElementById('protHidden');
-
-        kcalRange?.addEventListener('input', (e) => {
-            kcalVal.textContent = e.target.value;
-            kcalHidden.value = e.target.value;
-        });
-
-        protRange?.addEventListener('input', (e) => {
-            protVal.textContent = e.target.value;
-            protHidden.value = e.target.value;
-        });
+    foodInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        previewCalories();
+      }
     });
-    </script>
+// ==========================
+// TheMealDB Search (Same page)
+// ==========================
+const btnToggleMealDB = document.getElementById('btnToggleMealDB');
+const mealdbBox = document.getElementById('mealdbBox');
+const mealdbInput = document.getElementById('mealdbInput');
+const mealdbSearchBtn = document.getElementById('mealdbSearchBtn');
+const mealdbStatus = document.getElementById('mealdbStatus');
+const mealdbResults = document.getElementById('mealdbResults');
+
+const mealdbModal = document.getElementById('mealdbModal');
+const mmClose = document.getElementById('mmClose');
+const mmTitle = document.getElementById('mmTitle');
+const mmMeta = document.getElementById('mmMeta');
+const mmImg = document.getElementById('mmImg');
+const mmIng = document.getElementById('mmIng');
+const mmPrep = document.getElementById('mmPrep');
+
+btnToggleMealDB?.addEventListener('click', () => {
+  mealdbBox.classList.toggle('hidden');
+});
+
+function openMealModal(r) {
+  mmTitle.textContent = r.title || 'Recipe';
+  mmMeta.textContent = [r.category, r.area].filter(Boolean).join(' • ');
+  mmImg.src = r.image || '';
+  mmIng.innerHTML = (r.ingredients || []).map(x => `<li>• ${x}</li>`).join('');
+  mmPrep.textContent = r.instructions || 'No instructions.';
+  mealdbModal.classList.remove('hidden');
+  mealdbModal.classList.add('flex');
+}
+
+mmClose?.addEventListener('click', () => {
+  mealdbModal.classList.add('hidden');
+  mealdbModal.classList.remove('flex');
+});
+mealdbModal?.addEventListener('click', (e) => {
+  if (e.target === mealdbModal) {
+    mealdbModal.classList.add('hidden');
+    mealdbModal.classList.remove('flex');
+  }
+});
+
+async function mealdbSearch() {
+  const q = (mealdbInput.value || '').trim();
+  if (!q) {
+    mealdbStatus.textContent = "⚠️ Type something first (ex: oeuf tomate épinard)";
+    mealdbResults.innerHTML = "";
+    return;
+  }
+
+  mealdbStatus.textContent = "⏳ Searching...";
+  mealdbResults.innerHTML = "";
+
+  const res = await fetch(`/user/recipes/themealdb-search?q=${encodeURIComponent(q)}`);
+  const data = await res.json();
+
+  if (!data.success || !data.recipes?.length) {
+    mealdbStatus.textContent = "❌ No recipes found. Try other words.";
+    return;
+  }
+
+  mealdbStatus.textContent = `✅ Found ${data.recipes.length} recipes`;
+
+  mealdbResults.innerHTML = data.recipes.map((r, idx) => `
+    <button type="button"
+      class="text-left glass-card border border-white/10 bg-white/5 overflow-hidden rounded-2xl hover:bg-white/10 transition"
+      data-idx="${idx}">
+      ${r.image ? `<img src="${r.image}" class="w-full h-40 object-cover">` : `<div class="w-full h-40 bg-black/20"></div>`}
+      <div class="p-4">
+        <div class="text-white font-bold leading-snug line-clamp-2">${r.title}</div>
+        <div class="text-xs text-gray-400 mt-1">${[r.category, r.area].filter(Boolean).join(' • ')}</div>
+        <div class="mt-3 inline-flex w-full justify-center h-10 items-center rounded-xl font-bold bg-emerald-500/20 border border-emerald-500/20 text-emerald-200">
+          View details →
+        </div>
+      </div>
+    </button>
+  `).join('');
+
+  // click handlers
+  mealdbResults.querySelectorAll('button[data-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      openMealModal(data.recipes[idx]);
+    });
+  });
+}
+
+mealdbSearchBtn?.addEventListener('click', mealdbSearch);
+mealdbInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    mealdbSearch();
+  }
+});
+  });
+  </script>
 {% endblock %}

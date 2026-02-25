@@ -14,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['email'], message: 'This email address already exists.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+
     #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'integer')]
     private ?int $id = null;
 
@@ -58,8 +59,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: RecetteConsommee::class, orphanRemoval: true)]
     private Collection $recettesConsommees;
 
+    #[ORM\ManyToMany(targetEntity: RecetteNutritionnelle::class, mappedBy: 'favoritedBy')]
+private Collection $favoriteRecipes;
+
     public function __construct()
     {
+        $this->favoriteRecipes = new ArrayCollection();
         $this->etatMentals = new ArrayCollection();
         $this->profilesPhysiques = new ArrayCollection();
         $this->recettes = new ArrayCollection();
@@ -79,6 +84,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->email;
     }
+
+    public function getFavoriteRecipes(): Collection
+{
+    return $this->favoriteRecipes;
+}
 
     public function setEmail(string $email): self
     {
@@ -263,6 +273,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+    public function addFavoriteRecipe(RecetteNutritionnelle $recipe): self
+{
+    if (!$this->favoriteRecipes->contains($recipe)) {
+        $this->favoriteRecipes->add($recipe);
+        $recipe->addFavoritedBy($this);
+    }
+    return $this;
+}
+
+public function removeFavoriteRecipe(RecetteNutritionnelle $recipe): self
+{
+    if ($this->favoriteRecipes->removeElement($recipe)) {
+        $recipe->removeFavoritedBy($this);
+    }
+    return $this;
+}
 
     /**
      * @return Collection<int, RecetteConsommee>

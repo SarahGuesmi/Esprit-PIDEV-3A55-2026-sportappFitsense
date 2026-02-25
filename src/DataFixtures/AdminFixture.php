@@ -21,7 +21,7 @@ class AdminFixture extends Fixture
         $admin = new User();
         $admin->setFirstname('Admin');
         $admin->setLastname('Principal');
-        $admin->setEmail('sarahguesmi223@gmail.com');
+        $admin->setEmail('farahayari123@gmail.com');
         $admin->setRoles(['ROLE_ADMIN']);
         $admin->setPassword($this->hasher->hashPassword($admin, 'adminpass123')); // Change le MDP
         $admin->setAccountStatus('active');
