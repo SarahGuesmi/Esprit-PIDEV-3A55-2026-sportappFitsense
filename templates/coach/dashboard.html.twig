@@ -220,10 +220,23 @@
                 <div class="kpi-sub">per session</div>
             </div>
         </div>
+
+        <div class="kpi-card blue">
+            <div class="kpi-orb"></div>
+            <div class="kpi-content">
+                <div class="kpi-icon-wrap">📝</div>
+                <div class="kpi-label">Feedbacks</div>
+                <div class="kpi-value">
+                    {{ nbFeedbacks }}
+                </div>
+                <div class="kpi-sub">Questionnaires reçus</div>
+            </div>
+        </div>
+
     </div>
 
     <div class="section-header">
-        <span class="section-title">Analytics Overview</span>
+        <span class="section-title">Training Analytics</span>
         <div class="section-line"></div>
     </div>
 
@@ -253,6 +266,91 @@
             {{ render_chart(levelChart) }}
         </div>
 
+    </div>
+
+    <div class="section-header">
+        <span class="section-title">Athlete Satisfaction</span>
+        <div class="section-line"></div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card chart-full">
+            <div class="chart-card-header">
+                <div class="chart-card-title">Évolution de la note moyenne</div>
+                <span class="chart-badge">Line</span>
+            </div>
+            {{ render_chart(satisfactionLineChart) }}
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <div class="chart-card-title">Répartition satisfaits</div>
+                <span class="chart-badge">Doughnut</span>
+            </div>
+            {{ render_chart(satisfactionDoughnutChart) }}
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <div class="chart-card-title">Intensité des feedbacks</div>
+                <span class="chart-badge">Bar</span>
+            </div>
+            {{ render_chart(satisfactionBarChart) }}
+        </div>
+
+
+    </div>
+
+    <div class="section-header" style="margin-top: 2rem;">
+        <span class="section-title">Derniers feedbacks réels</span>
+        <div class="section-line"></div>
+    </div>
+
+    <div class="chart-card" style="margin-top: 0;">
+        <div class="chart-card-header">
+            <div class="chart-card-title">Feedbacks les plus récents</div>
+            <span class="chart-badge">Table</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="border-b border-gray-700">
+                    <tr class="text-gray-400">
+                        <th class="text-left py-2 pr-4">Date</th>
+                        <th class="text-left py-2 pr-4">Athlète</th>
+                        <th class="text-left py-2 pr-4">Workout</th>
+                        <th class="text-left py-2 pr-4">Rating</th>
+                        <th class="text-left py-2">Commentaire</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fb in recentFeedbacks %}
+                        <tr class="border-b border-gray-800/60">
+                            <td class="py-2 pr-4 text-gray-400">
+                                {{ fb.createdAt|date('Y-m-d H:i') }}
+                            </td>
+                            <td class="py-2 pr-4">
+                                {{ fb.userName ?? '—' }}
+                            </td>
+                            <td class="py-2 pr-4">
+                                {{ fb.workout.nom ?? '—' }}
+                            </td>
+                            <td class="py-2 pr-4 font-semibold">
+                                {{ fb.rating }}
+                            </td>
+                            <td class="py-2 text-gray-300">
+                                {{ fb.comment ?: '—' }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="py-4 text-center text-gray-500 italic">
+                                Aucun feedback reçu pour le moment.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

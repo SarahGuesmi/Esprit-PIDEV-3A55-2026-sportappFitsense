@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Dashboard satisfaction</h1>
+
+    <section class="kpi-grid">
+        <div class="kpi-card">
+            <h2>⭐️ Note moyenne</h2>
+            <p>{{ avgNote ? avgNote|number_format(1, '.', ' ') : '–' }}/5</p>
+        </div>
+
+        <div class="kpi-card">
+            <h2>✅ Satisfaits</h2>
+            <p>{{ percentSatisfaits }}%</p>
+        </div>
+
+        <div class="kpi-card">
+            <h2>📝 Feedbacks</h2>
+            <p>{{ nbFeedbacks }}</p>
+        </div>
+
+        <div class="kpi-card">
+            <h2>🔥 NPS</h2>
+            <p>{{ npsScore }}</p>
+        </div>
+
+        <div class="kpi-card">
+            <h2>📈 Progression</h2>
+            <p>{{ progression }}% vs semaine passée</p>
+        </div>
+    </section>
+
+    <section class="charts-grid">
+        <div class="chart-card">
+            <h3>📈 Évolution de la note</h3>
+            {{ chart(lineChart) }}
+        </div>
+
+        <div class="chart-card">
+            <h3>✅ Répartition satisfaits</h3>
+            {{ chart(doughnutChart) }}
+        </div>
+
+        <div class="chart-card">
+            <h3>📝 Intensité des feedbacks</h3>
+            {{ chart(barChart) }}
+        </div>
+
+        <div class="chart-card">
+            <h3>🔥 Radar ressenti global</h3>
+            {{ chart(radarChart) }}
+        </div>
+
+        <div class="chart-card">
+            <h3>🎯 Progression vs objectif</h3>
+            {{ chart(gaugeChart) }}
+        </div>
+    </section>
+{% endblock %}
+

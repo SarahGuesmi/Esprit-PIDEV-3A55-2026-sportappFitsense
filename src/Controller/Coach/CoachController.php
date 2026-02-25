@@ -3,6 +3,8 @@
 namespace App\Controller\Coach;
 
 use App\Entity\Exercise;
+use App\Entity\Questionnaire;
+use App\Entity\FeedbackResponse;
 use App\Entity\Recommendation;
 use App\Entity\RecommendedExercise;
 use App\Entity\EtatMental;
@@ -30,7 +32,8 @@ class CoachController extends AbstractController
 public function dashboard(
     WorkoutRepository $workoutRepo,
     ExerciseRepository $exerciseRepo,
-    ChartBuilderInterface $chartBuilder
+    ChartBuilderInterface $chartBuilder,
+    EntityManagerInterface $em
 ): Response
 {
     // ================= Total workouts =================
@@ -110,6 +113,215 @@ public function dashboard(
         ]]
     ]);
 
+    // ================= SATISFACTION KPI (FeedbackResponse + Workout) =================
+    $coach = $this->getUser();
+
+    // On utilise ici directement les entités FeedbackResponse reliées à un coach et un workout.
+    $feedbackRepo = $em->getRepository(FeedbackResponse::class);
+    $feedbacks = $feedbackRepo->createQueryBuilder('f')
+        ->innerJoin('f.workout', 'w')
+        ->andWhere('f.coach = :coach')
+        ->setParameter('coach', $coach)
+        ->orderBy('f.createdAt', 'ASC')
+        ->getQuery()
+        ->getResult();
+
+    $total = \count($feedbacks);
+
+    // Mapping simple texte -> score 1–5
+    $ratingMap = [
+        'excellent' => 5,
+        'very good' => 4,
+        'good'      => 4,
+        'average'   => 3,
+        'neutral'   => 3,
+        'poor'      => 2,
+        'bad'       => 2,
+        'very poor' => 1,
+    ];
+
+    $sumScores = 0;
+    $scoredCount = 0;
+
+    // Compteurs pour la répartition par niveau
+    $excellentCount = 0;
+    $goodCount = 0;
+    $averageCount = 0;
+    $poorCount = 0;
+
+    // Distribution brute par libellé de rating (pour le Bar chart)
+    $ratingDistribution = [];
+    // Distribution temporelle (pour le Line chart)
+    $dateBuckets = [];
+
+    foreach ($feedbacks as $fb) {
+        /** @var FeedbackResponse $fb */
+        $label = trim((string) $fb->getRating());
+        $key = strtolower($label);
+        $score = $ratingMap[$key] ?? null;
+
+        if ($score !== null) {
+            $sumScores += $score;
+            $scoredCount++;
+
+            // Catégorisation en 4 niveaux principaux
+            switch (true) {
+                case $score === 5:
+                    $excellentCount++;
+                    break;
+                case $score === 4:
+                    $goodCount++;
+                    break;
+                case $score === 3:
+                    $averageCount++;
+                    break;
+                default: // 1–2
+                    $poorCount++;
+                    break;
+            }
+        }
+
+        // Comptage par libellé
+        if ($label !== '') {
+            $ratingDistribution[$label] = ($ratingDistribution[$label] ?? 0) + 1;
+        }
+
+        // Bucket par jour pour l'évolution temporelle
+        $dayKey = $fb->getCreatedAt()->format('Y-m-d');
+        if (!isset($dateBuckets[$dayKey])) {
+            $dateBuckets[$dayKey] = ['sum' => 0, 'count' => 0];
+        }
+        if ($score !== null) {
+            $dateBuckets[$dayKey]['sum'] += $score;
+            $dateBuckets[$dayKey]['count']++;
+        }
+    }
+
+    $avgNote = $scoredCount > 0 ? round($sumScores / $scoredCount, 2) : 0.0;
+    // % satisfaits = Excellent + Good
+    $percentSatisfaits = $scoredCount > 0
+        ? (int) round(($excellentCount + $goodCount) / $scoredCount * 100)
+        : 0;
+
+    // Progression vs last week (volume de réponses)
+    $now = new \DateTimeImmutable();
+    $startThisWeek = $now->modify('monday this week')->setTime(0, 0);
+    $startLastWeek = $startThisWeek->modify('-7 days');
+    $endLastWeek = $startThisWeek->modify('-1 second');
+
+    $nbThisWeek = (int) $feedbackRepo->createQueryBuilder('f')
+        ->select('COUNT(f.id)')
+        ->andWhere('f.coach = :coach')
+        ->andWhere('f.createdAt >= :start')
+        ->andWhere('f.createdAt <= :end')
+        ->setParameter('coach', $coach)
+        ->setParameter('start', $startThisWeek)
+        ->setParameter('end', $now)
+        ->getQuery()
+        ->getSingleScalarResult();
+
+    $nbLastWeek = (int) $feedbackRepo->createQueryBuilder('f')
+        ->select('COUNT(f.id)')
+        ->andWhere('f.coach = :coach')
+        ->andWhere('f.createdAt >= :start')
+        ->andWhere('f.createdAt <= :end')
+        ->setParameter('coach', $coach)
+        ->setParameter('start', $startLastWeek)
+        ->setParameter('end', $endLastWeek)
+        ->getQuery()
+        ->getSingleScalarResult();
+
+    $progression = $nbLastWeek > 0
+        ? (int) round(($nbThisWeek - $nbLastWeek) / $nbLastWeek * 100)
+        : 100;
+
+    // Line chart: évolution de la note moyenne par jour
+    ksort($dateBuckets);
+    $lineLabels = array_keys($dateBuckets);
+    $lineData = [];
+    foreach ($dateBuckets as $bucket) {
+        $lineData[] = $bucket['count'] > 0 ? round($bucket['sum'] / $bucket['count'], 2) : 0;
+    }
+
+    $satisfactionLineChart = $chartBuilder->createChart(Chart::TYPE_LINE);
+    $satisfactionLineChart->setData([
+        'labels' => $lineLabels,
+        'datasets' => [[
+            'label' => 'Note moyenne',
+            'data' => $lineData,
+            'borderColor' => 'rgba(56,189,248,1)',
+            'backgroundColor' => 'rgba(56,189,248,0.2)',
+            'tension' => 0.3,
+        ]],
+    ]);
+
+    $satisfactionDoughnutChart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+    $satisfactionDoughnutChart->setData([
+        'labels' => ['Excellent', 'Good', 'Average', 'Poor'],
+        'datasets' => [[
+            'data' => [
+                $excellentCount,
+                $goodCount,
+                $averageCount,
+                $poorCount,
+            ],
+            'backgroundColor' => [
+                'rgba(34,197,94,0.85)',   // Excellent
+                'rgba(56,189,248,0.85)',  // Good
+                'rgba(250,204,21,0.9)',   // Average
+                'rgba(248,113,113,0.9)',  // Poor
+            ],
+        ]],
+    ]);
+
+    // Bar: distribution par libellé de rating (intensité ressentie)
+    ksort($ratingDistribution);
+    $barLabels = array_keys($ratingDistribution);
+    $barData = array_values($ratingDistribution);
+
+    $satisfactionBarChart = $chartBuilder->createChart(Chart::TYPE_BAR);
+    $satisfactionBarChart->setData([
+        'labels' => $barLabels,
+        'datasets' => [[
+            'label' => 'Nombre de réponses',
+            'data' => $barData,
+            'backgroundColor' => 'rgba(56,189,248,0.7)',
+        ]],
+    ]);
+
+    // Gauge: progression vs objective
+    $objectif = 100;
+    $atteint = max(0, min($objectif, $progression + 100));
+    $reste = max(0, $objectif - $atteint);
+
+    $satisfactionGaugeChart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+    $satisfactionGaugeChart->setData([
+        'labels' => ['Atteint', 'Reste'],
+        'datasets' => [[
+            'data' => [$atteint, $reste],
+            'backgroundColor' => [
+                'rgba(56,189,248,0.9)',
+                'rgba(31,41,55,0.6)',
+            ],
+        ]],
+    ]);
+    $satisfactionGaugeChart->setOptions([
+        'rotation' => -90,
+        'circumference' => 180,
+        'cutout' => '70%',
+    ]);
+
+    // Derniers feedbacks réels (pour affichage détaillé)
+    $recentFeedbacks = $feedbackRepo->createQueryBuilder('f')
+        ->innerJoin('f.workout', 'w')
+        ->addSelect('w')
+        ->andWhere('f.coach = :coach')
+        ->setParameter('coach', $coach)
+        ->orderBy('f.createdAt', 'DESC')
+        ->setMaxResults(5)
+        ->getQuery()
+        ->getResult();
+
     return $this->render('coach/dashboard.html.twig', [
         'totalWorkouts' => $totalWorkouts,
         'avgDuration' => $avgDuration,
@@ -117,6 +329,11 @@ public function dashboard(
         'exerciseChart' => $exerciseChart,
         'goalChart' => $goalChart,
         'levelChart' => $levelChart,
+        'nbFeedbacks' => $total,
+        'satisfactionLineChart' => $satisfactionLineChart,
+        'satisfactionDoughnutChart' => $satisfactionDoughnutChart,
+        'satisfactionBarChart' => $satisfactionBarChart,
+        'recentFeedbacks' => $recentFeedbacks,
     ]);
 }
 
