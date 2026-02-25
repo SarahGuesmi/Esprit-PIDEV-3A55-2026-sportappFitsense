@@ -19,13 +19,14 @@ security:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\AppAuthenticator
+            entry_point: App\Security\AppAuthenticator
             logout:
                 path: app_logout
-                # target: 'auth_sign_in'   # optional - where to redirect after logout
+                target: auth_sign_in
             # remember_me:                 # optional - if you want "Remember me" checkbox
             #     secret: '%kernel.secret%'
-#             name: APP_REMEMBER_ME
-#             lifetime: 604800 # 1 week in seconds
+            #     name: APP_REMEMBER_ME
+            #     lifetime: 604800 # 1 week in seconds
 
     # Access control rules
     access_control:
@@ -35,7 +36,10 @@ security:
         # Your existing admin rule
         - { path: ^/admin, roles: ROLE_ADMIN }
         
-        # Coach routes require ROLE_COACH
-        - { path: ^/coach, roles: ROLE_COACH }
+        # Coach routes require ROLE_COACH or ROLE_USER (users can access exercise library)
+        - { path: ^/coach, roles: [ROLE_COACH, ROLE_USER] }
+        
+        # User routes require authenticated user with ROLE_USER
+        - { path: ^/user, roles: ROLE_USER }
 
       

@@ -35,6 +35,15 @@ class FeedbackResponse
     #[ORM\JoinColumn(nullable: true)]
     private ?User $coach = null;
 
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $sentiment = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $keywords = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiSummary = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -114,5 +123,38 @@ class FeedbackResponse
     public function getUserName(): string
     {
         return trim(($this->user?->getFirstname() ?? '') . ' ' . ($this->user?->getLastname() ?? ''));
+    }
+
+    public function getSentiment(): ?string
+    {
+        return $this->sentiment;
+    }
+
+    public function setSentiment(?string $sentiment): self
+    {
+        $this->sentiment = $sentiment;
+        return $this;
+    }
+
+    public function getKeywords(): ?array
+    {
+        return $this->keywords;
+    }
+
+    public function setKeywords(?array $keywords): self
+    {
+        $this->keywords = $keywords;
+        return $this;
+    }
+
+    public function getAiSummary(): ?string
+    {
+        return $this->aiSummary;
+    }
+
+    public function setAiSummary(?string $aiSummary): self
+    {
+        $this->aiSummary = $aiSummary;
+        return $this;
     }
 }

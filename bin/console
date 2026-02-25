@@ -4,6 +4,9 @@
 use App\Kernel;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 
+// Suppress deprecation warnings from old SendGrid library
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 if (!is_dir(dirname(__DIR__).'/vendor')) {
     throw new LogicException('Dependencies are missing. Try running "composer install".');
 }

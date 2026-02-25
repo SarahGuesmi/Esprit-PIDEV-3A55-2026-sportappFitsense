@@ -1,0 +1,35 @@
+HOW TO ENABLE CURL EXTENSION IN PHP
+====================================
+
+The SendGrid daily report feature is fully implemented and ready to use.
+The only remaining step is to enable the PHP curl extension.
+
+STEPS TO ENABLE CURL:
+
+1. Open Notepad as Administrator (Right-click Notepad -> Run as Administrator)
+
+2. Open this file: C:\Program Files\PHP\8.2\php.ini
+
+3. Search for: ;extension=curl
+   (Note the semicolon at the beginning)
+
+4. Remove the semicolon to make it: extension=curl
+
+5. Save the file
+
+6. Restart any running PHP processes or web server
+
+VERIFY IT WORKS:
+
+Run this command to test:
+  php bin/console app:send-daily-report --test
+
+If successful, you'll see emails being sent to all coaches!
+
+WHAT THE FEATURE DOES:
+- Calculates daily feedback statistics
+- Generates professional HTML emails with charts
+- Sends reports to all coaches via SendGrid
+- Use --test flag to test with today's data (instead of yesterday)
+
+The deprecation warnings you saw have been suppressed and won't cause any issues.

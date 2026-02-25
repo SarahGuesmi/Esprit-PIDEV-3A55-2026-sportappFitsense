@@ -1,0 +1,301 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}{{ exercise.name|default('Exercise not found') }}{% endblock %}
+
+{% block user_page_title %}{{ exercise.name|default('Exercise Detail')|capitalize }}{% endblock %}
+{% block user_page_subtitle %}Full breakdown — muscles, equipment & step-by-step instructions{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
+
+.ex-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: .04em;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #e8edf5 30%, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.badge-pill-ex {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+.badge-body-ex  { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.4); color: #60a5fa; }
+.badge-target-ex{ background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.4); color: #34d399; }
+.badge-equip-ex { background: rgba(167,139,250,.15); border-color: rgba(167,139,250,.4); color: #c4b5fd; }
+.badge-diff-ex  { background: rgba(251,191,36,.1);  border-color: rgba(251,191,36,.35); color: #fbbf24; }
+.badge-cat-ex   { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: #6b7280; }
+
+.gif-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(13,20,34,0.8);
+    position: relative;
+}
+.gif-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(59,130,246,.04) 0%, transparent 60%, rgba(139,92,246,.06) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+.gif-card img {
+    display: block;
+    width: 100%;
+    max-height: 380px;
+    object-fit: contain;
+    background: #05090f;
+}
+.gif-label {
+    text-align: center;
+    padding: 10px;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #374151;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.gif-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background: rgba(5,9,15,0.8);
+}
+
+.info-card {
+    border-radius: 14px;
+    padding: 1.4rem;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(13,20,34,0.6);
+    position: relative;
+    overflow: hidden;
+    transition: border-color .25s;
+}
+.info-card:hover { border-color: rgba(96,165,250,0.3); }
+.info-card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #60a5fa;
+    margin-bottom: .8rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.info-card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+}
+
+.muscle-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: rgba(52,211,153,.08);
+    border: 1px solid rgba(52,211,153,.25);
+    color: #34d399;
+    font-size: .8rem;
+    margin: 3px;
+    text-transform: capitalize;
+    transition: background .2s;
+}
+.muscle-chip:hover { background: rgba(52,211,153,.15); }
+
+.step-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 1.2rem;
+    background: rgba(13,20,34,0.6);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    margin-bottom: .6rem;
+    transition: border-color .2s, transform .2s;
+}
+.step-item:hover {
+    border-color: rgba(96,165,250,0.35);
+    transform: translateX(4px);
+}
+.step-number {
+    min-width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1a7fd4, #7c5cbf);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(26,127,212,.3);
+}
+.step-text {
+    font-size: .9rem;
+    line-height: 1.6;
+    color: #d1d5db;
+    padding-top: .35rem;
+}
+
+.glow-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(96,165,250,0.3), transparent);
+    margin: 2rem 0;
+}
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="space-y-6">
+
+    {# ── Back button ── #}
+    <div>
+        <a href="{{ path('user_exercises') }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 text-sm font-semibold transition">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Library
+        </a>
+    </div>
+
+    {# ── Title + badges ── #}
+    <div class="glass-card p-6" style="position:relative; overflow:hidden;">
+        <div style="position:absolute; inset:0; background: radial-gradient(ellipse 60% 100% at 80% 50%, rgba(124,92,191,.1) 0%, transparent 70%); pointer-events:none;"></div>
+        <h1 class="ex-title mb-4">{{ exercise.name|default('Exercise not found') }}</h1>
+        <div class="flex flex-wrap gap-2">
+            {% if exercise.bodyPart is defined and exercise.bodyPart %}
+                <span class="badge-pill-ex badge-body-ex">
+                    <i class="fas fa-person-running text-[10px]"></i> {{ exercise.bodyPart }}
+                </span>
+            {% endif %}
+            {% if exercise.target is defined and exercise.target %}
+                <span class="badge-pill-ex badge-target-ex">
+                    <i class="fas fa-bullseye text-[10px]"></i> {{ exercise.target }}
+                </span>
+            {% endif %}
+            {% if exercise.equipment is defined and exercise.equipment %}
+                <span class="badge-pill-ex badge-equip-ex">
+                    <i class="fas fa-dumbbell text-[10px]"></i> {{ exercise.equipment }}
+                </span>
+            {% endif %}
+            {% if exercise.difficulty is defined and exercise.difficulty %}
+                <span class="badge-pill-ex badge-diff-ex">
+                    <i class="fas fa-signal text-[10px]"></i> {{ exercise.difficulty }}
+                </span>
+            {% endif %}
+            {% if exercise.category is defined and exercise.category %}
+                <span class="badge-pill-ex badge-cat-ex">{{ exercise.category }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Main content: GIF + info ── #}
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+
+        {# GIF #}
+        <div class="md:col-span-2">
+            <div class="gif-card">
+                {% if exercise.gifUrl %}
+                    <img src="{{ path('user_gif_proxy', {url: exercise.gifUrl}) }}"
+                         alt="{{ exercise.name|default('Exercise') }}">
+                {% else %}
+                    <div class="gif-placeholder">
+                        <i class="fas fa-dumbbell text-4xl text-gray-700"></i>
+                    </div>
+                {% endif %}
+                <div class="gif-label">Movement animation</div>
+            </div>
+        </div>
+
+        {# Info cards #}
+        <div class="md:col-span-3 flex flex-col gap-4">
+
+            {% if exercise.description is defined and exercise.description %}
+                <div class="info-card">
+                    <div class="info-card-title"><i class="fas fa-circle-info"></i> About</div>
+                    <p style="color:#d1d5db; line-height:1.7; font-size:.95rem; margin:0;">
+                        {{ exercise.description }}
+                    </p>
+                </div>
+            {% endif %}
+
+            {% if exercise.secondaryMuscles is defined and exercise.secondaryMuscles|length > 0 %}
+                <div class="info-card">
+                    <div class="info-card-title"><i class="fas fa-layer-group"></i> Secondary Muscles</div>
+                    <div>
+                        {% for muscle in exercise.secondaryMuscles %}
+                            <span class="muscle-chip">{{ muscle }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Quick stats row #}
+            <div class="grid grid-cols-3 gap-3">
+                <div class="info-card text-center" style="padding:1rem;">
+                    <div style="font-size:1.4rem; font-family:'Rajdhani',sans-serif; font-weight:700; color:#60a5fa;">
+                        {{ exercise.instructions is defined ? exercise.instructions|length : '—' }}
+                    </div>
+                    <div style="font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.06em; margin-top:2px;">Steps</div>
+                </div>
+                <div class="info-card text-center" style="padding:1rem;">
+                    <div style="font-size:1.4rem; font-family:'Rajdhani',sans-serif; font-weight:700; color:#34d399;">
+                        {{ exercise.secondaryMuscles is defined ? exercise.secondaryMuscles|length : '0' }}
+                    </div>
+                    <div style="font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.06em; margin-top:2px;">Muscles</div>
+                </div>
+                <div class="info-card text-center" style="padding:1rem;">
+                    <div style="font-size:1.1rem; font-family:'Rajdhani',sans-serif; font-weight:700; color:#c4b5fd; text-transform:capitalize;">
+                        {{ exercise.equipment|default('—') }}
+                    </div>
+                    <div style="font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.06em; margin-top:2px;">Equipment</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {# ── Instructions ── #}
+    {% if exercise.instructions is defined and exercise.instructions|length > 0 %}
+        <div class="glow-divider"></div>
+        <div>
+            <div style="font-family:'Rajdhani',sans-serif; font-size:1.1rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#60a5fa; display:flex; align-items:center; gap:.6rem; margin-bottom:1.2rem;">
+                <i class="fas fa-list-ol"></i>
+                Execution Steps
+                <span style="flex:1; height:1px; background:rgba(255,255,255,0.07); display:block;"></span>
+                <span style="font-size:.75rem; letter-spacing:.05em; color:#374151; font-weight:400;">
+                    {{ exercise.instructions|length }} step{{ exercise.instructions|length > 1 ? 's' : '' }}
+                </span>
+            </div>
+            {% for step in exercise.instructions %}
+                <div class="step-item">
+                    <div class="step-number">{{ loop.index }}</div>
+                    <div class="step-text">{{ step }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

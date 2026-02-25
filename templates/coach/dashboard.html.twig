@@ -194,6 +194,33 @@
             .chart-full { grid-column: 1; }
         }
 
+        .btn-send-report {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-send-report:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-send-report svg {
+            width: 16px;
+            height: 16px;
+        }
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(16px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -338,7 +365,37 @@
                                 {{ fb.rating }}
                             </td>
                             <td class="py-2 text-gray-300">
-                                {{ fb.comment ?: '—' }}
+                                <div class="space-y-2">
+                                    <div>{{ fb.comment ?: '—' }}</div>
+                                    
+                                    {% if fb.sentiment %}
+                                        <div class="flex items-center gap-2 text-xs">
+                                            <span class="px-2 py-1 rounded-lg font-medium
+                                                {% if fb.sentiment == 'positive' %}bg-green-500/20 text-green-400
+                                                {% elseif fb.sentiment == 'negative' %}bg-red-500/20 text-red-400
+                                                {% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
+                                                {% if fb.sentiment == 'positive' %}😊 Positive
+                                                {% elseif fb.sentiment == 'negative' %}😞 Negative
+                                                {% else %}😐 Neutral{% endif %}
+                                            </span>
+                                            
+                                            {% if fb.keywords %}
+                                                <span class="text-gray-500">|</span>
+                                                {% for keyword in fb.keywords|slice(0, 3) %}
+                                                    <span class="px-2 py-1 bg-blue-500/10 text-blue-400 rounded">{{ keyword }}</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if fb.aiSummary %}
+                                            {% if not (fb.aiSummary starts with 'Simple analysis' or fb.aiSummary starts with 'Analysis unavailable') %}
+                                                <div class="text-xs text-gray-400 italic">
+                                                    🤖 {{ fb.aiSummary }}
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                     {% else %}

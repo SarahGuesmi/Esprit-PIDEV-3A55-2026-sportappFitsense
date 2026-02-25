@@ -26,6 +26,16 @@ services:
         arguments:
             $apiKey: '%env(YOUTUBE_API_KEY)%'
 
+    App\Service\FeedbackAnalysisService:
+        arguments:
+            $openaiApiKey: '%env(OPENAI_API_KEY)%'
+
+    App\Service\WeeklyReportService:
+        arguments:
+            $sendgridApiKey: '%env(SENDGRID_API_KEY)%'
+            $fromEmail: '%env(SENDGRID_FROM_EMAIL)%'
+            $fromName: '%env(SENDGRID_FROM_NAME)%'
+
     App\EventListener\AuthenticationSuccessListener:
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }

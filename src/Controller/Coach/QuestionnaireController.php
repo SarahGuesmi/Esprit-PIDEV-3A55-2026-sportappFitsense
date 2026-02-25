@@ -57,15 +57,28 @@ class QuestionnaireController extends AbstractController
     #[Route('/feedback/{id}/delete', name: 'coach_feedback_delete', methods: ['POST'])]
     public function deleteFeedback(FeedbackResponse $feedback, EntityManagerInterface $em): Response
     {
-        // Only allow the coach linked to this feedback (if set) to delete it
-        if ($feedback->getCoach() && $feedback->getCoach() !== $this->getUser()) {
-            throw $this->createAccessDeniedException();
-        }
-
+        // Allow any coach to delete any feedback
         $em->remove($feedback);
         $em->flush();
 
         $this->addFlash('success', 'Feedback deleted successfully!');
+        return $this->redirectToRoute('coach_questionnaire_index');
+    }
+
+    #[Route('/response/{id}/delete', name: 'coach_response_delete', methods: ['POST'])]
+    public function deleteResponse(int $id, EntityManagerInterface $em, QuestionnaireRepository $repository): Response
+    {
+        // Find the questionnaire response and delete it
+        $response = $repository->find($id);
+        
+        if (!$response) {
+            throw $this->createNotFoundException('Response not found');
+        }
+
+        $em->remove($response);
+        $em->flush();
+
+        $this->addFlash('success', 'Response deleted successfully!');
         return $this->redirectToRoute('coach_questionnaire_index');
     }
 

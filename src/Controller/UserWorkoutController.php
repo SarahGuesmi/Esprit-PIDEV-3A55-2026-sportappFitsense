@@ -6,6 +6,8 @@ use App\Repository\ExerciseRepository;
 use App\Repository\WorkoutRepository;
 use App\Repository\ObjectifSportifRepository;
 use App\Repository\QuestionnaireRepository;
+use App\Service\ExerciseApiService;
+use App\Service\FeedbackAnalysisService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,10 +19,11 @@ use App\Entity\FeedbackResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\FeedbackResponseRepository;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 
 #[Route('/user')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[IsGranted('ROLE_USER')]
 class UserWorkoutController extends AbstractController
 {
     #[Route('/my-workouts', name: 'user_my_workouts')]
@@ -46,6 +49,81 @@ class UserWorkoutController extends AbstractController
             'selectedNiveau' => $niveau,
             'selectedDuree'  => $dureeMax,
         ]);
+    }
+
+    #[Route('/exercises', name: 'user_exercises')]
+    public function exercises(Request $request, ExerciseApiService $service): Response
+    {
+        $bodyPart  = $request->query->get('bodyPart');
+        $target    = $request->query->get('target');
+        $equipment = $request->query->get('equipment');
+        $search    = $request->query->get('search');
+        $limit     = 20;
+        $offset    = (int) $request->query->get('page', 0) * $limit;
+
+        if ($search) {
+            $exercises = $service->searchByName($search, $limit);
+        } elseif ($bodyPart) {
+            $exercises = $service->getByBodyPart($bodyPart, $limit);
+        } elseif ($target) {
+            $exercises = $service->getByTarget($target, $limit);
+        } elseif ($equipment) {
+            $exercises = $service->getByEquipment($equipment, $limit);
+        } else {
+            $exercises = $service->getExercises($limit, $offset);
+        }
+
+        return $this->render('user/exercises.html.twig', [
+            'exercises'       => $exercises,
+            'bodyPartList'    => $service->getBodyPartList(),
+            'targetList'      => $service->getTargetList(),
+            'equipmentList'   => $service->getEquipmentList(),
+            'activeBodyPart'  => $bodyPart,
+            'activeTarget'    => $target,
+            'activeEquipment' => $equipment,
+            'search'          => $search,
+            'currentPage'     => (int) $request->query->get('page', 0),
+        ]);
+    }
+    #[Route('/api-exercise/{id}', name: 'user_api_exercise_detail')]
+    public function apiExerciseDetail(string $id, ExerciseApiService $service): Response
+    {
+        $exercise = $service->getExerciseById($id);
+
+        if (!$exercise) {
+            throw $this->createNotFoundException('Exercise not found');
+        }
+
+        return $this->render('user/api_exercise_detail.html.twig', [
+            'exercise' => $exercise,
+        ]);
+    }
+
+    #[Route('/api-exercises/gif-proxy', name: 'user_gif_proxy')]
+    public function gifProxy(Request $request, HttpClientInterface $client): Response
+    {
+        $url = $request->query->get('url');
+
+        if (!$url || !str_contains($url, 'rapidapi.com')) {
+            return new Response('Forbidden', 403);
+        }
+
+        try {
+            $response = $client->request('GET', $url, [
+                'headers' => [
+                    'X-RapidAPI-Key'  => $_ENV['RAPIDAPI_KEY'],
+                    'X-RapidAPI-Host' => 'exercisedb.p.rapidapi.com',
+                ]
+            ]);
+
+            return new Response(
+                $response->getContent(),
+                200,
+                ['Content-Type' => 'image/gif']
+            );
+        } catch (\Exception $e) {
+            return new Response('ERREUR: ' . $e->getMessage(), 404);
+        }
     }
 
     #[Route('/workout/{id}', name: 'user_workout_view')]
@@ -305,13 +383,13 @@ class UserWorkoutController extends AbstractController
     }
 
     #[Route('/feedback/submit', name: 'user_feedback_submit', methods: ['POST'])]
-    public function submitFeedback(Request $request, EntityManagerInterface $em): JsonResponse
+    public function submitFeedback(Request $request, EntityManagerInterface $em, FeedbackAnalysisService $analysisService): JsonResponse
     {
-        return $this->processFeedback($request, $em);
+        return $this->processFeedback($request, $em, $analysisService);
     }
 
     #[Route('/feedback/submit-get', name: 'user_feedback_submit_get', methods: ['GET'])]
-    public function submitFeedbackGet(Request $request, EntityManagerInterface $em): Response
+    public function submitFeedbackGet(Request $request, EntityManagerInterface $em, FeedbackAnalysisService $analysisService): Response
     {
         // Create a fake POST request from GET parameters
         $feedbackRequest = new Request(
@@ -324,7 +402,7 @@ class UserWorkoutController extends AbstractController
             json_encode($request->query->all())
         );
         
-        $result = $this->processFeedback($feedbackRequest, $em);
+        $result = $this->processFeedback($feedbackRequest, $em, $analysisService);
         
         // If it's a JSON response, return it directly
         if ($result instanceof JsonResponse) {
@@ -343,7 +421,7 @@ class UserWorkoutController extends AbstractController
         return $result;
     }
 
-    private function processFeedback(Request $request, EntityManagerInterface $em): JsonResponse
+    private function processFeedback(Request $request, EntityManagerInterface $em, FeedbackAnalysisService $analysisService = null): JsonResponse
     {
         try {
             // Handle both JSON POST and form data
@@ -395,6 +473,19 @@ class UserWorkoutController extends AbstractController
             $feedbackResponse->setRating($rating);
             $feedbackResponse->setComment($comment);
             $feedbackResponse->setCoach($coach);
+
+            // 🤖 Analyze feedback with OpenAI if comment is provided
+            if (!empty($comment) && $analysisService) {
+                try {
+                    $analysis = $analysisService->analyzeFeedback($comment);
+                    $feedbackResponse->setSentiment($analysis['sentiment']);
+                    $feedbackResponse->setKeywords($analysis['keywords']);
+                    $feedbackResponse->setAiSummary($analysis['summary']);
+                } catch (\Exception $e) {
+                    // Log error but don't fail the feedback submission
+                    error_log('OpenAI analysis failed: ' . $e->getMessage());
+                }
+            }
 
             $em->persist($feedbackResponse);
 

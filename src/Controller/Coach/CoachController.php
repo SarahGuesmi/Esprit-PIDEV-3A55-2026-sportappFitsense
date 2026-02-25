@@ -337,7 +337,24 @@ public function dashboard(
     ]);
 }
 
-
+    #[Route('/send-daily-report', name: 'coach_send_daily_report')]
+    public function sendDailyReport(
+        \App\Service\WeeklyReportService $reportService
+    ): Response
+    {
+        $coach = $this->getUser();
+        
+        // Send report for today (test mode)
+        $result = $reportService->sendDailyReport($coach, true);
+        
+        if ($result['success']) {
+            $this->addFlash('success', 'Daily report sent successfully to ' . $coach->getEmail());
+        } else {
+            $this->addFlash('error', 'Failed to send report: ' . $result['message']);
+        }
+        
+        return $this->redirectToRoute('coach_dashboard');
+    }
 
     #[Route('/users', name: 'coach_users_index')]
     public function users(Request $request, EntityManagerInterface $em): Response
