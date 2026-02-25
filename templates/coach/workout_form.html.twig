@@ -1,0 +1,226 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block title %}{{ isEdit ? 'Edit Workout' : 'Create Workout' }} - FitSense{% endblock %}
+
+{% block coach_page_title %}{{ isEdit ? 'Edit Workout' : 'Create Workout' }}{% endblock %}
+{% block coach_page_subtitle %}Configure your athlete's training routine{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.gradient-btn {
+    background: linear-gradient(135deg, #22C55E, #84CC16);
+}
+
+.card-glow {
+    transition: all 0.3s ease;
+}
+
+.card-glow:hover {
+    box-shadow: 0 20px 40px rgba(34, 197, 94, 0.15);
+}
+
+/* Form fields */
+.form-input {
+    width: 100%;
+    background: #0D0D0D;
+    border: 1px solid #1F1F1F;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: white;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #22C55E;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #9CA3AF;
+    margin-bottom: 0.5rem;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ---- Validation Errors ---- */
+.form-input.error {
+    border-color: #EF4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #FCA5A5;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.error-icon {
+    width: 16px;
+    height: 16px;
+    color: #EF4444;
+}
+</style>
+{% endblock %}
+
+{% block coach_content %}
+<div class="max-w-4xl mx-auto py-8">
+    <!-- Back Button -->
+    <div class="mb-8">
+        <a href="{{ path('coach_workout_catalog') }}"
+           class="inline-flex items-center text-gray-400 hover:text-white transition group font-semibold">
+            <i class="fas fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i>
+            Back to Catalog
+        </a>
+    </div>
+
+    <!-- Form Card -->
+    <div class="bg-gray-900/40 border border-gray-800 rounded-2xl p-8 md:p-12 card-glow shadow-2xl">
+        {{ form_start(form, {'attr': {'id': 'workoutForm', 'novalidate': 'novalidate'}}) }}
+            <div class="space-y-8">
+                {% for field in form %}
+                    {% if field.vars.name != '_token' %}
+                        <div class="form-group">
+                            {{ form_label(field, null, {'label_attr': {'class': 'form-label'}}) }}
+
+                            {{ form_widget(field, {
+                                'attr': {
+                                    'class': 'form-input' ~ (field.vars.errors|length ? ' error' : ''),
+                                    'placeholder': 'Enter ' ~ field.vars.label|lower,
+                                    'type': field.vars.name == 'duree' ? 'number' : null,
+                                    'min': field.vars.name == 'duree' ? 1 : null,
+                                    'required': field.vars.required ? 'required' : null,
+                                    'data-field-name': field.vars.name
+                                }
+                            }) }}
+
+                            {% if field.vars.errors|length %}
+                                <div class="error-message" data-error-for="{{ field.vars.name }}">
+                                    <i class="fas fa-exclamation-circle error-icon"></i>
+                                    {{ field.vars.errors[0].message }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row justify-end gap-4 mt-12 pt-8 border-t border-gray-800">
+                <a href="{{ path('coach_workout_catalog') }}"
+                   class="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-xl font-bold text-sm transition text-center">
+                    Cancel
+                </a>
+
+                <button type="submit"
+                        class="px-10 py-3 gradient-btn text-black rounded-xl font-black text-sm shadow-lg hover:shadow-green-500/20 transition transform hover:scale-[1.02] active:scale-[0.98]">
+                    {{ isEdit ? 'Update Workout' : 'Create Workout' }}
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('workoutForm');
+        const inputs = document.querySelectorAll('.form-input');
+
+        function showError(input, message) {
+            input.classList.add('error');
+
+            const existingError = input.parentElement.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.setAttribute('data-error-for', input.getAttribute('data-field-name'));
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle error-icon"></i>
+                ${message}
+            `;
+            input.parentElement.appendChild(errorDiv);
+        }
+
+        function clearError(input) {
+            input.classList.remove('error');
+            const error = input.parentElement.querySelector('.error-message');
+            if (error) {
+                error.remove();
+            }
+        }
+
+        function validateField(input) {
+            const value = input.value.trim();
+            const fieldName = input.getAttribute('data-field-name');
+            const isRequired = input.hasAttribute('required');
+
+            // Generic required field
+            if (isRequired && !value) {
+                showError(input, 'This field is required');
+                return false;
+            }
+
+            // Duration
+            if (fieldName === 'duree' && value) {
+                const duration = parseInt(value);
+                if (isNaN(duration) || duration < 1) {
+                    showError(input, 'Duration must be at least 1 minute');
+                    return false;
+                }
+            }
+
+            // Detailed textarea (e.g. description)
+            if (input.tagName === 'TEXTAREA' && isRequired && value.length < 10) {
+                showError(input, 'Please provide a more detailed description (minimum 10 characters)');
+                return false;
+            }
+
+            clearError(input);
+            return true;
+        }
+
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                clearError(input);
+            });
+
+            input.addEventListener('blur', () => {
+                validateField(input);
+            });
+        });
+
+        form.addEventListener('submit', (e) => {
+            let isValid = true;
+
+            inputs.forEach(input => {
+                if (!validateField(input)) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+
+                const firstError = document.querySelector('.form-input.error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
+    });
+    </script>
+{% endblock %}

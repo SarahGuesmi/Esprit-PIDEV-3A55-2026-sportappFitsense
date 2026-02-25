@@ -1,0 +1,258 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block title %}Coach Dashboard - FitSense{% endblock %}
+
+{% block coach_page_title %}Dashboard{% endblock %}
+{% block coach_page_subtitle %}Overview of your training activity{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+
+        .db-wrapper {
+            font-family: 'Source Sans 3', sans-serif;
+            padding: 0.5rem 0 2rem;
+            max-width: 1400px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            position: relative;
+            border-radius: 20px;
+            padding: 1.75rem 1.75rem 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+        }
+
+        .kpi-card.blue {
+            background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(56,189,248,0.04));
+            border-color: rgba(56,189,248,0.2);
+        }
+        .kpi-card.blue::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: radial-gradient(circle at top right, #38bdf8, transparent 70%);
+            opacity: 0.25;
+            z-index: 0;
+        }
+
+        .kpi-content { position: relative; z-index: 1; }
+
+        .kpi-icon-wrap {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
+            background: rgba(56,189,248,0.18);
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 0.35rem;
+        }
+
+        .kpi-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            line-height: 1.1;
+            margin-bottom: 0.3rem;
+        }
+
+        .kpi-value .kpi-unit {
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #94a3b8;
+        }
+
+        .kpi-sub { font-size: 0.78rem; color: #475569; }
+
+        .kpi-orb {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            right: -20px;
+            top: -20px;
+            filter: blur(35px);
+            opacity: 0.3;
+            z-index: 0;
+            background: #38bdf8;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .chart-card {
+            background: linear-gradient(135deg, rgba(27,30,38,0.9), rgba(17,19,24,0.95));
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 1.5rem 1.75rem 1.75rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        }
+
+        .chart-card:hover {
+            border-color: rgba(56,189,248,0.15);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .chart-full { grid-column: 1 / -1; }
+
+        .chart-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .chart-badge {
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.25rem 0.65rem;
+            border-radius: 100px;
+            background: rgba(56,189,248,0.12);
+            color: #38bdf8;
+            border: 1px solid rgba(56,189,248,0.2);
+        }
+
+        .chart-card canvas { max-height: 280px; }
+        .chart-full canvas { max-height: 240px; }
+
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .chart-full { grid-column: 1; }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .kpi-card  { animation: fadeUp 0.5s ease both; animation-delay: 0.05s; }
+        .chart-card { animation: fadeUp 0.5s ease both; }
+        .chart-card:nth-child(1) { animation-delay: 0.2s; }
+        .chart-card:nth-child(2) { animation-delay: 0.28s; }
+        .chart-card:nth-child(3) { animation-delay: 0.36s; }
+    </style>
+{% endblock %}
+
+{% block coach_content %}
+<div class="db-wrapper">
+
+    <div class="kpi-grid">
+        <div class="kpi-card blue">
+            <div class="kpi-orb"></div>
+            <div class="kpi-content">
+                <div class="kpi-icon-wrap">⏱</div>
+                <div class="kpi-label">Avg. Duration</div>
+                <div class="kpi-value">{{ avgDuration }}<span class="kpi-unit"> min</span></div>
+                <div class="kpi-sub">per session</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <span class="section-title">Analytics Overview</span>
+        <div class="section-line"></div>
+    </div>
+
+    <div class="charts-grid">
+
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <div class="chart-card-title">Most Used Exercises</div>
+                <span class="chart-badge">Bar</span>
+            </div>
+            {{ render_chart(exerciseChart) }}
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <div class="chart-card-title">Workouts by Goal</div>
+                <span class="chart-badge">Doughnut</span>
+            </div>
+            {{ render_chart(goalChart) }}
+        </div>
+
+        <div class="chart-card chart-full">
+            <div class="chart-card-header">
+                <div class="chart-card-title">Workouts by Level</div>
+                <span class="chart-badge">Pie</span>
+            </div>
+            {{ render_chart(levelChart) }}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

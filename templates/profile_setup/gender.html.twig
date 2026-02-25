@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}What's Your Gender? - FitSense{% endblock %}
+
+{% block stylesheets %}
+<style>
+:root {
+    --blue-light: #38BDF8;
+    --violet-light: #A78BFA;
+    --dark-bg: #111318;
+    --dark-card: #1B1E26;
+    --dark-input: #262A35;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A1A1AA;
+    --border-color: #343846;
+    --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+    --gender-active: #A78BFA;
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    overflow: hidden;
+}
+
+.setup-card {
+    max-width: 520px;
+    width: 90%;
+    background: var(--dark-card);
+    padding: 40px 30px;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+h2 {
+    font-size: 28px;
+    margin-bottom: 12px;
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.description {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-bottom: 40px;
+    line-height: 1.5;
+}
+
+.gender-options {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin: 32px 0 48px;
+}
+
+.gender-card {
+    background: var(--dark-input);
+    border: 2px solid transparent;
+    border-radius: 20px;
+    padding: 36px 48px;
+    width: 180px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    user-select: none;
+    color: var(--text-primary);
+}
+
+.gender-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(167,139,250,0.25);
+}
+
+.gender-card.active {
+    background: var(--gender-active);
+    border: none;
+    color: #fff;
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(167,139,250,0.45);
+}
+
+.gender-icon {
+    font-size: 88px;
+    margin-bottom: 20px;
+    line-height: 1;
+}
+
+.gender-card span {
+    font-size: 20px;
+    font-weight: 700;
+    display: block;
+}
+
+.btn-continue {
+    width: 100%;
+    padding: 16px;
+    background: #DFFF00;
+    color: #000;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.btn-continue.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-continue:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(223,255,0,0.35);
+}
+
+@media (max-width: 520px) {
+    .gender-options {
+        flex-direction: column;
+        gap: 24px;
+    }
+    .gender-card {
+        width: auto;
+        padding: 32px 60px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{% block header %}{% endblock %}
+<div class="setup-card">
+    <h2>What's Your Gender?</h2>
+    <p class="description">
+        This helps us customize your metabolic calculations and workout intensity.
+    </p>
+
+    <form action="{{ path('profile_setup_gender') }}" method="POST" id="gender-form">
+    <input type="hidden" name="gender" id="selected-gender" value="{{ selected }}">
+
+    <div class="gender-options">
+        <div class="gender-card" data-value="male">
+            <div class="gender-icon">♂</div>
+            <span>Male</span>
+        </div>
+        <div class="gender-card" data-value="female">
+            <div class="gender-icon">♀</div>
+            <span>Female</span>
+        </div>
+    </div>
+
+    {% if error %}
+        <p style="color:red; text-align:center; margin-bottom:20px;">{{ error }}</p>
+    {% endif %}
+
+    {# Le bouton est toujours actif #}
+    <button type="submit" class="btn-continue active" id="continue-btn">
+        Continue →
+    </button>
+</form>
+</div>
+
+<script>
+    const cards = document.querySelectorAll('.gender-card');
+    const hiddenInput = document.getElementById('selected-gender');
+
+    function selectGender(card) {
+        const value = card.getAttribute('data-value');
+        hiddenInput.value = value;
+
+        cards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+    }
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => selectGender(card));
+    });
+
+    // Pré-sélection si valeur déjà présente
+    if (hiddenInput.value) {
+        const preselected = document.querySelector(`.gender-card[data-value="${hiddenInput.value}"]`);
+        if (preselected) selectGender(preselected);
+    }
+</script>
+{% block footer %}{% endblock %}
+{% endblock %}

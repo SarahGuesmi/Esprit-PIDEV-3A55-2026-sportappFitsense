@@ -1,0 +1,58 @@
+<aside class="sidebar fixed inset-y-0 left-0 z-40 w-[280px] transform transition-transform duration-300 lg:translate-x-0 -translate-x-full shadow-2xl">
+    <div class="h-full flex flex-col">
+        <!-- FitSense Header with Logo -->
+        <div class="p-6 pb-4 border-b border-white/5 logo-container relative">
+            <div class="text-center">
+                <h1 class="text-2xl font-black mb-3 logo-title">
+                    <span class="bg-gradient-to-r from-[#8B5CF6] to-[#D8B4FE] bg-clip-text text-transparent uppercase tracking-tighter">
+                        FitSense
+                    </span>
+                </h1>
+                <img src="{{ asset('assets/images/sport-hero.png') }}" alt="FitSense" class="mx-auto w-24 mb-2 animate-float hero-logo">
+                <p class="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] portal-label">Admin Panel</p>
+            </div>
+            
+            <!-- Desktop Toggle Button -->
+            <button id="desktop-sidebar-toggle" class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#262A35] border border-[#343846] rounded-full hidden lg:flex items-center justify-center text-gray-400 hover:text-white transition shadow-lg z-50">
+                <i class="fas fa-chevron-left text-[10px]"></i>
+            </button>
+        </div>
+
+        <!-- Navigation principale -->
+        <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
+            <a href="{{ path('admin_dashboard') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
+                <i class="fas fa-th-large"></i>
+                <span class="sidebar-text">Admin Dashboard</span>
+            </a>
+
+            <a href="{{ path('admin_users_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'admin_users' ? 'active' : '' }}">
+                <i class="fas fa-users"></i>
+                <span class="sidebar-text">User Management</span>
+            </a>
+
+            <a href="{{ path('admin_notifications') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'admin_notifications' ? 'active' : '' }}">
+                <i class="fas fa-bell"></i>
+                <span class="sidebar-text">Notifications</span>
+            </a>
+        </nav>
+
+        <!-- Logout -->
+        <div class="p-3 border-t border-white/5 mt-auto mb-8">
+            <a href="#" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
+                <i class="fas fa-power-off"></i>
+                <span class="sidebar-text">Sign Out</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<style>
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
+</style>

@@ -1,0 +1,442 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FitSense - Admin{% endblock %}
+
+{% block header %}
+    {# Override to hide the Training Studio header in admin pages #}
+{% endblock %}
+
+{% block footer %}
+    {# Override to hide the footer in admin pages #}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --blue-light: #38BDF8;
+            --violet-light: #A78BFA;
+            --dark-bg: #111318;
+            --dark-card: #1B1E26;
+            --dark-input: #262A35;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A1A1AA;
+            --border-color: #343846;
+            --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+        }
+
+        body.admin-theme {
+            background: var(--dark-bg);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #1B1E26 0%, #111318 100%);
+            color: white;
+            width: 280px;
+            border-right: 1px solid #343846;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.25rem;
+            color: #A1A1AA;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            margin: 0.25rem 0.75rem;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38BDF8;
+            transform: translateX(4px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #38BDF8, #A78BFA);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .sidebar-link i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, #1B1E26 0%, #262A35 100%);
+            border-bottom: 1px solid #343846;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-row:hover {
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1B1E26, #262A35);
+            border: 1px solid #343846;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            color: var(--text-primary);
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #343846;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38BDF8;
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #38BDF8, #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Sidebar Transition */
+        .sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Collapsed Sidebar State */
+        .sidebar-collapsed {
+            width: 80px !important;
+        }
+
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .portal-label,
+        .sidebar-collapsed .logo-title {
+            display: none;
+        }
+
+        .sidebar-collapsed .sidebar-link {
+            justify-content: center;
+            padding: 0.875rem 0;
+            margin: 0.25rem 0.5rem;
+        }
+
+        .sidebar-collapsed .sidebar-link i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+
+        .sidebar-collapsed .logo-container {
+            padding: 1.5rem 0 !important;
+        }
+
+        .sidebar-collapsed .hero-logo {
+            width: 40px !important;
+        }
+
+        /* Content Area Dynamic Margin */
+        .content-expanded {
+            margin-left: 280px;
+        }
+
+        .content-collapsed {
+            margin-left: 80px;
+        }
+
+        @media (max-width: 1024px) {
+            .content-expanded, .content-collapsed {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Innovative UI Utilities */
+        .glass-glow {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1), inset 0 0 10px rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        /* 3D Row Lift */
+        .row-orbit {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            perspective: 1000px;
+        }
+
+        .row-orbit:hover {
+            transform: translateY(-4px) scale(1.01);
+            background: rgba(139, 92, 246, 0.08) !important;
+            box-shadow: 0 10px 30px -5px rgba(139, 92, 246, 0.2);
+            z-index: 10;
+        }
+
+        /* Status Neon Pulse */
+        @keyframes neonPulseGreen {
+            0%, 100% { box-shadow: 0 0 4px rgba(34, 197, 94, 0.4); border-color: rgba(34, 197, 94, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(34, 197, 94, 0.8); border-color: rgba(34, 197, 94, 1); }
+        }
+        @keyframes neonPulseRed {
+            0%, 100% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); border-color: rgba(239, 68, 68, 1); }
+        }
+        @keyframes neonPulseViolet {
+            0%, 100% { box-shadow: 0 0 4px rgba(139, 92, 246, 0.4); border-color: rgba(139, 92, 246, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(139, 92, 246, 0.8); border-color: rgba(139, 92, 246, 1); }
+        }
+
+        .status-pulse-active { animation: neonPulseGreen 2s infinite; }
+        .status-pulse-inactive { animation: neonPulseRed 2s infinite; }
+        .status-pulse-pending { animation: neonPulseViolet 2s infinite; }
+
+        /* Perspective Grid Background */
+        .tech-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .tech-grid::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, transparent, var(--dark-bg) 80%);
+        }
+
+        /* Animated Scanline for Search */
+        @keyframes searchScan {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        .search-scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #8B5CF6, transparent);
+            animation: searchScan 2s linear infinite;
+            display: none;
+        }
+        input:focus + .search-scan-line { display: block; }
+
+        /* Staggered Row Entrance */
+        @keyframes rowSlideIn {
+            from { opacity: 0; transform: translateX(-20px) scale(0.98); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        .stagger-row {
+            animation: rowSlideIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+        }
+
+        /* Custom Glass Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #8B5CF6, #38BDF8);
+            border-radius: 10px;
+        }
+
+        /* Staggered Field Entrance (Manual) */
+        @keyframes fieldStagger {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .stagger-field {
+            animation: fieldStagger 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+        }
+
+        /* Completely Hide Preloader in Admin */
+        #js-preloader, .js-preloader {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="admin-theme bg-[#0B0C10]">
+        <!-- Sidebar -->
+        {% include 'admin/partials/sidebar.html.twig' %}
+
+        <!-- Main content area -->
+        <div id="main-content" class="relative flex flex-col flex-1 h-screen overflow-hidden transition-all duration-300 content-expanded">
+            <!-- Navbar -->
+            {% include 'admin/partials/navbar.html.twig' %}
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-6 lg:p-8" style="background: var(--dark-bg);">
+                {% block admin_content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[70] opacity-0 pointer-events-none transition-all duration-500">
+        <div class="modal-content relative bg-[#1B1E26]/90 border border-red-500/30 rounded-[2.5rem] shadow-[0_0_50px_rgba(239,68,68,0.15)] max-w-md w-[90%] transform scale-95 transition-all duration-500 p-10 text-center">
+            
+            <div class="mb-8">
+                <div class="relative w-20 h-20 mx-auto mb-6">
+                    <div class="absolute inset-0 bg-red-500/20 blur-xl rounded-full animate-pulse"></div>
+                    <div class="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+                        <i class="fas fa-sign-out-alt text-white text-3xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-black text-white uppercase tracking-tighter mb-3">Terminate Session</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">Are you sure you want to disconnect from the administrative grid coordinates?</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="cancelLogout" class="flex-1 px-6 py-4 bg-white/5 text-gray-400 rounded-2xl hover:bg-white/10 hover:text-white transition-all duration-300 font-bold uppercase tracking-widest text-[10px] border border-white/5">
+                    Stay Online
+                </button>
+                <a href="{{ path('app_logout') }}" class="flex-1 px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-red-500/20 hover:shadow-red-500/40 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center">
+                    Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('main-content');
+            const desktopToggle = document.getElementById('desktop-sidebar-toggle');
+            const mobileToggle = document.getElementById('mobileSidebarToggle'); 
+            const overlay = document.getElementById('sidebar-overlay');
+
+            // Desktop Toggle
+            function toggleDesktopSidebar() {
+                sidebar.classList.toggle('sidebar-collapsed');
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    mainContent.classList.remove('content-expanded');
+                    mainContent.classList.add('content-collapsed');
+                    localStorage.setItem('admin-sidebar-collapsed', 'true');
+                } else {
+                    mainContent.classList.add('content-expanded');
+                    mainContent.classList.remove('content-collapsed');
+                    localStorage.setItem('admin-sidebar-collapsed', 'false');
+                }
+            }
+
+            // Restore state
+            if (localStorage.getItem('admin-sidebar-collapsed') === 'true') {
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('content-expanded');
+                mainContent.classList.add('content-collapsed');
+            }
+
+            if (desktopToggle) {
+                desktopToggle.addEventListener('click', toggleDesktopSidebar);
+            }
+
+            // Mobile Toggle
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.remove('-translate-x-full');
+                });
+            }
+
+            // Logout Modal logic (existing)
+            const modal = document.getElementById('logoutModal');
+            modal.style.display = 'none';
+            const logoutLinks = document.querySelectorAll('.logout-link');
+
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    modal.style.display = 'flex';
+                    setTimeout(() => modal.classList.add('active'), 10);
+                });
+            });
+
+            document.getElementById('cancelLogout')?.addEventListener('click', function () {
+                modal.classList.remove('active');
+                setTimeout(() => modal.style.display = 'none', 300);
+            });
+
+            // Click outside to close
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            // ESC key to close
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.style.display !== 'none') {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    </script>
+    {% include 'admin/partials/footer.html.twig' %}
+
+{% endblock %}

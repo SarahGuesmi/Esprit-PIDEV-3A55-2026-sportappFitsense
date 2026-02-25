@@ -1,0 +1,74 @@
+{# SEARCH & FILTERS #}
+<form method="get" class="form-card filters-card" style="margin-top:14px;" id="filtersForm">
+  <div class="form-title text-white">🔎 Search & Filters</div>
+
+  <div class="filters-row">
+    <div class="filters-search">
+      <label class="text-white">Search by name</label>
+      <input type="text" name="q" value="{{ q|default('') }}" placeholder="Ex: Avocado Power Toast">
+    </div>
+
+    <div class="filters-actions">
+      <button class="btn btn-green" type="submit">Search</button>
+      <a class="btn btn-ghost" href="{{ path('coach_recette') }}">Reset</a>
+    </div>
+  </div>
+
+  {# Hidden inputs envoyés au backend #}
+  <input type="hidden" name="kcal" id="kcalHidden" value="{{ kcal|default('') }}">
+  <input type="hidden" name="proteins" id="protHidden" value="{{ proteins|default('') }}">
+
+  <div class="sliders-row">
+
+    <div class="slider-card">
+      <div class="slider-top">
+        <span class="slider-label text-white">Calories</span>
+        <span class="slider-value text-white">
+          <span id="kcalVal">{{ kcal is not empty ? kcal : '—' }}</span> <small>kcal</small>
+        </span>
+      </div>
+
+      <div class="slider-line">
+        <button type="button" class="slider-btn" data-target="kcalRange" data-step="-10">−</button>
+
+        <input
+          id="kcalRange"
+          class="slider-range"
+          type="range"
+          min="0"
+          max="1200"
+          step="10"
+          value="{{ kcal is not empty ? kcal : 500 }}"
+        >
+
+        <button type="button" class="slider-btn" data-target="kcalRange" data-step="10">+</button>
+      </div>
+    </div>
+
+    <div class="slider-card">
+      <div class="slider-top">
+        <span class="slider-label text-white">Proteins</span>
+        <span class="slider-value text-white">
+          <span id="protVal">{{ proteins is not empty ? proteins : '—' }}</span> <small>g</small>
+        </span>
+      </div>
+
+      <div class="slider-line">
+        <button type="button" class="slider-btn" data-target="protRange" data-step="-1">−</button>
+
+        <input
+          id="protRange"
+          class="slider-range"
+          type="range"
+          min="0"
+          max="150"
+          step="1"
+          value="{{ proteins is not empty ? proteins : 20 }}"
+        >
+
+        <button type="button" class="slider-btn" data-target="protRange" data-step="1">+</button>
+      </div>
+    </div>
+
+  </div>
+</form>

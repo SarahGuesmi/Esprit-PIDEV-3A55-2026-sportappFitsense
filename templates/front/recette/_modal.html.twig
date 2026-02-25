@@ -1,0 +1,85 @@
+{# Modal Template (User) #}
+<div id="recipeModal" 
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm hidden transition-all duration-300"
+     style="display: none;">
+    
+    <div class="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-card border border-white/10 rounded-2xl shadow-2xl flex flex-col md:flex-row">
+        
+        {# Close Button #}
+        <button id="closeModalBtn" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-gray-900/50 backdrop-blur-md flex items-center justify-center text-gray-400 hover:text-white transition group">
+            <i class="fas fa-times group-hover:rotate-90 transition-transform duration-300"></i>
+        </button>
+
+        {# Left: Media #}
+        <div class="w-full md:w-2/5 relative min-h-[300px]">
+            <img id="mImg" src="" alt="Recipe" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
+            <div id="mTypeChip" class="absolute bottom-4 left-4 px-3 py-1 bg-blue-500/20 backdrop-blur-md rounded-full text-xs font-bold border border-blue-500/30 text-blue-400">
+                TYPE
+            </div>
+        </div>
+
+        {# Right: Content #}
+        <div class="w-full md:w-3/5 p-8">
+            <div class="mb-6">
+                <h2 id="mTitle" class="text-3xl font-black mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Recipe Title</h2>
+                <p id="mDesc" class="text-gray-400 leading-relaxed text-sm">Description goes here...</p>
+            </div>
+
+            <div class="flex items-center gap-4 mb-8">
+                <div id="mKcalChip" class="px-3 py-1.5 bg-blue-500/10 rounded-xl border border-blue-500/20 text-blue-400 text-sm font-bold">
+                    <i class="fas fa-fire-alt mr-2"></i> 0 KCAL
+                </div>
+                <div id="mProtChip" class="px-3 py-1.5 bg-purple-500/10 rounded-xl border border-purple-500/20 text-purple-400 text-sm font-bold">
+                    <i class="fas fa-muscle mr-2"></i> 0g PROT
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                         Ingredients
+                    </h3>
+                    <ul id="mIngredientsList" class="space-y-2 text-sm text-gray-300">
+                        {# JS populated #}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                         Preparation
+                    </h3>
+                    <ul id="mPreparationList" class="space-y-3 text-sm text-gray-300">
+                        {# JS populated #}
+                    </ul>
+                </div>
+            </div>
+
+            {# Consumption Form #}
+            <div class="pt-6 border-t border-white/5 mt-auto">
+                <form id="consumeForm" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Did you make it? (Optional photo)</label>
+                            <label class="relative block w-full h-12 bg-gray-900/50 border border-dashed border-gray-700 rounded-xl cursor-pointer hover:border-blue-500/50 transition-colors group overflow-hidden">
+                                <input type="file" name="consumptionImage" id="consumptionImage" class="hidden" accept="image/*">
+                                <div id="previewText" class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-gray-500 group-hover:text-blue-400 transition">
+                                    <i class="fas fa-camera"></i>
+                                    <span>Upload picture</span>
+                                </div>
+                                <img id="previewImg" src="" class="absolute inset-0 w-full h-full object-cover hidden">
+                            </label>
+                        </div>
+                        <div class="pt-6">
+                            <button type="submit" class="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transform hover:scale-[1.02] active:scale-[0.98] transition flex items-center gap-2">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Recipe Made</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

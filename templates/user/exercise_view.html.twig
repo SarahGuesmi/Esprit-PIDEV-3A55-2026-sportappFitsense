@@ -1,0 +1,598 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}{{ exercise.nom }} - FitSense{% endblock %}
+
+{% block body %}
+
+{% set isDone = progress is not null and progress.status == 'done' %}
+{% set elapsedSaved = progress is not null ? progress.elapsedTime : null %}
+{% set workoutId = exercise.workouts|first ? exercise.workouts|first.id : null %}
+
+<style>
+/* ── Page layout ── */
+.exercise-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+}
+
+/* ── Hero image ── */
+.hero-image {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    border-radius: 24px;
+    margin-bottom: 2rem;
+    border: 1px solid #1f2937;
+    display: block;
+}
+
+/* ── Header card ── */
+.exercise-header {
+    background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+    border: 1px solid #1f2937;
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.exercise-header-left { flex: 1; min-width: 0; }
+.exercise-title {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    margin: 0 0 0.75rem;
+    line-height: 1.2;
+}
+.badge-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.4);
+    color: #4ade80;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+.meta-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+.meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #1f2937;
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    color: #9ca3af;
+}
+.meta-pill strong { color: #e5e7eb; font-weight: 700; }
+.meta-pill i { font-size: 0.75rem; color: #22c55e; }
+
+/* ── Description card ── */
+.description-card {
+    background: #0f172a;
+    border: 1px solid #1f2937;
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+}
+.section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1f2937;
+}
+.description-body {
+    color: #d1d5db;
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+.description-body h1,
+.description-body h2,
+.description-body h3 { color: #fff; font-weight: 700; margin: 1rem 0 0.5rem; }
+.description-body strong { color: #fff; }
+.description-body ul,
+.description-body ol { padding-left: 1.4rem; margin: 0.5rem 0; }
+.description-body ul { list-style: disc; }
+.description-body ol { list-style: decimal; }
+.description-body li { margin-bottom: 0.4rem; }
+
+/* ── Result banner ── */
+.result-banner {
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.result-banner.success {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: #4ade80;
+}
+.result-banner.danger {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171;
+}
+
+/* ── YouTube card ── */
+.yt-card {
+    background: #0f172a;
+    border: 1px solid #1f2937;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.yt-card-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #1f2937;
+}
+.yt-card-header span {
+    font-weight: 700;
+    color: #e5e7eb;
+    font-size: 0.95rem;
+}
+.yt-embed-wrap {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+}
+.yt-embed-wrap iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+}
+
+/* ── Timer card ── */
+.timer-card {
+    background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+    border: 1px solid #1f2937;
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.timer-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%);
+    pointer-events: none;
+}
+.status-bar {
+    margin-bottom: 1.5rem;
+}
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 8px 20px;
+    border-radius: 999px;
+}
+.timer-display {
+    font-size: 5rem;
+    font-weight: 900;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+.elapsed-label {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+.alert-depasse {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+.result-message {
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ── Buttons ── */
+.btn-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.btn-start {
+    padding: 14px 36px;
+    font-weight: 900;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-start.active {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(34,197,94,0.3);
+}
+.btn-start.active:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(34,197,94,0.4); }
+.btn-start.disabled {
+    background: #1f2937;
+    color: #4b5563;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.btn-done {
+    padding: 14px 36px;
+    font-weight: 900;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-done.inactive { background: #1f2937; color: #4b5563; cursor: not-allowed; }
+.btn-done.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+}
+.btn-done.active:hover { transform: translateY(-2px); }
+.btn-done.completed {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    cursor: not-allowed;
+}
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    font-weight: 900;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(34,197,94,0.3);
+}
+.btn-back:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(34,197,94,0.4); }
+
+/* ── Progress ring ── */
+.progress-ring-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+.progress-ring { transform: rotate(-90deg); }
+.progress-ring-bg { fill: none; stroke: #1f2937; stroke-width: 6; }
+.progress-ring-bar { fill: none; stroke: #22c55e; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+</style>
+
+<div class="exercise-page">
+
+    {% if exercise.imageName %}
+        <img src="/uploads/exercises/{{ exercise.imageName }}"
+             alt="{{ exercise.nom }}"
+             class="hero-image">
+    {% endif %}
+
+    <!-- Header card -->
+    <div class="exercise-header">
+        <div class="exercise-header-left">
+            <h1 class="exercise-title">
+                {{ exercise.nom }}
+                <span id="doneBadge" class="{{ isDone ? '' : 'hidden' }} badge-done">
+                    ✔ Done
+                </span>
+            </h1>
+            <div class="meta-pills">
+                <span class="meta-pill">
+                    <i class="fas fa-tag"></i>
+                    Type : <strong>{{ exercise.type }}</strong>
+                </span>
+                <span class="meta-pill">
+                    <i class="fas fa-clock"></i>
+                    Target : <strong>{{ exercise.duree }}s</strong>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description card -->
+    {% if exercise.description %}
+    <div class="description-card">
+        <div class="section-title">
+            <i class="fas fa-book-open" style="color:#22c55e;"></i>
+            Instructions
+        </div>
+        <div class="description-body">
+            {{ exercise.description|raw }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- YouTube card -->
+    {% if exercise.youtubeVideoId %}
+    <div class="yt-card">
+        <div class="yt-card-header">
+            <i class="fab fa-youtube" style="color:#ff4444; font-size:1.2rem;"></i>
+            <span>Tutorial Video</span>
+        </div>
+        <div class="yt-embed-wrap">
+            <iframe src="https://www.youtube.com/embed/{{ exercise.youtubeVideoId }}?rel=0&modestbranding=1"
+                    frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Persistent result banner if already completed -->
+    {% if isDone %}
+    <div class="result-banner {{ elapsedSaved > exercise.duree ? 'danger' : 'success' }}">
+        {% if elapsedSaved > exercise.duree %}
+            ❌ Completed in <strong>{{ elapsedSaved }}s</strong> — Exceeded by <strong>{{ elapsedSaved - exercise.duree }}s</strong> (target: {{ exercise.duree }}s)
+        {% else %}
+            ✅ Completed in <strong>{{ elapsedSaved }}s</strong> — Within target! ({{ exercise.duree - elapsedSaved }}s to spare)
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Timer card -->
+    <div class="timer-card" id="timerCard">
+
+        <!-- Progress ring -->
+        <div class="progress-ring-wrap">
+            <svg class="progress-ring" width="120" height="120" viewBox="0 0 120 120">
+                <circle class="progress-ring-bg" cx="60" cy="60" r="54"/>
+                <circle class="progress-ring-bar" id="progressRingBar" cx="60" cy="60" r="54"
+                        stroke-dasharray="339.29"
+                        stroke-dashoffset="339.29"/>
+            </svg>
+        </div>
+
+        <!-- Status bar -->
+        <div id="statusBar" class="status-bar hidden">
+            <span id="statusLabel" class="status-pill"></span>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">
+            {% if isDone %}
+                {{ elapsedSaved ? '%02d:%02d'|format((elapsedSaved / 60)|round(0, 'floor'), elapsedSaved % 60) : '--:--' }}
+            {% else %}
+                00:00
+            {% endif %}
+        </div>
+
+        <p id="elapsedLabel" class="elapsed-label">
+            {% if isDone %}Time spent: {{ elapsedSaved }}s{% else %}Elapsed time{% endif %}
+        </p>
+
+        <!-- Overtime alert -->
+        <div id="alertDepasse" class="alert-depasse hidden">
+            ⚠️ You have exceeded the target duration of {{ exercise.duree }}s!
+        </div>
+
+        <!-- Final result message (JS) -->
+        <div id="resultMessage" class="result-message hidden"></div>
+
+        <!-- Buttons -->
+        <div class="btn-group">
+            <button id="btnStart"
+                    class="btn-start {{ isDone ? 'disabled' : 'active' }}"
+                    {{ isDone ? 'disabled' : '' }}>
+                <i class="fas fa-play"></i> Start Exercise
+            </button>
+
+            {% if isDone %}
+                <a href="{{ workoutId ? path('user_workout_view', {id: workoutId}) : path('user_my_workouts') }}"
+                   class="btn-back">
+                    <i class="fas fa-check"></i> Completed ✔
+                </a>
+            {% else %}
+                <button id="btnDone" class="btn-done inactive" disabled>
+                    <i class="fas fa-check"></i> Mark Done
+                </button>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const DUREE_PREVUE = {{ exercise.duree ?? 0 }};
+    const START_URL    = '{{ path('user_exercise_start', {id: exercise.id}) }}';
+    const DONE_URL     = '{{ path('user_exercise_done',  {id: exercise.id}) }}';
+    const WORKOUT_URL  = '{{ workoutId ? path('user_workout_view', {id: workoutId}) : path('user_my_workouts') }}';
+    const IS_DONE      = {{ isDone ? 'true' : 'false' }};
+
+    const btnStart     = document.getElementById('btnStart');
+    const btnDone      = document.getElementById('btnDone');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const alertDepasse = document.getElementById('alertDepasse');
+    const resultMsg    = document.getElementById('resultMessage');
+    const doneBadge    = document.getElementById('doneBadge');
+    const statusBar    = document.getElementById('statusBar');
+    const statusLabel  = document.getElementById('statusLabel');
+    const elapsedLabel = document.getElementById('elapsedLabel');
+    const ringBar      = document.getElementById('progressRingBar');
+
+    const CIRCUMFERENCE = 339.29;
+
+    let startTimestamp = null;
+    let timerInterval  = null;
+    let isRunning      = false;
+    let alertShown     = false;
+
+    function formatTime(s) {
+        return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+    }
+
+    function updateRing(elapsed) {
+        const progress = Math.min(elapsed / DUREE_PREVUE, 1);
+        const offset   = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
+        ringBar.style.strokeDashoffset = offset;
+        ringBar.style.stroke = elapsed > DUREE_PREVUE ? '#ef4444' : '#22c55e';
+    }
+
+    function showInProgress() {
+        statusBar.classList.remove('hidden');
+        statusLabel.className = 'status-pill';
+        statusLabel.style.cssText = 'background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);color:#60a5fa;';
+        statusLabel.innerHTML = '⏱ In progress...';
+    }
+
+    function showDone(elapsed, depasse) {
+        doneBadge.classList.remove('hidden');
+        statusBar.classList.remove('hidden');
+
+        if (depasse) {
+            statusLabel.style.cssText = 'background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;';
+            statusLabel.innerHTML = '❌ Finished — Exceeded by ' + (elapsed - DUREE_PREVUE) + 's';
+        } else {
+            statusLabel.style.cssText = 'background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#4ade80;';
+            statusLabel.innerHTML = '✔ Finished in ' + elapsed + 's — Within target!';
+        }
+
+        if (btnDone) {
+            btnDone.disabled  = true;
+            btnDone.className = 'btn-done completed';
+            btnDone.innerHTML = '<i class="fas fa-check"></i> Completed ✔';
+        }
+
+        elapsedLabel.textContent = `Time spent: ${elapsed}s`;
+        timerDisplay.textContent = formatTime(elapsed);
+        updateRing(elapsed);
+
+        resultMsg.classList.remove('hidden');
+        if (depasse) {
+            resultMsg.style.cssText = 'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;';
+            resultMsg.innerHTML = `❌ Exercise completed in <strong>${elapsed}s</strong> — Exceeded by <strong>${elapsed - DUREE_PREVUE}s</strong> (target: ${DUREE_PREVUE}s)`;
+        } else {
+            resultMsg.style.cssText = 'background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#4ade80;';
+            resultMsg.innerHTML = `✅ Exercise completed in <strong>${elapsed}s</strong> — Within target! (${DUREE_PREVUE - elapsed}s to spare)`;
+        }
+
+        setTimeout(() => { window.location.href = WORKOUT_URL; }, 1500);
+    }
+
+    // === START BUTTON ===
+    btnStart.addEventListener('click', async () => {
+        if (isRunning || IS_DONE) return;
+
+        try { await fetch(START_URL, { method: 'POST' }); } catch(e) { console.error(e); }
+
+        startTimestamp = Date.now();
+        isRunning      = true;
+        alertShown     = false;
+
+        btnStart.disabled   = true;
+        btnStart.className  = 'btn-start disabled';
+
+        if (btnDone) {
+            btnDone.disabled  = false;
+            btnDone.className = 'btn-done active';
+            btnDone.innerHTML = '<i class="fas fa-check"></i> Mark Done';
+        }
+
+        alertDepasse.classList.add('hidden');
+        resultMsg.classList.add('hidden');
+        showInProgress();
+
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+            timerDisplay.textContent = formatTime(elapsed);
+            updateRing(elapsed);
+
+            if (elapsed > DUREE_PREVUE && !alertShown) {
+                alertShown = true;
+                alertDepasse.classList.remove('hidden');
+                alert(`⚠️ You have exceeded the target duration of ${DUREE_PREVUE}s!`);
+            }
+        }, 1000);
+    });
+
+    // === MARK DONE BUTTON ===
+    if (btnDone) {
+        btnDone.addEventListener('click', async () => {
+            if (!isRunning) return;
+
+            clearInterval(timerInterval);
+            isRunning = false;
+
+            const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+            const depasse = elapsed > DUREE_PREVUE;
+
+            try {
+                const res  = await fetch(DONE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ elapsed })
+                });
+                const data = await res.json();
+                showDone(elapsed, data.depasse);
+            } catch(e) {
+                console.error(e);
+                showDone(elapsed, depasse);
+            }
+        });
+    }
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,243 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block title %}FitSense - Mental Health Management{% endblock %}
+
+{% block coach_content %}
+    <div class="space-y-6">
+        <!-- Header Card -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+
+            <div class="relative">
+                <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                    <div class="w-1.5 h-10 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
+                    Mental Health Overview
+                </h1>
+                <div class="flex items-center justify-between">
+                    <p class="text-gray-400 ml-6">Monitor the wellbeing of all users on the platform</p>
+                    <a href="{{ path('coach_mental_health_recommendations_list') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-blue-400 rounded-xl border border-blue-500/20 transition-all font-bold text-sm">
+                        <i class="fas fa-list-ul mr-2"></i> Manage Recommendations
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div id="flash-message" class="p-4 mb-4 text-sm text-green-400 bg-green-500/10 border border-green-500/20 rounded-xl transition-opacity duration-500">
+                {{ message }}
+            </div>
+            <script>
+                setTimeout(() => {
+                    const flash = document.getElementById('flash-message');
+                    if (flash) {
+                        flash.style.opacity = '0';
+                        setTimeout(() => flash.remove(), 500);
+                    }
+                }, 5000);
+            </script>
+        {% endfor %}
+
+        <!-- Assessments Table -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-gray-700">
+            <div class="relative p-6 border-b border-gray-700/50 flex justify-between items-center bg-gray-900/50">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-3">
+                    <div class="w-1 h-6 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
+                    Latest Assessments
+                </h2>
+                
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search user..." class="bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-64 pl-10 p-2.5 transition-all duration-300">
+                        <i class="fas fa-search absolute left-3.5 top-3.5 text-gray-500"></i>
+                    </div>
+                    <select id="statusFilter" class="bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all duration-300">
+                        <option value="">All Statuses</option>
+                        <option value="Good">Good</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="relative overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700/50">
+                    <thead class="bg-gray-900/50 backdrop-blur">
+                        <tr>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Stress</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Sleep</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Mood</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Motivation</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Score</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-5 text-center text-xs font-bold text-gray-300 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assessmentsTableBody" class="divide-y divide-gray-700/50 backdrop-blur">
+                        {% include 'coach/mental_health/_table.html.twig' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendation Modal -->
+    <div id="recommendationModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-black bg-opacity-75 backdrop-blur-sm" onclick="closeRecommendationModal()"></div>
+
+            <div class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <form action="{{ path('coach_mental_health_recommend_add') }}" method="POST" id="recommendationForm">
+                    <input type="hidden" name="user_id" id="modalUserId">
+                    
+                    <div class="px-6 py-4 border-b border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                                <i class="fas fa-notes-medical text-blue-500"></i>
+                                Recommendation for <span id="modalUserName" class="text-blue-400"></span>
+                            </h3>
+                            <button type="button" onclick="closeRecommendationModal()" class="text-gray-500 hover:text-white transition-colors">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-6 space-y-6 bg-gray-900/50">
+                        <!-- Dynamic Exercises List -->
+                        <div id="exercisesContainer" class="space-y-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-bold text-gray-400">Exercises to Recommend</label>
+                                <button type="button" onclick="addExerciseField()" class="text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/20 transition-all">
+                                    <i class="fas fa-plus mr-1"></i> Add Exercise
+                                </button>
+                            </div>
+
+                            <!-- Initial Exercise Item -->
+                            <div class="exercise-item bg-gray-800/50 p-4 rounded-xl border border-gray-700 relative group">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <input type="text" name="exercise_titles[]" required placeholder="Exercise Name (e.g. Yoga)" class="w-full bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl p-3 outline-none focus:ring-1 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <input type="number" name="exercise_durations[]" placeholder="Duration (min)" class="w-full bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl p-3 outline-none focus:ring-1 focus:ring-blue-500">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <textarea name="exercise_descriptions[]" rows="2" placeholder="Exercise Description..." class="w-full bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl p-3 outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-400 mb-2">General Note (Optional)</label>
+                            <textarea name="notes" rows="2" class="w-full bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-all duration-300" placeholder="Special overall advice..."></textarea>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" class="w-full py-3 px-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 opacity-50 cursor-not-allowed">
+                                <i class="fas fa-robot"></i>
+                                Fill with AI (Coming Soon)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-6 border-t border-gray-800 flex justify-end items-center gap-4 bg-gray-900">
+                        <button type="button" onclick="closeRecommendationModal()" class="px-6 py-2.5 text-sm font-bold text-gray-400 hover:text-white transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-8 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl text-sm font-bold transition-all duration-300 shadow-lg shadow-blue-500/20">
+                            Save Recommendation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openRecommendationModal(userId, userName) {
+            document.getElementById('modalUserId').value = userId;
+            document.getElementById('modalUserName').textContent = userName;
+            const modal = document.getElementById('recommendationModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRecommendationModal() {
+            const modal = document.getElementById('recommendationModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            // We don't just reset form because we might have added fields
+            const container = document.getElementById('exercisesContainer');
+            const items = container.querySelectorAll('.exercise-item');
+            // Keep only first one
+            for(let i=1; i<items.length; i++) {
+                items[i].remove();
+            }
+            document.getElementById('recommendationForm').reset();
+        }
+
+        function addExerciseField() {
+            const container = document.getElementById('exercisesContainer');
+            const newField = document.createElement('div');
+            newField.className = 'exercise-item bg-gray-800/50 p-4 rounded-xl border border-gray-700 relative group animate-fade-in';
+            newField.innerHTML = `
+                <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors z-10 shadow-lg">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <input type="text" name="exercise_titles[]" required placeholder="Exercise Name" class="w-full bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl p-3 outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <input type="number" name="exercise_durations[]" placeholder="Duration (min)" class="w-full bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl p-3 outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <textarea name="exercise_descriptions[]" rows="2" placeholder="Exercise Description..." class="w-full bg-gray-800 border-gray-700 text-gray-300 text-sm rounded-xl p-3 outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newField);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const tableBody = document.getElementById('assessmentsTableBody');
+            let timeout = null;
+
+            function filterTable() {
+                const searchTerm = searchInput.value;
+                const selectedStatus = statusFilter.value;
+
+                // Add loading state
+                tableBody.style.opacity = '0.5';
+
+                fetch(`{{ path('coach_mental_health_index') }}?q=${encodeURIComponent(searchTerm)}&status=${encodeURIComponent(selectedStatus)}&ajax=1`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                    tableBody.style.opacity = '1';
+                })
+                .catch(error => {
+                    console.error('Error fetching filtered data:', error);
+                    tableBody.style.opacity = '1';
+                });
+            }
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(filterTable, 300); // Debounce search
+            });
+
+            statusFilter.addEventListener('change', filterTable);
+        });
+    </script>
+{% endblock %}
+

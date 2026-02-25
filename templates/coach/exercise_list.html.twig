@@ -1,0 +1,260 @@
+{% extends 'coach/base_coach.html.twig' %}
+
+{% block title %}Exercise Management - FitSense{% endblock %}
+
+{% block coach_page_title %}Exercise Management{% endblock %}
+{% block coach_page_subtitle %}Create and manage your exercise library{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.gradient-text {
+    background: linear-gradient(135deg, #22C55E, #84CC16);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gradient-btn {
+    background: linear-gradient(135deg, #22C55E, #84CC16);
+}
+
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(34, 197, 94, 0.15);
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+}
+
+.icon-glow {
+    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.4));
+}
+
+.shine-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.shine-effect::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.03) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+</style>
+{% endblock %}
+
+{% block coach_content %}
+<div class="space-y-8">
+    <!-- Action Bar -->
+    <div class="flex items-center justify-end gap-3 mb-6">
+        <a href="{{ path('coach_workout_catalog') }}" 
+           class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-sm transition-all border border-gray-700 text-gray-300">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Catalog
+        </a>
+        <a href="{{ path('coach_exercise_create') }}" 
+           class="px-6 py-2.5 gradient-btn rounded-lg font-bold text-sm text-black shadow-lg hover:shadow-xl transition-all">
+            <i class="fas fa-plus mr-2"></i>
+            Create Exercise
+        </a>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-8">
+        <div class="relative max-w-xl">
+            <input type="text" 
+                   id="searchInput"
+                   placeholder="Search an exercise..." 
+                   class="w-full px-5 py-4 bg-[#0D0D0D] border border-gray-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-green-500 search-input transition-all">
+            <i class="fas fa-search absolute right-5 top-1/2 -translate-y-1/2 text-gray-600"></i>
+        </div>
+    </div>
+
+    <!-- Section Title with Results Counter -->
+    <div class="mb-6 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider">
+            Available Exercises
+        </h2>
+        <span id="resultsCounter" class="text-sm text-gray-600">
+            {% if exercises is not empty %}
+                {{ exercises|length }} exercise(s)
+            {% endif %}
+        </span>
+    </div>
+
+    {% if exercises is empty %}
+        <!-- Empty State -->
+        <div id="emptyState" class="flex flex-col items-center justify-center py-24 bg-[#0D0D0D] rounded-2xl border border-gray-900">
+            <i class="fas fa-lightbulb text-6xl text-gray-800 mb-6"></i>
+            <h3 class="text-xl font-bold text-gray-400 mb-2">No exercises yet</h3>
+            <p class="text-gray-600 mb-6">Create your first exercise to get started</p>
+            <a href="{{ path('coach_exercise_create') }}" 
+               class="px-6 py-3 gradient-btn rounded-lg font-bold text-sm text-black shadow-lg hover:shadow-xl transition-all">
+                <i class="fas fa-plus mr-2"></i> Create Exercise
+            </a>
+        </div>
+    {% else %}
+        <!-- Exercises List -->
+        <div id="exercisesList" class="space-y-4">
+            {% include 'coach/exercise_list/_list.html.twig' %}
+        </div>
+
+        <!-- No Results State -->
+        <div id="noResultsState" class="hidden flex-col items-center justify-center py-24 bg-[#0D0D0D] rounded-2xl border border-gray-900">
+            <i class="fas fa-search text-6xl text-gray-800 mb-6"></i>
+            <h3 class="text-xl font-bold text-gray-400 mb-2">No exercises found</h3>
+            <p class="text-gray-600">Try adjusting your search</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-content-delete animate-fadeIn">
+        <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-center text-white mb-2">Delete Exercise?</h3>
+        <p class="text-gray-400 text-center text-sm mb-8 leading-relaxed">
+            Are you sure you want to delete "<span id="exerciseNameModal" class="text-white font-semibold"></span>"? This action cannot be undone.
+        </p>
+        <div class="modal-buttons">
+            <button id="cancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+            <button id="confirmBtn" class="modal-btn modal-btn-delete shadow-lg shadow-red-500/20">Delete Exercise</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const resultsCounter = document.getElementById('resultsCounter');
+        const noResultsState = document.getElementById('noResultsState');
+        const exercisesList = document.getElementById('exercisesList');
+        
+        // Modal elements
+        const confirmModal = document.getElementById('confirmModal');
+        const exerciseNameModal = document.getElementById('exerciseNameModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        let currentForm = null;
+        let timeout = null;
+
+        function initDeleteModals() {
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(form => {
+                const deleteBtn = form.querySelector('.delete-btn');
+                deleteBtn.onclick = function(e) {
+                    e.preventDefault();
+                    currentForm = form;
+                    const exerciseName = form.dataset.exerciseName;
+                    exerciseNameModal.textContent = exerciseName;
+                    confirmModal.classList.remove('hidden');
+                };
+            });
+        }
+
+        initDeleteModals();
+
+        // Cancel deletion
+        cancelBtn.addEventListener('click', function() {
+            confirmModal.classList.add('hidden');
+            currentForm = null;
+        });
+
+        // Confirm deletion
+        confirmBtn.addEventListener('click', function() {
+            if (currentForm) {
+                currentForm.submit();
+            }
+        });
+
+        // Close modal on overlay click
+        confirmModal.addEventListener('click', function(e) {
+            if (e.target === confirmModal) {
+                confirmModal.classList.add('hidden');
+                currentForm = null;
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) {
+                confirmModal.classList.add('hidden');
+                currentForm = null;
+            }
+        });
+
+        function ajaxFilter() {
+            const query = searchInput.value;
+            
+            exercisesList.style.opacity = '0.5';
+
+            const url = new URL('{{ path('coach_exercise_list') }}', window.location.origin);
+            url.searchParams.set('q', query);
+            url.searchParams.set('ajax', '1');
+
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                exercisesList.innerHTML = html;
+                exercisesList.style.opacity = '1';
+                
+                const count = exercisesList.querySelectorAll('.exercise-card').length;
+                resultsCounter.textContent = `${count} exercise(s)`;
+                
+                if (count === 0) {
+                    exercisesList.style.display = 'none';
+                    noResultsState.style.display = 'flex';
+                } else {
+                    exercisesList.style.display = 'block';
+                    noResultsState.style.display = 'none';
+                }
+                
+                initDeleteModals();
+            })
+            .catch(error => {
+                console.error('Error fetching exercises:', error);
+                exercisesList.style.opacity = '1';
+            });
+        }
+
+        // Search functionality with debouncing
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                clearTimeout(timeout);
+                timeout = setTimeout(ajaxFilter, 300);
+            });
+        }
+    });
+    </script>
+{% endblock %}

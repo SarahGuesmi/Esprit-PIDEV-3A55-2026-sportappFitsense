@@ -1,0 +1,35 @@
+
+{# {% extends '@SymfonyCastsResetPassword/email_layout.html.twig' %}  ← REMOVE or COMMENT this #}
+
+{% block subject %}Reset your FitSense password{% endblock %}
+
+{% block body %}
+
+{% block header%}{% endblock %}
+    <h1>Hello {{ user.getFirstname() ?: 'there' }},</h1>
+
+    <p>We received a request to reset your FitSense password.</p>
+
+    <p>Click the button below to set a new password (this link expires in {{ expiresInMessage }}):</p>
+
+    <p style="text-align:center; margin:30px 0;">
+        <a href="{{ resetUrl }}"
+           style="background: linear-gradient(135deg, #38BDF8, #A78BFA);
+                  color: white;
+                  padding: 14px 32px;
+                  border-radius: 12px;
+                  text-decoration: none;
+                  font-weight: bold;
+                  display: inline-block;">
+            Reset Password
+        </a>
+    </p>
+
+    <p>If you didn't request this, ignore this email — your account is safe.</p>
+
+    <p>— The FitSense Team</p>
+
+    {% block footer%}{% endblock %}
+{% endblock %}
+
+

@@ -1,0 +1,109 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}FitSense - Nutrition Catalog{% endblock %}
+
+{% block user_page_title %}Nutrition Catalog{% endblock %}
+{% block user_page_subtitle %}Healthy recipes to fuel your progress{% endblock %}
+
+{% block user_content %}
+    <div class="space-y-8">
+        {% include 'front/recette/_filters.html.twig' with { q: q|default(''), kcal: kcal|default(''), proteins: proteins|default('') } %}
+        {% include 'front/recette/_grid.html.twig' with { recipes: recipes } %}
+    </div>
+
+    {% include 'front/recette/_modal.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal logic
+        const modal = document.getElementById('recipeModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const closeModalFooter = document.getElementById('closeModalFooter');
+        const triggers = document.querySelectorAll('.js-open-modal');
+
+        function openModal(data) {
+            document.getElementById('mTitle').textContent = data.title;
+            document.getElementById('mDesc').textContent = data.description;
+            document.getElementById('mKcalChip').innerHTML = `<i class="fas fa-fire-alt mr-1"></i> ${data.kcal} KCAL`;
+            document.getElementById('mProtChip').innerHTML = `<i class="fas fa-muscle mr-1"></i> ${data.proteins}g PROT`;
+            document.getElementById('mTypeChip').innerHTML = `<i class="fas fa-utensils mr-1"></i> ${data.type}`;
+            document.getElementById('mImg').src = data.image;
+
+            const ingredientsList = document.getElementById('mIngredientsList');
+            ingredientsList.innerHTML = data.ingredients.split('\n').map(i => i.trim() ? `<li><i class="fas fa-check text-blue-400 mr-2"></i> ${i}</li>` : '').join('');
+
+            const preparationList = document.getElementById('mPreparationList');
+            preparationList.innerHTML = data.preparation.split('\n').map((step, idx) => step.trim() ? `<li class="flex gap-4">
+                <span class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">${idx + 1}</span>
+                <span>${step}</span>
+            </li>` : '').join('');
+
+            // Update form action
+            const consumeForm = document.getElementById('consumeForm');
+            if (consumeForm) {
+                consumeForm.action = `/user/recipe/${data.id}/consume`;
+            }
+
+            // Reset image preview
+            document.getElementById('previewImg').classList.add('hidden');
+            document.getElementById('previewText').classList.remove('hidden');
+
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.remove('hidden'), 10);
+        }
+
+        // Image Preview Logic
+        const imageInput = document.getElementById('consumptionImage');
+        const previewImg = document.getElementById('previewImg');
+        const previewText = document.getElementById('previewText');
+
+        imageInput?.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.classList.remove('hidden');
+                    previewText.classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        triggers.forEach(t => {
+            t.addEventListener('click', () => openModal(t.dataset));
+        });
+
+        const close = () => {
+            modal.classList.add('hidden');
+            setTimeout(() => modal.style.display = 'none', 300);
+        };
+
+        closeModalBtn?.addEventListener('click', close);
+        closeModalFooter?.addEventListener('click', close);
+        modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
+
+        // Sliders logic
+        const kcalRange = document.getElementById('kcalRange');
+        const kcalVal = document.getElementById('kcalVal');
+        const kcalHidden = document.getElementById('kcalHidden');
+        
+        const protRange = document.getElementById('protRange');
+        const protVal = document.getElementById('protVal');
+        const protHidden = document.getElementById('protHidden');
+
+        kcalRange?.addEventListener('input', (e) => {
+            kcalVal.textContent = e.target.value;
+            kcalHidden.value = e.target.value;
+        });
+
+        protRange?.addEventListener('input', (e) => {
+            protVal.textContent = e.target.value;
+            protHidden.value = e.target.value;
+        });
+    });
+    </script>
+{% endblock %}

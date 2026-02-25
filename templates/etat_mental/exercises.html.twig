@@ -1,0 +1,180 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Exercices Recommandés - FitSense{% endblock %}
+
+{% block stylesheets %}
+<style>
+:root {
+    --blue-light: #38BDF8;
+    --violet-light: #A78BFA;
+    --dark-bg: #111318;
+    --dark-card: #1B1E26;
+    --dark-input: #262A35;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A1A1AA;
+    --border-color: #343846;
+    --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+    --success-color: #10B981;
+    --warning-color: #F59E0B;
+    --danger-color: #EF4444;
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.recommendation-card {
+    max-width: 800px;
+    width: 100%;
+    background: var(--dark-card);
+    padding: 48px 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+h2 {
+    font-size: 32px;
+    margin-bottom: 8px;
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.intensity-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 12px;
+    background: var(--dark-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.intensity-badge.low { color: var(--danger-color); border-color: var(--danger-color); }
+.intensity-badge.medium { color: var(--warning-color); border-color: var(--warning-color); }
+.intensity-badge.good { color: var(--success-color); border-color: var(--success-color); }
+
+.exercises-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.exercise-item {
+    background: var(--dark-input);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.exercise-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--blue-light);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.exercise-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.exercise-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.exercise-duration {
+    font-size: 13px;
+    color: var(--violet-light);
+    background: rgba(167, 139, 250, 0.1);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.exercise-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.actions {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.btn {
+    text-decoration: none;
+    font-weight: 700;
+    padding: 16px 32px;
+    border-radius: 16px;
+    display: inline-block;
+}
+
+.btn-back {
+    background: var(--dark-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    background: var(--border-color);
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{% block header %}{% endblock %}
+<div class="recommendation-card">
+    <div class="header">
+        <h2>Recommended Program</h2>
+        <div class="subtitle">Based on your current mental state</div>
+        <div class="intensity-badge {{ colorClass }}">
+            Intensity: {{ intensity }} • Focus: {{ focus }}
+        </div>
+    </div>
+
+    <div class="exercises-grid">
+        {% for exercise in recommendations %}
+        <div class="exercise-item">
+            <div class="exercise-header">
+                <span class="exercise-name">{{ exercise.name }}</span>
+                <span class="exercise-duration">⏱ {{ exercise.duration }}</span>
+            </div>
+            <p class="exercise-desc">{{ exercise.desc }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="actions">
+        <a href="{{ path('etat_mental_result', {id: etat.id}) }}" class="btn btn-back">← Back to results</a>
+    </div>
+</div>
+{% block footer %}{% endblock %}
+{% endblock %}
