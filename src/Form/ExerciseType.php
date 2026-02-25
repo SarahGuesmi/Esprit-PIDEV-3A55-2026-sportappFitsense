@@ -71,9 +71,8 @@ class ExerciseType extends AbstractType
                     'required' => false,
                     'label'    => false,
             ])
-            ->add('description', TextareaType::class, [
+            ->add('description', HiddenType::class, [
                 'required' => false,
-                'attr' => ['rows' => 6],
             ]);
     }
 

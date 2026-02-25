@@ -255,12 +255,22 @@
             </div>
         </div>
 
-        <!-- ✅ Description avec Quill Editor -->
+        <!-- ✅ Description avec Quill Editor — UNE SEULE FOIS en HTML pur -->
         <div class="form-group">
             <label class="form-label">Description</label>
 
-            {# Champ caché Symfony — reçoit le HTML de Quill avant submit #}
-            {{ form_widget(form.description, {'attr': {'id': 'descriptionHidden', 'style': 'display:none;'}}) }}
+            {% do form.description.setRendered() %}
+
+
+            {# ✅ HTML pur pour éviter "already rendered" et le problème de troncature #}
+            <input type="hidden"
+                   name="{{ form.description.vars.full_name }}"
+                   data-role="description-hidden">
+
+            {# ✅ Valeur existante passée via JSON pour éviter la troncature des guillemets #}
+            <script>
+                var EXISTING_DESCRIPTION = {{ form.description.vars.value|default('')|json_encode|raw }};
+            </script>
 
             {# Éditeur Quill visible #}
             <div id="quillEditor"></div>
@@ -290,7 +300,6 @@
                 <span class="text-gray-600 font-normal normal-case ml-1">(optional)</span>
             </label>
 
-            {# ✅ CORRECTION : data-role à la place de id pour éviter le conflit Symfony #}
             {{ form_widget(form.youtubeVideoId, {'attr': {'data-role': 'yt-video-id'}}) }}
 
             {# Barre de recherche #}
@@ -366,7 +375,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ── Quill Editor ──
-    const descriptionHidden = document.getElementById('descriptionHidden');
+    const descriptionHidden = document.querySelector('[data-role="description-hidden"]');
 
     const quill = new Quill('#quillEditor', {
         theme: 'snow',
@@ -383,9 +392,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Charger le contenu existant en mode edit
-    if (descriptionHidden && descriptionHidden.value) {
-        quill.root.innerHTML = descriptionHidden.value;
+    // ✅ Charger le contenu existant via JSON (évite la troncature)
+    if (typeof EXISTING_DESCRIPTION !== 'undefined' && EXISTING_DESCRIPTION) {
+        quill.root.innerHTML = EXISTING_DESCRIPTION;
+        if (descriptionHidden) descriptionHidden.value = EXISTING_DESCRIPTION;
     }
 
     // ── Validation formulaire ──
@@ -394,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reqFields = form.querySelectorAll('.required');
 
     form.addEventListener('submit', (e) => {
-        // Copier le HTML de Quill dans le champ caché avant envoi
+        // ✅ Copier le HTML de Quill dans le champ caché avant envoi
         if (descriptionHidden) {
             descriptionHidden.value = quill.root.innerHTML;
         }

@@ -82,27 +82,7 @@ class CoachController extends AbstractController
     // ==================== AI WORKOUT ====================
 
     #[Route('/coach/ai-workout', name: 'coach_ai_workout_form')]
-    public function aiForm(): Response
-    {
-        return $this->render('coach/ai_workout/form.html.twig');
-    }
 
-    #[Route('/coach/ai-workout/generate', name: 'coach_ai_workout_generate', methods: ['POST'])]
-    public function generateAI(Request $request, HttpClientInterface $client): Response
-    {
-        $level    = $request->request->get('level');
-        $goal     = $request->request->get('goal');
-        $duration = $request->request->get('duration');
-
-        $workout = $this->generateWorkoutWithExerciseDB($level, $goal, $duration, $client);
-
-        return $this->render('coach/partial/_ai_result.html.twig', [
-            'workout'  => $workout,
-            'level'    => $level,
-            'goal'     => $goal,
-            'duration' => $duration,
-        ]);
-    }
 
     private function generateWorkoutWithExerciseDB(
         string $level,
@@ -419,34 +399,38 @@ public function exerciseEdit(Exercise $exercise, Request $request, EntityManager
 
     // ==================== WORKOUT MANAGEMENT ====================
 
-    #[Route('/workout/create', name: 'coach_workout_create')]
-    public function workoutCreate(Request $request, EntityManagerInterface $em, ExerciseRepository $exerciseRepository): Response
-    {
-        $exerciseCount = $exerciseRepository->count([]);
+#[Route('/workout/create', name: 'coach_workout_create')]
+public function workoutCreate(Request $request, EntityManagerInterface $em, ExerciseRepository $exerciseRepository): Response
+{
+    $exerciseCount = $exerciseRepository->count([]);
 
-        if ($exerciseCount === 0) {
-            $this->addFlash('warning', 'Vous devez créer au moins un exercice avant de créer un workout.');
-            return $this->redirectToRoute('coach_exercise_create');
-        }
-
-        $workout = new Workout();
-        $form    = $this->createForm(WorkoutType::class, $workout);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($workout);
-            $workout->setNiveau($aiData['niveau'] ?? 'beginner');
-            $em->flush();
-
-            $this->addFlash('success', 'Workout créé avec succès !');
-            return $this->redirectToRoute('coach_workout_catalog');
-        }
-
-        return $this->render('coach/workout_form.html.twig', [
-            'form'   => $form->createView(),
-            'isEdit' => false,
-        ]);
+    if ($exerciseCount === 0) {
+        $this->addFlash('warning', 'Vous devez créer au moins un exercice avant de créer un workout.');
+        return $this->redirectToRoute('coach_exercise_create');
     }
+
+    $workout = new Workout();
+    $form    = $this->createForm(WorkoutType::class, $workout);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        // ✅ Définir le niveau avant persist, sans dépendre de $aiData
+        if (!$workout->getNiveau()) {
+            $workout->setNiveau('beginner');
+        }
+
+        $em->persist($workout);
+        $em->flush();
+
+        $this->addFlash('success', 'Workout créé avec succès !');
+        return $this->redirectToRoute('coach_workout_catalog');
+    }
+
+    return $this->render('coach/workout_form.html.twig', [
+        'form'   => $form->createView(),
+        'isEdit' => false,
+    ]);
+}
 
     #[Route('/workout/{id}/edit', name: 'coach_workout_edit')]
     public function workoutEdit(Workout $workout, Request $request, EntityManagerInterface $em): Response

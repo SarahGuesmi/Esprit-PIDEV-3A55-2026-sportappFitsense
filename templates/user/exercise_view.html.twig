@@ -310,6 +310,25 @@
 }
 .btn-back:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(34,197,94,0.4); }
 
+/* ── Repeat button ── */
+.btn-repeat {
+    padding: 14px 36px;
+    font-weight: 900;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(245,158,11,0.3);
+}
+.btn-repeat:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(245,158,11,0.4); }
+.btn-repeat.hidden { display: none; }
+
 /* ── Progress ring ── */
 .progress-ring-wrap {
     display: flex;
@@ -379,15 +398,15 @@
     {% endif %}
 
     <!-- Persistent result banner if already completed -->
-    {% if isDone %}
-    <div class="result-banner {{ elapsedSaved > exercise.duree ? 'danger' : 'success' }}">
-        {% if elapsedSaved > exercise.duree %}
-            ❌ Completed in <strong>{{ elapsedSaved }}s</strong> — Exceeded by <strong>{{ elapsedSaved - exercise.duree }}s</strong> (target: {{ exercise.duree }}s)
-        {% else %}
-            ✅ Completed in <strong>{{ elapsedSaved }}s</strong> — Within target! ({{ exercise.duree - elapsedSaved }}s to spare)
+    <div id="resultBanner" class="result-banner {{ isDone ? (elapsedSaved > exercise.duree ? 'danger' : 'success') : '' }}" {% if not isDone %}style="display:none"{% endif %}>
+        {% if isDone %}
+            {% if elapsedSaved > exercise.duree %}
+                ❌ Completed in <strong>{{ elapsedSaved }}s</strong> — Exceeded by <strong>{{ elapsedSaved - exercise.duree }}s</strong> (target: {{ exercise.duree }}s)
+            {% else %}
+                ✅ Completed in <strong>{{ elapsedSaved }}s</strong> — Within target! ({{ exercise.duree - elapsedSaved }}s to spare)
+            {% endif %}
         {% endif %}
     </div>
-    {% endif %}
 
     <!-- Timer card -->
     <div class="timer-card" id="timerCard">
@@ -435,8 +454,13 @@
                 <i class="fas fa-play"></i> Start Exercise
             </button>
 
+            <!-- Repeat button: visible only when isDone, hidden during repeat session -->
+            <button id="btnRepeat" class="btn-repeat {{ isDone ? '' : 'hidden' }}">
+                <i class="fas fa-redo"></i> Repeat this exercise
+            </button>
+
             {% if isDone %}
-                <a href="{{ workoutId ? path('user_workout_view', {id: workoutId}) : path('user_my_workouts') }}"
+                <a id="btnBack" href="{{ workoutId ? path('user_workout_view', {id: workoutId}) : path('user_my_workouts') }}"
                    class="btn-back">
                     <i class="fas fa-check"></i> Completed ✔
                 </a>
@@ -458,10 +482,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const START_URL    = '{{ path('user_exercise_start', {id: exercise.id}) }}';
     const DONE_URL     = '{{ path('user_exercise_done',  {id: exercise.id}) }}';
     const WORKOUT_URL  = '{{ workoutId ? path('user_workout_view', {id: workoutId}) : path('user_my_workouts') }}';
-    const IS_DONE      = {{ isDone ? 'true' : 'false' }};
+    let   IS_DONE      = {{ isDone ? 'true' : 'false' }};
 
     const btnStart     = document.getElementById('btnStart');
     const btnDone      = document.getElementById('btnDone');
+    const btnRepeat    = document.getElementById('btnRepeat');
     const timerDisplay = document.getElementById('timerDisplay');
     const alertDepasse = document.getElementById('alertDepasse');
     const resultMsg    = document.getElementById('resultMessage');
@@ -470,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusLabel  = document.getElementById('statusLabel');
     const elapsedLabel = document.getElementById('elapsedLabel');
     const ringBar      = document.getElementById('progressRingBar');
+    const resultBanner = document.getElementById('resultBanner');
 
     const CIRCUMFERENCE = 339.29;
 
@@ -496,39 +522,54 @@ document.addEventListener('DOMContentLoaded', () => {
         statusLabel.innerHTML = '⏱ In progress...';
     }
 
-    function showDone(elapsed, depasse) {
-        doneBadge.classList.remove('hidden');
-        statusBar.classList.remove('hidden');
+            function showDone(elapsed, depasse) {
+            IS_DONE = true;
+            doneBadge.classList.remove('hidden');
+            statusBar.classList.remove('hidden');
 
-        if (depasse) {
-            statusLabel.style.cssText = 'background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;';
-            statusLabel.innerHTML = '❌ Finished — Exceeded by ' + (elapsed - DUREE_PREVUE) + 's';
-        } else {
-            statusLabel.style.cssText = 'background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#4ade80;';
-            statusLabel.innerHTML = '✔ Finished in ' + elapsed + 's — Within target!';
+            if (depasse) {
+                statusLabel.style.cssText = 'background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;';
+                statusLabel.innerHTML = '❌ Finished — Exceeded by ' + (elapsed - DUREE_PREVUE) + 's';
+            } else {
+                statusLabel.style.cssText = 'background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#4ade80;';
+                statusLabel.innerHTML = '✔ Finished in ' + elapsed + 's — Within target!';
+            }
+
+            if (btnDone) {
+                btnDone.disabled  = true;
+                btnDone.className = 'btn-done completed';
+                btnDone.innerHTML = '<i class="fas fa-check"></i> Completed ✔';
+            }
+
+            elapsedLabel.textContent = `Time spent: ${elapsed}s`;
+            timerDisplay.textContent = formatTime(elapsed);
+            updateRing(elapsed);
+
+            resultMsg.classList.remove('hidden');
+            if (depasse) {
+                resultMsg.style.cssText = 'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;';
+                resultMsg.innerHTML = `❌ Exercise completed in <strong>${elapsed}s</strong> — Exceeded by <strong>${elapsed - DUREE_PREVUE}s</strong> (target: ${DUREE_PREVUE}s)`;
+            } else {
+                resultMsg.style.cssText = 'background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#4ade80;';
+                resultMsg.innerHTML = `✅ Exercise completed in <strong>${elapsed}s</strong> — Within target! (${DUREE_PREVUE - elapsed}s to spare)`;
+            }
+
+            // ✅ NOUVEAU : mettre à jour le resultBanner (banner persistant au-dessus du timer)
+            if (resultBanner) {
+                resultBanner.style.display = 'flex';
+                resultBanner.className = 'result-banner ' + (depasse ? 'danger' : 'success');
+                if (depasse) {
+                    resultBanner.innerHTML = `❌ Completed in <strong>${elapsed}s</strong> — Exceeded by <strong>${elapsed - DUREE_PREVUE}s</strong> (target: ${DUREE_PREVUE}s)`;
+                } else {
+                    resultBanner.innerHTML = `✅ Completed in <strong>${elapsed}s</strong> — Within target! (${DUREE_PREVUE - elapsed}s to spare)`;
+                }
+            }
+
+            // Show repeat button again after completion
+            if (btnRepeat) btnRepeat.classList.remove('hidden');
+
+            setTimeout(() => { window.location.href = WORKOUT_URL; }, 1500);
         }
-
-        if (btnDone) {
-            btnDone.disabled  = true;
-            btnDone.className = 'btn-done completed';
-            btnDone.innerHTML = '<i class="fas fa-check"></i> Completed ✔';
-        }
-
-        elapsedLabel.textContent = `Time spent: ${elapsed}s`;
-        timerDisplay.textContent = formatTime(elapsed);
-        updateRing(elapsed);
-
-        resultMsg.classList.remove('hidden');
-        if (depasse) {
-            resultMsg.style.cssText = 'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;';
-            resultMsg.innerHTML = `❌ Exercise completed in <strong>${elapsed}s</strong> — Exceeded by <strong>${elapsed - DUREE_PREVUE}s</strong> (target: ${DUREE_PREVUE}s)`;
-        } else {
-            resultMsg.style.cssText = 'background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#4ade80;';
-            resultMsg.innerHTML = `✅ Exercise completed in <strong>${elapsed}s</strong> — Within target! (${DUREE_PREVUE - elapsed}s to spare)`;
-        }
-
-        setTimeout(() => { window.location.href = WORKOUT_URL; }, 1500);
-    }
 
     // === START BUTTON ===
     btnStart.addEventListener('click', async () => {
@@ -542,6 +583,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnStart.disabled   = true;
         btnStart.className  = 'btn-start disabled';
+
+        // Hide repeat button while running
+        if (btnRepeat) btnRepeat.classList.add('hidden');
 
         if (btnDone) {
             btnDone.disabled  = false;
@@ -589,6 +633,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(e);
                 showDone(elapsed, depasse);
             }
+        });
+    }
+
+    // === REPEAT BUTTON ===
+    if (btnRepeat) {
+        btnRepeat.addEventListener('click', () => {
+            if (isRunning) return;
+
+            // Reset state
+            IS_DONE        = false;
+            isRunning      = false;
+            alertShown     = false;
+            startTimestamp = null;
+            clearInterval(timerInterval);
+
+            // Reset UI
+            timerDisplay.textContent = '00:00';
+            elapsedLabel.textContent = 'Elapsed time';
+            alertDepasse.classList.add('hidden');
+            resultMsg.classList.add('hidden');
+            doneBadge.classList.add('hidden');
+            statusBar.classList.add('hidden');
+            if (resultBanner) resultBanner.style.display = 'none';
+
+            // Reset ring to empty
+            ringBar.style.strokeDashoffset = CIRCUMFERENCE;
+            ringBar.style.stroke = '#22c55e';
+
+            // Re-enable Start button
+            btnStart.disabled  = false;
+            btnStart.className = 'btn-start active';
+
+            // Re-enable Done button (inactive until start)
+            if (btnDone) {
+                btnDone.disabled  = true;
+                btnDone.className = 'btn-done inactive';
+                btnDone.innerHTML = '<i class="fas fa-check"></i> Mark Done';
+            }
+
+            // Hide repeat button until next completion
+            btnRepeat.classList.add('hidden');
         });
     }
 

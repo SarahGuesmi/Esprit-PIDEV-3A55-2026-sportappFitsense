@@ -169,6 +169,7 @@ public function markExerciseDone(
     $duree   = $exercise->getDuree();
     $depasse = $elapsed > $duree;
 
+    // ✅ Écrase toujours l'ancien temps (Repeat inclus)
     $progress->setStatus('done');
     $progress->setElapsedTime($elapsed);
     $progress->setCompletedAt(new \DateTimeImmutable());
