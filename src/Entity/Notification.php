@@ -26,6 +26,7 @@ class Notification
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?User $relatedUser = null;
 
     public function __construct()

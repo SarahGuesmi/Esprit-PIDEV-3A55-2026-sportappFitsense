@@ -38,18 +38,22 @@
                         <p class="text-sm font-semibold text-white">{{ app.user.firstname }} {{ app.user.lastname }}</p>
                         <p class="text-xs text-gray-400">{{ role_label|default('Administrator') }}</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-purple-500/30">
-                        {{ app.user.firstname|slice(0, 1)|upper }}{{ app.user.lastname|slice(0, 1)|upper }}
-                    </div>
+                    {% if app.user.avatarPath %}
+                        <img src="{{ asset(app.user.avatarPath) }}" alt="Profile" class="w-10 h-10 rounded-xl object-cover ring-2 ring-purple-500/30">
+                    {% else %}
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-purple-500/30">
+                            {{ app.user.firstname|slice(0, 1)|upper }}{{ app.user.lastname|slice(0, 1)|upper }}
+                        </div>
+                    {% endif %}
                 </button>
 
                 <!-- Dropdown Menu -->
                 <div class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden">
-                    <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition">
+                    <a href="{{ path('profile_edit') }}" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition">
                         <i class="fas fa-user w-4"></i>
                         <span class="text-sm">Profile</span>
                     </a>
-                    <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition">
+                    <a href="{{ path('profile_setup_height') }}" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition">
                         <i class="fas fa-cog w-4"></i>
                         <span class="text-sm">Settings</span>
                     </a>

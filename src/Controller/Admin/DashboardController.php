@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 #[Route('/admin')]
 class DashboardController extends AbstractController
 {
@@ -77,7 +79,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/users/add-coach', name: 'admin_users_add_coach', methods: ['POST'])]
-    public function addCoach(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    public function addCoach(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
     {
         // Get form data
         $firstname = $request->request->get('firstname');
@@ -86,23 +88,33 @@ class DashboardController extends AbstractController
         $password = $request->request->get('password');
         $accountStatus = $request->request->get('accountStatus');
 
-        // Check if email already exists
-        $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($existingUser) {
-            $this->addFlash('error', 'This email address already exists.');
-            return $this->redirectToRoute('admin_users_index');
-        }
-
-        // Create new user
+        // Create new user entity for validation
         $user = new User();
         $user->setFirstname($firstname);
         $user->setLastname($lastname);
         $user->setEmail($email);
         $user->setAccountStatus($accountStatus);
         $user->setRoles(['ROLE_COACH']); // Set coach role
-        $user->setDateCreation(new \DateTimeImmutable()); // Auto-set creation date
+        $user->setDateCreation(new \DateTimeImmutable());
+        $user->setPassword($password); // Temporarily set plain password for validation
 
-        // Hash the password
+        // Validate entity
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        // Check if email already exists (extra check besides validation)
+        $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $email]);
+        if ($existingUser) {
+            $this->addFlash('error', 'This email address already exists.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        // Hash the password after validation
         $hashedPassword = $passwordHasher->hashPassword($user, $password);
         $user->setPassword($hashedPassword);
 
@@ -110,13 +122,12 @@ class DashboardController extends AbstractController
         $em->persist($user);
         $em->flush();
 
-        // Redirect back to users page with success message
         $this->addFlash('success', 'Coach created successfully!');
         return $this->redirectToRoute('admin_users_index');
     }
 
     #[Route('/users/edit/{id}', name: 'admin_users_edit', methods: ['POST'])]
-    public function editUser(int $id, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    public function editUser(int $id, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
     {
         // Find the user
         $user = $em->getRepository(User::class)->find($id);
@@ -134,7 +145,29 @@ class DashboardController extends AbstractController
         $accountStatus = $request->request->get('accountStatus');
         $role = $request->request->get('role');
 
+        // Store original password in case it's not changed
+        $originalPassword = $user->getPassword();
+
         // Update user fields
+        $user->setFirstname($firstname);
+        $user->setLastname($lastname);
+        $user->setEmail($email);
+        $user->setAccountStatus($accountStatus);
+        $user->setRoles([$role]);
+
+        if (!empty($password)) {
+            $user->setPassword($password); // Temporarily set for validation
+        }
+
+        // Validate entity
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+            return $this->redirectToRoute('admin_users_index');
+        }
+
         // Check if email already exists (and is not our current user)
         $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $email]);
         if ($existingUser && $existingUser->getId() !== $user->getId()) {
@@ -142,43 +175,75 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('admin_users_index');
         }
 
-        $user->setFirstname($firstname);
-        $user->setLastname($lastname);
-        $user->setEmail($email);
-        $user->setAccountStatus($accountStatus);
-        $user->setRoles([$role]); // Set the selected role
-
-        // Only update password if a new one was provided
+        // Hash the password if changed
         if (!empty($password)) {
             $hashedPassword = $passwordHasher->hashPassword($user, $password);
             $user->setPassword($hashedPassword);
+        } else {
+            $user->setPassword($originalPassword); // Restore original hashed password
         }
 
         // Save changes
         $em->flush();
 
-        // Redirect with success message
         $this->addFlash('success', 'User updated successfully!');
         return $this->redirectToRoute('admin_users_index');
     }
 
     #[Route('/users/delete/{id}', name: 'admin_users_delete', methods: ['POST'])]
-    public function deleteUser(int $id, EntityManagerInterface $em): Response
+    public function deleteUser(int $id, Request $request, EntityManagerInterface $em): Response
     {
-        // Find the user
+        if (!$this->isCsrfTokenValid('admin_user_delete', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
         $user = $em->getRepository(User::class)->find($id);
-        
         if (!$user) {
             $this->addFlash('error', 'User not found!');
             return $this->redirectToRoute('admin_users_index');
         }
 
-        // Remove user from database
         $em->remove($user);
         $em->flush();
 
-        // Redirect with success message
         $this->addFlash('success', 'User deleted successfully!');
+        return $this->redirectToRoute('admin_users_index');
+    }
+
+    #[Route('/users/bulk-delete', name: 'admin_users_bulk_delete', methods: ['POST'])]
+    public function bulkDelete(Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_user_bulk_delete', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        $userIds = $request->request->all('user_ids');
+        if (empty($userIds)) {
+            $this->addFlash('error', 'No users selected for deletion.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        $userRepository = $em->getRepository(User::class);
+        $count = 0;
+
+        foreach ($userIds as $id) {
+            $user = $userRepository->find($id);
+            if ($user) {
+                $em->remove($user);
+                $count++;
+            }
+        }
+
+        $em->flush();
+
+        if ($count > 0) {
+            $this->addFlash('success', "$count user(s) deleted successfully!");
+        } else {
+            $this->addFlash('error', 'No users were deleted.');
+        }
+
         return $this->redirectToRoute('admin_users_index');
     }
 

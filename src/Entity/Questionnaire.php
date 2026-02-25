@@ -14,7 +14,7 @@ class Questionnaire
     private ?int $id = null;
  
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\ManyToMany(targetEntity: Workout::class)]
@@ -88,7 +88,7 @@ class Questionnaire
     private array $options = [];
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?User $coach = null;
 
     #[ORM\Column(type: 'string', length: 20, options: ['default' => 'response'])]

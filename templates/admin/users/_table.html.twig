@@ -1,6 +1,9 @@
 {% for user in users %}
     <tr class="table-row row-orbit stagger-row group border-b border-gray-700/30" style="animation-delay: {{ loop.index0 * 0.05 }}s">
         <td class="px-6 py-5 whitespace-nowrap">
+            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="user-checkbox w-4 h-4 bg-gray-900 border-gray-700 rounded text-purple-500 focus:ring-purple-500/20 transition-all cursor-pointer">
+        </td>
+        <td class="px-6 py-5 whitespace-nowrap">
             <div class="flex items-center">
                 <div class="relative flex-shrink-0 h-11 w-11 group/avatar">
                     <!-- Status Halo -->
@@ -8,10 +11,15 @@
                         {% if user.accountStatus == 'active' %} bg-green-500
                         {% elseif user.accountStatus == 'inactive' %} bg-red-500
                         {% else %} bg-purple-500 {% endif %}"></div>
-                    
+                    {% if user.photo %}
+                    <img class="relative h-11 w-11 rounded-xl ring-2 ring-white/10 group-hover:ring-purple-500/50 transition-all duration-300 z-10 object-cover"
+                         src="{{ asset(user.photoPath) }}"
+                         alt="{{ user.firstname }} {{ user.lastname }}">
+                    {% else %}
                     <img class="relative h-11 w-11 rounded-xl ring-2 ring-white/10 group-hover:ring-purple-500/50 transition-all duration-300 z-10"
                          src="https://ui-avatars.com/api/?name={{ user.firstname }}+{{ user.lastname }}&background=7c3aed&color=fff"
                          alt="{{ user.firstname }} {{ user.lastname }}">
+                    {% endif %}
                 </div>
                 <div class="ml-4">
                     <div class="text-sm font-semibold text-white group-hover:text-purple-300 transition duration-300">
@@ -88,7 +96,7 @@
     </tr>
 {% else %}
     <tr>
-        <td colspan="5" class="px-6 py-32 text-center bg-gray-900/20 backdrop-blur-sm rounded-2xl">
+        <td colspan="6" class="px-6 py-32 text-center bg-gray-900/20 backdrop-blur-sm rounded-2xl">
             <div class="flex flex-col items-center justify-center">
                 <div class="relative mb-6">
                     <div class="absolute inset-0 bg-purple-500/20 blur-3xl rounded-full"></div>

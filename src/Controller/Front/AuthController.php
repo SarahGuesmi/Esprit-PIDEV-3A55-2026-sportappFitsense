@@ -25,7 +25,7 @@ class AuthController extends AbstractController
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
         UserAuthenticatorInterface $userAuthenticator,
-        AppAuthenticator $authenticator   // ← FIXED: changed from LoginFormAuthenticator
+        AppAuthenticator $authenticator
     ): Response {
         $user = new User();
 
@@ -74,15 +74,20 @@ class AuthController extends AbstractController
     // =========================
     // SIGN IN (LOGIN)
     // =========================
-  #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
-public function signIn(AuthenticationUtils $authUtils): Response
-{
-    // On ne gère plus le POST ici
-    return $this->render('auth/sign-in.html.twig', [
-        'last_username' => $authUtils->getLastUsername(),
-        'error' => $authUtils->getLastAuthenticationError(),
-    ]);
-}
+    #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
+    public function signIn(AuthenticationUtils $authUtils, Request $request): Response
+    {
+        $blockedAdminEmail = $request->getSession()->get('blocked_admin_email');
+        if ($blockedAdminEmail) {
+            $request->getSession()->remove('blocked_admin_email');
+        }
+
+        return $this->render('auth/sign-in.html.twig', [
+            'last_username' => $authUtils->getLastUsername(),
+            'error' => $authUtils->getLastAuthenticationError(),
+            'blocked_admin_email' => $blockedAdminEmail,
+        ]);
+    }
 
     // =========================
     // LOGOUT

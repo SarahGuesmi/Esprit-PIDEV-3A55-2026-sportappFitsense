@@ -28,14 +28,27 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'auth_sign_in';
 
+    private UrlGeneratorInterface $urlGenerator;
+    private EntityManagerInterface $entityManager;
+    private \App\Service\LoginSecurityService $loginSecurityService;
+
     public function __construct(
-        private UrlGeneratorInterface $urlGenerator,
-        private EntityManagerInterface $entityManager
+        UrlGeneratorInterface $urlGenerator,
+        EntityManagerInterface $entityManager,
+        \App\Service\LoginSecurityService $loginSecurityService
     ) {
+        $this->urlGenerator = $urlGenerator;
+        $this->entityManager = $entityManager;
+        $this->loginSecurityService = $loginSecurityService;
     }
 
     public function authenticate(Request $request): Passport
     {
+        $ipAddress = $request->getClientIp();
+        if ($this->loginSecurityService->isIpBlocked($ipAddress)) {
+            throw new CustomUserMessageAuthenticationException('too_many_attempts');
+        }
+
         $email = $request->request->get('email', '');
         $password = $request->request->get('password', '');
 
@@ -53,11 +66,15 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             $errors['password'] = 'Password is required.';
         }
 
-        // 3. If email provided, check if user exists
+        // 3. If email provided, check if user exists and is active
         if (!empty($email)) {
             $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
             if (!$user) {
                 $errors['email'] = 'Email address not found.';
+            } elseif ($user->getAccountStatus() === 'inactive') {
+                $adminEmail = $this->getAdminEmail();
+                $request->getSession()->set('deactivated_admin_email', $adminEmail);
+                throw new CustomUserMessageAuthenticationException('account_deactivated');
             }
         }
 
@@ -111,6 +128,14 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
+        if ($exception->getMessage() === 'too_many_attempts') {
+            $adminEmail = $this->getAdminEmail();
+            $request->getSession()->set('blocked_admin_email', $adminEmail);
+            return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
+        }
+        if ($exception->getMessage() === 'account_deactivated') {
+            return new RedirectResponse($this->urlGenerator->generate('account_deactivated'));
+        }
         if ($exception instanceof BadCredentialsException) {
             // Wrap wrong password error in delimited string
             $exception = new CustomUserMessageAuthenticationException('password:Incorrect password.');
@@ -119,8 +144,25 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         return parent::onAuthenticationFailure($request, $exception);
     }
 
+    private function getAdminEmail(): string
+    {
+        $admin = $this->entityManager->getRepository(User::class)
+            ->createQueryBuilder('u')
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%ROLE_ADMIN%')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+        return $admin instanceof User ? (string) $admin->getEmail() : '';
+    }
+
     protected function getLoginUrl(Request $request): string
     {
         return $this->urlGenerator->generate(self::LOGIN_ROUTE);
+    }
+
+    private function addFlash(Request $request, string $type, string $message): void
+    {
+        $request->getSession()->getFlashBag()->add($type, $message);
     }
 }

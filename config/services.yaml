@@ -2,6 +2,9 @@
 parameters:
     consumption_upload_dir: '%kernel.project_dir%/public/uploads/consumption'
     recipes_upload_dir: '%kernel.project_dir%/public/uploads/recipes'
+    profile_photo_upload_dir: '%kernel.project_dir%/public/uploads/profiles'
+    gemini_api_key: '%env(default::GEMINI_API_KEY)%'
+    ipinfo_token: '%env(default::IPINFO_TOKEN)%'
 
 services:
     _defaults:
@@ -20,6 +23,12 @@ services:
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
 
-    App\Service\OpenAiService:
+    App\Service\IPInfoService:
         arguments:
-            $apiKey: '%env(API_KEY)%'
+            $apiToken: '%ipinfo_token%'
+
+    App\EventListener\LoginSecurityListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
+

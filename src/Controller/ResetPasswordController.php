@@ -57,34 +57,17 @@ class ResetPasswordController extends AbstractController
      * Confirmation page after a user has requested a password reset.
      */
     #[Route('/check-email', name: 'app_check_email')]
-public function checkEmail(): Response
-{
-    // Get the real or fake token
-    if (null === ($resetToken = $this->getTokenObjectFromSession())) {
-        $resetToken = $this->resetPasswordHelper->generateFakeResetToken();
-    }
-
-    // Calculate a nice human-readable expiration message
-    $expiresAt = $resetToken->getExpiresAt();
-    $now = new \DateTimeImmutable();
-    $interval = $now->diff($expiresAt);
-
-    if ($interval->invert) {
-        $expiresInMessage = 'This link has already expired.';
-    } else {
-        $expiresInMessage = $interval->format('%h hour(s) and %i minute(s)');
-        if ($interval->h === 0 && $interval->i > 0) {
-            $expiresInMessage = $interval->format('%i minute(s)');
-        } elseif ($interval->h > 0 && $interval->i === 0) {
-            $expiresInMessage = $interval->format('%h hour(s)');
+    public function checkEmail(): Response
+    {
+        // Get the real or fake token
+        if (null === ($resetToken = $this->getTokenObjectFromSession())) {
+            $resetToken = $this->resetPasswordHelper->generateFakeResetToken();
         }
-    }
 
-    return $this->render('reset_password/check_email.html.twig', [
-        'resetToken' => $resetToken,
-        'expiresInMessage' => $expiresInMessage,   // ← ADD THIS LINE
-    ]);
-}
+        return $this->render('reset_password/check_email.html.twig', [
+            'resetToken' => $resetToken,
+        ]);
+    }
 
     /**
      * Validates and process the reset URL that the user clicked in their email.
@@ -141,7 +124,7 @@ public function checkEmail(): Response
         }
 
         return $this->render('reset_password/reset.html.twig', [
-            'resetForm' => $form,
+            'changePasswordForm' => $form,
         ]);
     }
 
@@ -159,16 +142,6 @@ public function checkEmail(): Response
         try {
             $resetToken = $this->resetPasswordHelper->generateResetToken($user);
         } catch (ResetPasswordExceptionInterface $e) {
-            // If you want to tell the user why a reset email was not sent, uncomment
-            // the lines below and change the redirect to 'app_forgot_password_request'.
-            // Caution: This may reveal if a user is registered or not.
-            //
-            // $this->addFlash('reset_password_error', sprintf(
-            //     '%s - %s',
-            //     $translator->trans(ResetPasswordExceptionInterface::MESSAGE_PROBLEM_HANDLE, [], 'ResetPasswordBundle'),
-            //     $translator->trans($e->getReason(), [], 'ResetPasswordBundle')
-            // ));
-
             return $this->redirectToRoute('app_check_email');
         }
 
@@ -179,6 +152,9 @@ public function checkEmail(): Response
             ->htmlTemplate('reset_password/email.html.twig')
             ->context([
                 'resetToken' => $resetToken,
+                'user' => $user,
+                'resetUrl' => $this->generateUrl('app_reset_password', ['token' => $resetToken->getToken()], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
+                'expiresInMessage' => $resetToken->getExpiresAt()->diff(new \DateTimeImmutable())->format('%h hour(s) and %i minute(s)'),
             ])
         ;
 

@@ -5,17 +5,19 @@
 {% block stylesheets %}
 <style>
 :root {
-    --blue-light: #38BDF8;
+    --violet-primary: #8B5CF6;
     --violet-light: #A78BFA;
-    --dark-bg: #111318;
-    --dark-card: #1B1E26;
-    --dark-input: #262A35;
+    --violet-dark: #6D28D9;
+    --dark-bg: #030405;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
     --text-primary: #FFFFFF;
-    --text-secondary: #A1A1AA;
-    --border-color: #343846;
-    --gradient-main: linear-gradient(135deg, #38BDF8, #A78BFA);
+    --text-secondary: #94A3B8;
+    --gradient-main: linear-gradient(135deg, #8B5CF6, #D8B4FE);
 }
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
     font-family: 'Inter', system-ui, sans-serif;
     background: var(--dark-bg);
@@ -25,100 +27,187 @@ body {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
 }
-.auth-wrapper {
+
+body::before {
+    content: "";
+    position: absolute;
     width: 100%;
-    max-width: 1100px;
-    height: 640px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    background: var(--dark-card);
-    border-radius: 22px;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-    overflow: hidden;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(216, 180, 254, 0.1) 0%, transparent 40%);
+    z-index: -1;
 }
+
+.auth-wrapper {
+    width: 95%;
+    max-width: 1000px;
+    min-height: 600px;
+    max-height: 95vh;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    background: var(--glass-bg);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    overflow: hidden;
+    animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 .auth-left {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: center; 
     text-align: center;
-    padding: 50px;
+    padding: 60px;
     position: relative;
-    background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(167,139,250,0.15));
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(216, 180, 254, 0.05));
+    border-right: 1px solid var(--glass-border);
 }
-.auth-left img.hero-img { width: 220px; margin-bottom: 25px; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
-.auth-left h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.auth-left p { font-size: 15px; color: var(--text-secondary); margin-bottom: 24px; }
-.auth-right { padding: 50px; display: flex; flex-direction: column; justify-content: center; }
-.form-header h2 { font-size: 34px; margin-bottom: 10px; }
-.form-header p { color: var(--text-secondary); margin-bottom: 35px; }
-.form-group { margin-bottom: 22px; }
-.form-group input,
-.form-group .form-control {
-    width: 100%;
-    padding: 15px 18px;
-    border-radius: 12px;
-    background: var(--dark-input);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    font-size: 15px;
+
+.auth-left img.hero-img { 
+    width: 250px; 
+    margin-bottom: 35px; 
+    filter: drop-shadow(0 20px 40px rgba(139, 92, 246, 0.3));
+    animation: float 4s ease-in-out infinite; 
 }
-.form-group input:focus,
-.form-group .form-control:focus {
-    outline: none;
-    border-color: var(--blue-light);
-    box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+
+@keyframes float { 
+    0%,100% { transform: translateY(0); } 
+    50% { transform: translateY(-20px); } 
 }
+
+.auth-left h1 { 
+    font-size: 38px; 
+    font-weight: 900; 
+    margin-bottom: 15px; 
+    background: var(--gradient-main); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+}
+
+.auth-left p { 
+    font-size: 16px; 
+    color: var(--text-secondary); 
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+.auth-right { 
+    padding: 60px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    background: rgba(0,0,0,0.2);
+    overflow-y: auto;
+    max-height: 95vh;
+}
+
+.form-header h2 { 
+    font-size: 36px; 
+    font-weight: 800;
+    margin-bottom: 8px; 
+}
+
+.form-header p { 
+    color: var(--text-secondary); 
+    margin-bottom: 40px; 
+}
+
+.form-group { margin-bottom: 25px; }
+
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--violet-light);
 }
-.btn-signin {
-    margin-top: 10px;
+
+.form-group input {
     width: 100%;
-    padding: 16px;
-    border-radius: 12px;
+    padding: 16px 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    background: rgba(255,255,255,0.05);
+    border-color: var(--violet-primary);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.btn-signin {
+    width: 100%;
+    padding: 18px;
+    border-radius: 14px;
     border: none;
     background: var(--gradient-main);
     color: white;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: .2s;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.btn-signin:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(56,189,248,.35); }
-.text-center a { color: var(--blue-light); text-decoration: none; font-weight: 700; }
-.text-center a:hover { color: var(--violet-light); }
-/* Back home arrow */
+
+.btn-signin:hover { 
+    transform: translateY(-4px); 
+    box-shadow: 0 15px 40px rgba(139, 92, 246, 0.5); 
+}
+
 .back-home {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 30px;
+    left: 30px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     text-decoration: none;
     color: var(--text-primary);
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
-    background: rgba(0,0,0,0.3);
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: 0.2s;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+    z-index: 10;
 }
-.back-home:hover { background: rgba(0,0,0,0.5); }
-.back-home svg { width: 16px; height: 16px; fill: var(--text-primary); }
+
+.back-home:hover { 
+    background: rgba(255,255,255,0.1); 
+    border-color: var(--violet-light);
+}
+
+.back-home svg { width: 18px; height: 18px; fill: var(--text-primary); }
+
+.text-center a { color: var(--violet-light); text-decoration: none; font-weight: 800; transition: 0.3s; }
+.text-center a:hover { color: #fff; text-shadow: 0 0 10px var(--violet-light); }
+
 @media (max-width: 900px) {
-    .auth-wrapper { grid-template-columns: 1fr; height: auto; }
+    .auth-wrapper { grid-template-columns: 1fr; min-height: auto; height: auto; }
     .auth-left { display: none; }
-    body { overflow: auto; }
+    body { overflow: auto; height: auto; padding: 40px 0; }
 }
-    </style>
+</style>
 {% endblock %}
 
 {% block body %}
@@ -145,7 +234,6 @@ body {
             <p>Enter your email to receive a reset link</p>
         </div>
 
-       {# ─── HERE IS THE FIX: use requestForm instead of form ─── #}
         {{ form_start(requestForm) }}
             <div class="form-group">
                 <label for="{{ requestForm.email.vars.id }}">Email</label>

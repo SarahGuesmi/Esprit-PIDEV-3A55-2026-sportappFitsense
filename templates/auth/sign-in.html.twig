@@ -45,7 +45,8 @@ body::before {
 .auth-wrapper {
     width: 95%;
     max-width: 1000px;
-    height: 600px;
+    min-height: 600px;
+    max-height: 95vh;
     display: grid;
     grid-template-columns: 1fr 1.1fr;
     background: var(--glass-bg);
@@ -122,6 +123,8 @@ body::before {
     flex-direction: column; 
     justify-content: center; 
     background: rgba(0,0,0,0.2);
+    overflow-y: auto;
+    max-height: 95vh;
 }
 
 .form-header h2 { 
@@ -253,9 +256,9 @@ body::before {
 }
 
 @media (max-width: 900px) {
-    .auth-wrapper { grid-template-columns: 1fr; height: auto; }
+    .auth-wrapper { grid-template-columns: 1fr; height: auto; min-height: auto; max-height: none; margin: 20px 0; }
     .auth-left { display: none; }
-    body { overflow: auto; }
+    body { overflow: auto; height: auto; padding: 20px 0; }
 }
 </style>
 {% endblock %}
@@ -316,7 +319,9 @@ body::before {
 
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-            <button type="submit" class="btn-signin">Sign In</button>
+            <button type="button" id="btnFaceIdLogin" class="btn-signin">Login with Face ID</button>
+            <p class="text-center text-sm mt-3" style="color: var(--text-secondary);">or sign in with email</p>
+            <button type="submit" class="btn-signin" style="margin-top: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border);">Sign In with Password</button>
             <div class="mt-4 text-center text-sm">
                 <a href="{{ path('app_forgot_password_request') }}"
                 class="text-[#38BDF8] hover:text-[#A78BFA] font-medium transition">
@@ -336,17 +341,103 @@ body::before {
             <a href="{{ path('auth_sign_up') }}">Sign Up</a>
         </div>
 
+        <!-- Face ID QR overlay -->
+        <div id="faceIdOverlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; padding: 24px;">
+            <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 32px; text-align: center; max-width: 340px;">
+                <h3 style="margin-bottom: 8px; font-size: 20px;">Scan with your phone</h3>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Open your camera or QR app and scan this code. Then use Face ID on your phone.</p>
+                <div id="qrContainer" style="background: #fff; padding: 16px; border-radius: 16px; display: inline-block;">
+                    <img id="qrImage" src="" alt="QR Code" width="220" height="220">
+                </div>
+                <p id="qrStatus" style="margin-top: 20px; font-size: 14px; color: var(--violet-light);">Waiting for scan…</p>
+                <button type="button" id="btnCancelQr" style="margin-top: 20px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-secondary); padding: 10px 24px; border-radius: 12px; cursor: pointer; font-size: 14px;">Cancel</button>
+            </div>
+        </div>
+
+        </div>
+
+        {# Security Block Modal #}
+        {% if blocked_admin_email %}
+            <div id="securityBlockOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(10px);">
+                <div class="glass-card" style="max-width: 450px; padding: 40px; text-align: center; border: 1px solid rgba(244, 63, 94, 0.3); background: rgba(15, 5, 5, 0.6);">
+                    <div class="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6 border border-red-500/20">
+                        <i class="fas fa-user-shield text-red-500 text-3xl"></i>
+                    </div>
+                    <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 15px; color: #fff;">Access Restricted</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 25px;">
+                        Too many failed login attempts have been detected from your IP address. For your security, access has been temporarily restricted.You can try to login again after 1 hour.
+                    </p>
+                    <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 1px solid var(--glass-border); margin-bottom: 30px;">
+                        <p style="font-size: 13px; color: var(--violet-light); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Please contact administrator</p>
+                        <a href="mailto:{{ blocked_admin_email }}" style="color: #38BDF8; font-weight: 700; font-size: 16px; text-decoration: none; word-break: break-all;">
+                            {{ blocked_admin_email }}
+                        </a>
+                    </div>
+                    <button type="button" onclick="document.getElementById('securityBlockOverlay').style.display='none'" 
+                            style="width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: #fff; font-weight: 700; cursor: pointer; transition: all 0.3s;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+
         <!-- SCRIPT AFTER FORM -->
         <script>
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("loginForm");
-            if (!form) {
-                console.error("❌ Login form not found");
-                return;
+            if (form) {
+                form.addEventListener("submit", function () { });
             }
-            form.addEventListener("submit", function () {
-                console.log("🚀 FORM SUBMITTED");
+
+            const overlay = document.getElementById("faceIdOverlay");
+            const qrImage = document.getElementById("qrImage");
+            const qrStatus = document.getElementById("qrStatus");
+            const btnFaceId = document.getElementById("btnFaceIdLogin");
+            const btnCancelQr = document.getElementById("btnCancelQr");
+
+            var faceIdPollInterval = null;
+            btnFaceId.addEventListener("click", async function () {
+                btnFaceId.disabled = true;
+                overlay.style.display = "flex";
+                qrStatus.textContent = "Waiting for scan…";
+                try {
+                    const res = await fetch("{{ path('passkey_login_start') }}", { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest", "Content-Type": "application/json" } });
+                    const data = await res.json();
+                    if (!data.qrUrl || !data.sessionId) {
+                        qrStatus.textContent = "Could not start. Try again.";
+                        btnFaceId.disabled = false;
+                        return;
+                    }
+                    qrImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(data.qrUrl);
+                    faceIdPollInterval = setInterval(async function () {
+                        try {
+                            const s = await fetch("{{ path('passkey_login_status') }}?session=" + encodeURIComponent(data.sessionId));
+                            const st = await s.json();
+                            if (st.status === "authenticated") {
+                                clearInterval(faceIdPollInterval);
+                                faceIdPollInterval = null;
+                                qrStatus.textContent = "Success! Redirecting…";
+                                window.location.href = "{{ path('passkey_login_confirm') }}?session=" + encodeURIComponent(data.sessionId);
+                            } else if (st.status === "expired") {
+                                clearInterval(faceIdPollInterval);
+                                faceIdPollInterval = null;
+                                qrStatus.textContent = "Link expired. Cancel and try again.";
+                            }
+                        } catch (e) {}
+                    }, 1500);
+                } catch (e) {
+                    qrStatus.textContent = "Error. Try again.";
+                    btnFaceId.disabled = false;
+                }
             });
+
+            if (btnCancelQr) {
+                btnCancelQr.addEventListener("click", function () {
+                    if (faceIdPollInterval) { clearInterval(faceIdPollInterval); faceIdPollInterval = null; }
+                    overlay.style.display = "none";
+                    btnFaceId.disabled = false;
+                });
+            }
         });
         </script>
 

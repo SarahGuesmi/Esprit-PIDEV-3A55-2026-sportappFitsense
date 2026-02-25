@@ -106,54 +106,67 @@
         </div>
 
         <!-- Users Table -->
-        <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-gray-700">
-            <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+        <form id="bulkDeleteForm" action="{{ path('admin_users_bulk_delete') }}" method="POST">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_user_bulk_delete') }}">
+            
+            <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-gray-700">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
 
-            <div class="relative p-6 border-b border-gray-700/50">
-                <h2 class="text-xl font-semibold text-white flex items-center gap-3">
-                    <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
-                    Users Table
-                </h2>
-            </div>
+                <div class="relative p-6 border-b border-gray-700/50 flex justify-between items-center">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-3">
+                        <div class="w-1 h-6 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+                        Users Table
+                    </h2>
+                    
+                    <!-- Bulk Action Button (Initially Hidden) -->
+                    <button type="button" id="bulkDeleteBtn" class="hidden px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-lg transition-all flex items-center gap-2 group/bulk">
+                        <i class="fas fa-trash-alt group-hover/bulk:rotate-12 transition-transform"></i>
+                        Delete Selected (<span id="selectedCount">0</span>)
+                    </button>
+                </div>
 
-            <div class="relative overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-700/50">
-                    <thead class="bg-gray-900/50 backdrop-blur">
-                        <tr>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-user text-purple-400"></i>
-                                    User
-                                </div>
-                            </th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-briefcase text-purple-400"></i>
-                                    Function
-                                </div>
-                            </th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-toggle-on text-purple-400"></i>
-                                    Status
-                                </div>
-                            </th>
-                            <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-calendar text-purple-400"></i>
-                                    Date creation
-                                </div>
-                            </th>
-                            <th class="px-6 py-5 text-right text-xs font-bold text-gray-300 uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-700/50 backdrop-blur">
-                        {% include 'admin/users/_table.html.twig' %}
-                    </tbody>
-                </table>
+                <div class="relative overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-700/50">
+                        <thead class="bg-gray-900/50 backdrop-blur">
+                            <tr>
+                                <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider w-10">
+                                    <input type="checkbox" id="selectAllUsers" class="w-4 h-4 bg-gray-900 border-gray-700 rounded text-purple-500 focus:ring-purple-500/20 transition-all cursor-pointer">
+                                </th>
+                                <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-user text-purple-400"></i>
+                                        User
+                                    </div>
+                                </th>
+                                <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-briefcase text-purple-400"></i>
+                                        Function
+                                    </div>
+                                </th>
+                                <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-toggle-on text-purple-400"></i>
+                                        Status
+                                    </div>
+                                </th>
+                                <th class="px-6 py-5 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-calendar text-purple-400"></i>
+                                        Date creation
+                                    </div>
+                                </th>
+                                <th class="px-6 py-5 text-right text-xs font-bold text-gray-300 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700/50 backdrop-blur">
+                            {% include 'admin/users/_table.html.twig' %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 
     <!-- Add Coach Modal -->
@@ -179,14 +192,14 @@
             </div>
 
             <!-- Modal Body (Scrollable) -->
-            <form id="addCoachForm" action="{{ path('admin_users_add_coach') }}" method="POST" class="flex-1 overflow-y-auto custom-scrollbar p-8">
+            <form id="addCoachForm" action="{{ path('admin_users_add_coach') }}" method="POST" class="flex-1 overflow-y-auto custom-scrollbar p-8" novalidate>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- First Name -->
                     <div class="space-y-2 group/input stagger-field" style="animation-delay: 0.1s">
                         <label for="firstname" class="block text-xs font-bold text-purple-400/80 uppercase tracking-widest px-1">Forename Signature</label>
                         <div class="relative">
                             <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-purple-500 transition-colors"></i>
-                            <input type="text" id="firstname" name="firstname" required pattern="[a-zA-Z]+" 
+                            <input type="text" id="firstname" name="firstname" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all duration-300 outline-none" 
                                    placeholder="e.g. MARCUS">
                         </div>
@@ -197,7 +210,7 @@
                         <label for="lastname" class="block text-xs font-bold text-purple-400/80 uppercase tracking-widest px-1">Surname Identity</label>
                         <div class="relative">
                             <i class="fas fa-signature absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-purple-500 transition-colors"></i>
-                            <input type="text" id="lastname" name="lastname" required pattern="[a-zA-Z]+" 
+                            <input type="text" id="lastname" name="lastname" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all duration-300 outline-none" 
                                    placeholder="e.g. AURELIUS">
                         </div>
@@ -208,7 +221,7 @@
                         <label for="email" class="block text-xs font-bold text-blue-400/80 uppercase tracking-widest px-1">Network Communication Hub (Email)</label>
                         <div class="relative">
                             <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-blue-500 transition-colors"></i>
-                            <input type="email" id="email" name="email" required 
+                            <input type="email" id="email" name="email" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 outline-none" 
                                    placeholder="coach.alpha@fitsense.tech">
                         </div>
@@ -219,7 +232,7 @@
                         <label for="password" class="block text-xs font-bold text-red-400/80 uppercase tracking-widest px-1">Encription Key (Password)</label>
                         <div class="relative">
                             <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-red-500 transition-colors"></i>
-                            <input type="password" id="password" name="password" required minlength="6" 
+                            <input type="password" id="password" name="password" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all duration-300 outline-none" 
                                    placeholder="••••••••">
                         </div>
@@ -230,7 +243,7 @@
                         <label for="accountStatus" class="block text-xs font-bold text-green-400/80 uppercase tracking-widest px-1">Deployment Status</label>
                         <div class="relative">
                             <i class="fas fa-power-off absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-green-500 transition-colors"></i>
-                            <select id="accountStatus" name="accountStatus" required 
+                            <select id="accountStatus" name="accountStatus" 
                                     class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-green-500/50 focus:ring-4 focus:ring-green-500/10 transition-all duration-300 outline-none appearance-none">
                                 <option value="" class="bg-gray-900">SELECT STATE...</option>
                                 <option value="active" class="bg-gray-900">GO LIVE (ACTIVE)</option>
@@ -280,7 +293,7 @@
             </div>
 
             <!-- Modal Body (Scrollable) -->
-            <form id="editUserForm" method="POST" class="flex-1 overflow-y-auto custom-scrollbar p-8">
+            <form id="editUserForm" method="POST" class="flex-1 overflow-y-auto custom-scrollbar p-8" novalidate>
                 <input type="hidden" id="edit_user_id" name="user_id">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -289,7 +302,7 @@
                         <label for="edit_firstname" class="block text-xs font-bold text-blue-400/80 uppercase tracking-widest px-1">Forename Signature</label>
                         <div class="relative">
                             <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-blue-500 transition-colors"></i>
-                            <input type="text" id="edit_firstname" name="firstname" required pattern="[a-zA-Z]+" 
+                            <input type="text" id="edit_firstname" name="firstname" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 outline-none">
                         </div>
                     </div>
@@ -299,7 +312,7 @@
                         <label for="edit_lastname" class="block text-xs font-bold text-blue-400/80 uppercase tracking-widest px-1">Surname Identity</label>
                         <div class="relative">
                             <i class="fas fa-signature absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-blue-500 transition-colors"></i>
-                            <input type="text" id="edit_lastname" name="lastname" required pattern="[a-zA-Z]+" 
+                            <input type="text" id="edit_lastname" name="lastname" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 outline-none">
                         </div>
                     </div>
@@ -309,7 +322,7 @@
                         <label for="edit_email" class="block text-xs font-bold text-purple-400/80 uppercase tracking-widest px-1">Communication Hub (Email)</label>
                         <div class="relative">
                             <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-purple-500 transition-colors"></i>
-                            <input type="email" id="edit_email" name="email" required 
+                            <input type="email" id="edit_email" name="email" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-purple-500/50 focus:ring-4 focus:ring-purple-500/10 transition-all duration-300 outline-none">
                         </div>
                     </div>
@@ -319,7 +332,7 @@
                         <label for="edit_password" class="block text-xs font-bold text-red-400/80 uppercase tracking-widest px-1">Security Override (Password)</label>
                         <div class="relative">
                             <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-red-500 transition-colors"></i>
-                            <input type="password" id="edit_password" name="password" minlength="6" 
+                            <input type="password" id="edit_password" name="password" 
                                    class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white placeholder-gray-700/50 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 transition-all duration-300 outline-none" 
                                    placeholder="Leave blank to maintain state">
                         </div>
@@ -330,7 +343,7 @@
                         <label for="edit_role" class="block text-xs font-bold text-yellow-400/80 uppercase tracking-widest px-1">Authority Level</label>
                         <div class="relative">
                             <i class="fas fa-shield-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-yellow-500 transition-colors"></i>
-                            <select id="edit_role" name="role" required 
+                            <select id="edit_role" name="role" 
                                     class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-yellow-500/50 focus:ring-4 focus:ring-yellow-500/10 transition-all duration-300 outline-none appearance-none">
                                 <option value="ROLE_USER" class="bg-gray-900">CITIZEN (USER)</option>
                                 <option value="ROLE_COACH" class="bg-gray-900">OPERATIVE (COACH)</option>
@@ -345,7 +358,7 @@
                         <label for="edit_accountStatus" class="block text-xs font-bold text-green-400/80 uppercase tracking-widest px-1">Current Lifecycle Phase</label>
                         <div class="relative">
                             <i class="fas fa-sync-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-green-500 transition-colors"></i>
-                            <select id="edit_accountStatus" name="accountStatus" required 
+                            <select id="edit_accountStatus" name="accountStatus" 
                                     class="w-full pl-12 pr-4 py-4 bg-gray-900/50 border border-white/10 rounded-2xl text-white focus:border-green-500/50 focus:ring-4 focus:ring-green-500/10 transition-all duration-300 outline-none appearance-none">
                                 <option value="active" class="bg-gray-900">OPERATIONAL (ACTIVE)</option>
                                 <option value="inactive" class="bg-gray-900">DECOMMISSIONED (INACTIVE)</option>
@@ -371,37 +384,64 @@
         </div>
     </div>
 
+    <span id="deleteUserUrlTemplate" data-url="{{ path('admin_users_delete', {id: 0}) }}" class="hidden"></span>
     <!-- Delete Confirmation Modal -->
-    <div id="deleteUserModal" class="modal fixed inset-0 bg-black/60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-300 hidden">
-        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-gray-700 transform transition-all duration-300 scale-95 opacity-0">
-            <div class="flex items-center justify-between mb-6 p-6 pb-0">
+    <div id="deleteUserModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] opacity-0 pointer-events-none transition-all duration-500 overflow-hidden">
+        <div class="modal-content relative bg-[#1B1E26]/90 border border-red-500/30 rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-gray-700 transform scale-95 transition-all duration-500 overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-white/5 bg-gradient-to-r from-red-500/10 to-transparent">
                 <h3 class="text-2xl font-bold text-white">Delete User</h3>
-                <button id="closeDeleteUserModal" class="text-gray-400 hover:text-red-400 text-2xl transition">
+                <button type="button" id="closeDeleteUserModal" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 transition-all duration-300">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <div class="p-6 pt-0">
+            <div class="p-6">
                 <div class="bg-red-500/20 rounded-xl p-4 mb-4 border border-red-500/40">
                     <p class="text-gray-300">Are you sure you want to delete this user?</p>
                     <p class="mt-2 font-semibold text-white" id="deleteUserName"></p>
                 </div>
-                <p class="text-sm text-red-400 flex items-center gap-2">
+                <p class="text-sm text-red-400 flex items-center gap-2 mb-6">
                     <i class="fas fa-exclamation-triangle"></i>
-                    This action cannot be undone.
+                    This action cannot be undone. The user will be permanently removed from the database.
                 </p>
-            </div>
 
-            <form id="deleteUserForm" method="POST" class="p-6 pt-0">
-                <input type="hidden" id="delete_user_id" name="user_id">
-
-                <div class="flex justify-end gap-4">
+                <form id="deleteUserForm" method="POST" action="" class="flex justify-end gap-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_user_delete') }}">
                     <button type="button" id="cancelDeleteUser" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">Cancel</button>
                     <button type="submit" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition font-semibold shadow-lg hover:shadow-red-500/50">
                         <i class="fas fa-trash mr-2"></i> Confirm Delete
                     </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Confirmation Modal -->
+    <div id="bulkDeleteModal" class="modal fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] opacity-0 pointer-events-none transition-all duration-500 overflow-hidden">
+        <div class="modal-content relative bg-[#1B1E26]/90 border border-red-500/30 rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-gray-700 transform scale-95 transition-all duration-500 overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-white/5 bg-gradient-to-r from-red-500/10 to-transparent">
+                <h3 class="text-2xl font-bold text-white">Bulk Delete</h3>
+                <button type="button" id="closeBulkDeleteModal" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 transition-all duration-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <div class="bg-red-500/20 rounded-xl p-4 mb-4 border border-red-500/40">
+                    <p class="text-gray-300">Are you sure you want to delete these <span id="modalSelectedCount" class="font-bold text-white">0</span> selected user(s)?</p>
                 </div>
-            </form>
+                <p class="text-sm text-red-400 flex items-center gap-2 mb-6">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This action cannot be undone. All selected records will be erased.
+                </p>
+
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancelBulkDelete" class="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition font-semibold border border-gray-600">Abort</button>
+                    <button type="button" id="confirmBulkDelete" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition font-semibold shadow-lg hover:shadow-red-500/50">
+                        <i class="fas fa-trash-alt mr-2"></i> Wipe Selected
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -418,15 +458,67 @@
                 }, 5000);
             });
 
-            // ────────────────────────────────────────────────
-            //   Core elements
-            // ────────────────────────────────────────────────
+            const bulkDeleteBtn  = document.getElementById('bulkDeleteBtn');
+            const selectAllCheck = document.getElementById('selectAllUsers');
+            const selectedCount  = document.getElementById('selectedCount');
+            const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+            
+            // Bulk Delete Modal Elements
+            const bulkDeleteModal      = document.getElementById('bulkDeleteModal');
+            const modalSelectedCount   = document.getElementById('modalSelectedCount');
+            const confirmBulkDeleteBtn = document.getElementById('confirmBulkDelete');
+            const cancelBulkDeleteBtn  = document.getElementById('cancelBulkDelete');
+            const closeBulkDeleteBtn   = document.getElementById('closeBulkDeleteModal');
+
             const searchInput   = document.getElementById('searchUsers');
             const filterStatus  = document.getElementById('filterStatus');
             const filterRole    = document.getElementById('filterRole');
             const clearButton   = document.getElementById('clearSearch');
             const searchResults = document.getElementById('searchResults');
             const tableBody     = document.querySelector('tbody');
+
+            function updateBulkDeleteState() {
+                const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+                selectedCount.textContent = checkedCount;
+                
+                if (checkedCount > 0) {
+                    bulkDeleteBtn.classList.remove('hidden');
+                } else {
+                    bulkDeleteBtn.classList.add('hidden');
+                }
+
+                const totalCheckboxes = document.querySelectorAll('.user-checkbox').length;
+                selectAllCheck.checked = totalCheckboxes > 0 && checkedCount === totalCheckboxes;
+            }
+
+            // Delegation for checkboxes since they are added via AJAX
+            tableBody.addEventListener('change', (e) => {
+                if (e.target.classList.contains('user-checkbox')) {
+                    updateBulkDeleteState();
+                }
+            });
+
+            selectAllCheck?.addEventListener('change', function() {
+                document.querySelectorAll('.user-checkbox').forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateBulkDeleteState();
+            });
+
+            bulkDeleteBtn?.addEventListener('click', function() {
+                const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+                modalSelectedCount.textContent = checkedCount;
+                openModal(bulkDeleteModal);
+            });
+
+            confirmBulkDeleteBtn?.addEventListener('click', () => {
+                bulkDeleteForm.submit();
+            });
+
+            closeBulkDeleteBtn?.addEventListener('click', () => closeModal(bulkDeleteModal));
+            cancelBulkDeleteBtn?.addEventListener('click', () => closeModal(bulkDeleteModal));
+            bulkDeleteModal?.addEventListener('click', e => { if (e.target === bulkDeleteModal) closeModal(bulkDeleteModal); });
+
             let timeout = null;
 
             // ────────────────────────────────────────────────
@@ -463,6 +555,7 @@
                     }
 
                     initModalButtons(); // Re-initialize edit/delete buttons
+                    updateBulkDeleteState(); // Reset selection state
                 })
                 .catch(error => {
                     console.error('Error fetching users:', error);
@@ -561,12 +654,15 @@
                     };
                 });
 
-                // Delete buttons
+                // Delete buttons: show confirmation modal, then POST to delete route on confirm
+                const deleteUrlTemplate = document.getElementById('deleteUserUrlTemplate').dataset.url;
                 document.querySelectorAll('.delete-user-btn').forEach(btn => {
-                    btn.onclick = function () {
-                        document.getElementById('delete_user_id').value = this.dataset.userId;
-                        document.getElementById('deleteUserName').textContent = this.dataset.userName;
-                        deleteForm.action = `/admin/users/delete/${this.dataset.userId}`;
+                    btn.onclick = function (e) {
+                        e.preventDefault();
+                        const userId = this.dataset.userId;
+                        const userName = this.dataset.userName || ('User #' + userId);
+                        document.getElementById('deleteUserName').textContent = userName;
+                        deleteForm.action = deleteUrlTemplate.replace(/\/0$/, '/' + userId);
                         openModal(deleteModal);
                     };
                 });
@@ -588,6 +684,7 @@
                     closeModal(addModal);
                     closeModal(editModal);
                     closeModal(deleteModal);
+                    closeModal(bulkDeleteModal);
                 }
             });
         });
