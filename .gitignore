@@ -10,6 +10,9 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
+# Sensitive files with API keys
+SENDGRID_403_FIX.txt
+
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
