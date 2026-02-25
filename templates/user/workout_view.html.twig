@@ -7,8 +7,10 @@
 
 {% block user_content %}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
         <!-- Main Info -->
         <div class="lg:col-span-2 space-y-8">
+
             <div class="glass-card p-8">
                 <h3 class="text-xl font-bold mb-4">Description</h3>
                 <p class="text-gray-400 leading-relaxed mb-6">
@@ -23,27 +25,57 @@
                 </div>
             </div>
 
+            <!-- Exercise List -->
             <div class="space-y-4">
                 <h3 class="text-xl font-bold px-2">Exercises ({{ workout.exercises|length }})</h3>
+
                 {% for exercise in workout.exercises %}
-                    <div class="glass-card p-6 flex items-center gap-6 group hover:bg-white/5 transition duration-300">
-                        <div class="w-16 h-16 bg-gray-800 rounded-xl overflow-hidden flex-shrink-0">
-                            {% if exercise.image %}
-                                <img src="/uploads/exercises/{{ exercise.image }}" class="w-full h-full object-cover">
+                    {% set isDone = exercise.id in doneExerciseIds %}
+
+                    <a href="{{ path('user_exercise_view', {id: exercise.id}) }}"
+                       class="block glass-card p-6 flex items-center gap-6 group transition duration-300
+                              {{ isDone ? 'border-green-500/30 bg-green-500/5 hover:bg-green-500/10' : 'hover:bg-white/5 hover:border-blue-500/30' }}">
+
+                        <!-- Image + tick overlay -->
+                        <div class="w-16 h-16 bg-gray-800 rounded-xl overflow-hidden flex-shrink-0 relative">
+                            {% if exercise.imageName %}
+                                <img src="/uploads/exercises/{{ exercise.imageName }}"
+                                     alt="{{ exercise.nom }}"
+                                     class="w-full h-full object-cover {{ isDone ? 'opacity-60' : '' }}">
                             {% else %}
                                 <div class="w-full h-full flex items-center justify-center">
-                                    <i class="fas fa-running text-gray-600"></i>
+                                    <i class="fas fa-running text-gray-600 text-xl"></i>
+                                </div>
+                            {% endif %}
+
+                            {% if isDone %}
+                                <div class="absolute inset-0 flex items-center justify-center bg-green-500/30 rounded-xl">
+                                    <i class="fas fa-check text-green-400 text-xl font-black"></i>
                                 </div>
                             {% endif %}
                         </div>
+
+                        <!-- Name + done badge -->
                         <div class="flex-1">
-                            <h4 class="font-bold text-lg mb-1">{{ exercise.nom }}</h4>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-bold text-lg transition
+                                           {{ isDone ? 'text-green-400' : 'group-hover:text-blue-400' }}">
+                                    {{ exercise.nom }}
+                                </h4>
+                                {% if isDone %}
+                                    <span class="inline-flex items-center gap-1 bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-bold px-2 py-0.5 rounded-full">
+                                        ✔ Done
+                                    </span>
+                                {% endif %}
+                            </div>
                             <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">
                                 {{ exercise.type|default('General') }} • {{ exercise.musclesCibles|default('Full Body') }}
                             </p>
                         </div>
+
+                        <!-- Duration + icon -->
                         <div class="text-right">
-                            <div class="text-blue-400 font-bold mb-1">
+                            <div class="font-bold mb-1 {{ isDone ? 'text-green-400' : 'text-blue-400' }}">
                                 {% if exercise.duree %}
                                     {{ exercise.duree }} secs
                                 {% else %}
@@ -51,52 +83,273 @@
                                 {% endif %}
                             </div>
                             <p class="text-[10px] text-gray-500 uppercase font-black">Performance</p>
+                            {% if isDone %}
+                                <i class="fas fa-check-circle text-green-500 text-sm mt-1"></i>
+                            {% else %}
+                                <i class="fas fa-chevron-right text-gray-600 text-xs mt-1"></i>
+                            {% endif %}
                         </div>
-                    </div>
+
+                    </a>
                 {% else %}
                     <div class="glass-card p-10 text-center">
                         <p class="text-gray-500 italic">No exercises added to this workout yet.</p>
                     </div>
                 {% endfor %}
             </div>
-        </div>
 
-        <!-- Sidebar / Actions -->
-        <div class="space-y-6">
-            <div class="glass-card p-6 border-blue-500/30 ring-1 ring-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent">
-                <h3 class="font-bold mb-4">Training Controls</h3>
-                <div class="space-y-3">
-                    <button class="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl font-black uppercase text-sm tracking-widest shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition">
-                        Start Session
-                    </button>
-                    <button class="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold text-sm transition">
-                        Save for Later
-                    </button>
+            <!-- Progress + Mark Workout Done -->
+            <div class="glass-card p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-bold text-gray-400">Progress</span>
+                    <span class="text-sm font-bold {{ allDone ? 'text-green-400' : 'text-blue-400' }}">
+                        {{ doneCount }} / {{ totalExercises }} exercises completed
+                    </span>
                 </div>
-                <div class="mt-6 pt-6 border-t border-gray-800">
-                    <div class="flex justify-between items-center text-xs text-gray-400">
-                        <span>Difficulty</span>
-                        <span class="text-gray-200 font-bold">{{ workout.niveau|capitalize }}</span>
+
+                <!-- Progress bar -->
+                <div class="w-full bg-gray-800 rounded-full h-3 mb-6">
+                    <div class="h-3 rounded-full transition-all duration-500
+                                {{ allDone ? 'bg-green-500' : 'bg-blue-500' }}"
+                         style="width: {{ totalExercises > 0 ? ((doneCount / totalExercises) * 100)|round : 0 }}%">
                     </div>
                 </div>
+
+                <!-- Button -->
+                {% if workout.status == 'done' %}
+                    <div class="w-full text-center py-4 bg-green-500/20 border border-green-500/30 text-green-400 font-black rounded-xl">
+                        <i class="fas fa-trophy mr-2"></i> Workout Completed! 🎉
+                    </div>
+                {% else %}
+                    <button id="btnWorkoutDone"
+                            class="w-full py-4 font-black rounded-xl transition
+                                   {{ allDone
+                                      ? 'bg-gradient-to-r from-green-500 to-emerald-400 text-black hover:from-green-400 hover:to-emerald-300 shadow-lg shadow-green-500/20 cursor-pointer'
+                                      : 'bg-gray-800 text-gray-600 cursor-not-allowed opacity-50' }}"
+                            {{ allDone ? '' : 'disabled' }}>
+                        <i class="fas fa-{{ allDone ? 'trophy' : 'lock' }} mr-2"></i>
+                        {{ allDone ? 'Mark Workout Done 🏆' : 'Complete all exercises to unlock (' ~ doneCount ~ '/' ~ totalExercises ~ ')' }}
+                    </button>
+                {% endif %}
             </div>
 
-            <div class="glass-card p-6">
-                <h3 class="font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-info-circle text-gray-500"></i>
-                    Tips
+            <!-- Feedback Section - shows when workout is completed -->
+            <div id="feedbackSection" class="glass-card p-6 {{ workout.status == 'done' ? '' : 'hidden' }}">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-clipboard-list text-blue-400"></i>
+                    Feedback for: {{ workout.nom }}
                 </h3>
-                <ul class="text-sm text-gray-400 space-y-3">
-                    <li class="flex gap-2">
-                        <span class="text-blue-400">•</span>
-                        Stay hydrated throughout the session.
-                    </li>
-                    <li class="flex gap-2">
-                        <span class="text-blue-400">•</span>
-                        Maintain proper form over high reps.
-                    </li>
-                </ul>
+
+                {% if existingFeedback %}
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 text-green-400 text-sm font-semibold">
+                            <i class="fas fa-check-circle"></i>
+                            <span>You have already submitted feedback for this workout.</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-300">
+                            <div class="space-y-1">
+                                <p class="text-gray-400 text-xs uppercase tracking-wide font-semibold">Your rating</p>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full 
+                                    {% if existingFeedback.rating == 'Excellent' or existingFeedback.rating == 'Good' %}bg-green-500/20 text-green-400
+                                    {% elseif existingFeedback.rating == 'Average' %}bg-yellow-500/20 text-yellow-400
+                                    {% else %}bg-red-500/20 text-red-400{% endif %}">
+                                    {{ existingFeedback.rating }}
+                                </span>
+                            </div>
+                            {% if existingFeedback.comment %}
+                                <div class="space-y-1 md:col-span-2">
+                                    <p class="text-gray-400 text-xs uppercase tracking-wide font-semibold">Your comment</p>
+                                    <p class="text-gray-300 text-sm italic">"{{ existingFeedback.comment }}"</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                <form id="feedbackForm" class="space-y-4">
+                    <input type="hidden" name="workout_id" value="{{ workout.id }}">
+                    <input type="hidden" name="workout_title" value="{{ workout.nom }}">
+                    
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-gray-400">How was your workout?</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-3 rounded-lg transition bg-white/5 border border-white/10">
+                                <input type="radio" name="rating" value="Excellent" class="w-4 h-4 accent-green-500">
+                                <span class="text-gray-300">Excellent</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-3 rounded-lg transition bg-white/5 border border-white/10">
+                                <input type="radio" name="rating" value="Good" class="w-4 h-4 accent-green-500">
+                                <span class="text-gray-300">Good</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-3 rounded-lg transition bg-white/5 border border-white/10">
+                                <input type="radio" name="rating" value="Average" class="w-4 h-4 accent-yellow-500">
+                                <span class="text-gray-300">Average</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-3 rounded-lg transition bg-white/5 border border-white/10">
+                                <input type="radio" name="rating" value="Poor" class="w-4 h-4 accent-red-500">
+                                <span class="text-gray-300">Poor</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-gray-400">Comments (optional)</label>
+                        <textarea name="comment" placeholder="Share your thoughts about this workout..." 
+                                  class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500" 
+                                  rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold rounded-lg hover:shadow-lg transition">
+                        Submit Feedback
+                    </button>
+                </form>
+                {% endif %}
             </div>
+
         </div>
+
+        <!-- Sidebar -->
+        <div class="glass-card p-6">
+            <h3 class="font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-info-circle text-gray-500"></i>
+                Tips
+            </h3>
+            <ul class="text-sm text-gray-400 space-y-3">
+                <li class="flex gap-2">
+                    <span class="text-blue-400">•</span>
+                    Stay hydrated throughout the session.
+                </li>
+                <li class="flex gap-2">
+                    <span class="text-blue-400">•</span>
+                    Maintain proper form over high reps.
+                </li>
+            </ul>
+        </div>
+
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent leaving page without submitting feedback once workout is done and no feedback yet
+        const requireFeedback = {{ workout.status == 'done' and existingFeedback is null ? 'true' : 'false' }};
+        let feedbackSubmitted = false;
+        let beforeUnloadHandler = null;
+
+        const btnWorkoutDone = document.getElementById('btnWorkoutDone');
+
+        // Attach workout-done handler only if the button exists
+        if (btnWorkoutDone) {
+            const WORKOUT_DONE_URL = '{{ path('user_workout_done', {id: workout.id}) }}';
+
+            btnWorkoutDone.addEventListener('click', async function() {
+                btnWorkoutDone.disabled = true;
+                btnWorkoutDone.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+
+                try {
+                    const res = await fetch(WORKOUT_DONE_URL, { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        }
+                    });
+                    
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        btnWorkoutDone.className = 'w-full py-4 font-black rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 cursor-not-allowed';
+                        btnWorkoutDone.innerHTML = '<i class="fas fa-trophy mr-2"></i> Workout Completed! 🎉';
+                        
+                        const feedbackSection = document.getElementById('feedbackSection');
+                        if (feedbackSection) {
+                            feedbackSection.classList.remove('hidden');
+                            feedbackSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    } else {
+                        alert(data.error ?? 'An error occurred.');
+                        btnWorkoutDone.disabled = false;
+                        btnWorkoutDone.innerHTML = '<i class="fas fa-trophy mr-2"></i> Mark Workout Done 🏆';
+                    }
+                } catch(e) {
+                    console.error('Error:', e);
+                    alert('Error: ' + e.message);
+                    btnWorkoutDone.disabled = false;
+                    btnWorkoutDone.innerHTML = '<i class="fas fa-trophy mr-2"></i> Mark Workout Done 🏆';
+                }
+            });
+        }
+
+        // If feedback is required, block leaving the page until submitted
+        if (requireFeedback) {
+            beforeUnloadHandler = function (e) {
+                if (!feedbackSubmitted) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                    return '';
+                }
+            };
+            window.addEventListener('beforeunload', beforeUnloadHandler);
+        }
+
+        // Handle feedback form submission (always attach, even if workout already done)
+        const feedbackForm = document.getElementById('feedbackForm');
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(feedbackForm);
+                const rating = formData.get('rating');
+                const comment = formData.get('comment');
+                const workoutId = formData.get('workout_id');
+                const workoutTitle = formData.get('workout_title');
+
+                if (!rating) {
+                    alert('Please select a rating');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('{{ path('user_feedback_submit') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            workout_id: workoutId,
+                            workout_title: workoutTitle,
+                            rating: rating,
+                            comment: comment
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        feedbackSubmitted = true;
+                        if (beforeUnloadHandler) {
+                            window.removeEventListener('beforeunload', beforeUnloadHandler);
+                        }
+                        // Show inline success message and then redirect to dashboard
+                        const button = feedbackForm.querySelector('button[type="submit"]');
+                        button.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Thanks for your feedback! Redirecting to your dashboard...';
+                        button.className = 'w-full px-4 py-3 bg-green-500 text-white font-bold rounded-lg transition cursor-default';
+                        button.disabled = true;
+
+                        // Optional: disable all inputs while waiting
+                        feedbackForm.querySelectorAll('input, textarea').forEach(el => el.disabled = true);
+
+                        // Small delay so the user can see the success state, then go to dashboard
+                        setTimeout(() => {
+                            window.location.href = '{{ path('dashboard_user') }}';
+                        }, 2000);
+                    } else {
+                        alert(result.message || 'Error submitting feedback');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        }
+    });
+    </script>
+
 {% endblock %}

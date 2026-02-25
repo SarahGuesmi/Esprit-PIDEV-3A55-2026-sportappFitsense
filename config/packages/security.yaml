@@ -19,19 +19,10 @@ security:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\AppAuthenticator
+            entry_point: App\Security\AppAuthenticator
             logout:
                 path: app_logout
-                # target: 'auth_sign_in'   # optional - where to redirect after logout
-            two_factor:
-                auth_form_path: /2fa
-                check_path: /2fa_check
-                post_only: true
-                default_target_path: /
-                auth_code_parameter_name: _auth_code
-                enable_csrf: true
-                csrf_parameter: _csrf_token
-                csrf_token_id: two_factor
-                provider: app_user_provider
+                target: auth_sign_in
             # remember_me:                 # optional - if you want "Remember me" checkbox
             #     secret: '%kernel.secret%'
             #     name: APP_REMEMBER_ME
@@ -39,15 +30,16 @@ security:
 
     # Access control rules
     access_control:
-        # Account deactivated message (after failed login for inactive user)
-        - { path: ^/account-deactivated, roles: PUBLIC_ACCESS }
-        # Passkey / Face ID login (QR flow) - public
-        - { path: ^/passkey, roles: PUBLIC_ACCESS }
         # IMPORTANT: Make reset-password routes public (no login required)
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
-        # Chatroom: all authenticated users (admin, coach, athlete)
-        - { path: ^/chat, roles: IS_AUTHENTICATED_FULLY }
+        
         # Your existing admin rule
         - { path: ^/admin, roles: ROLE_ADMIN }
+        
+        # Coach routes require ROLE_COACH or ROLE_USER (users can access exercise library)
+        - { path: ^/coach, roles: [ROLE_COACH, ROLE_USER] }
+        
+        # User routes require authenticated user with ROLE_USER
+        - { path: ^/user, roles: ROLE_USER }
 
       

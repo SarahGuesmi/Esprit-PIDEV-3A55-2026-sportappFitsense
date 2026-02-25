@@ -1,272 +1,147 @@
 {% extends 'coach/base_coach.html.twig' %}
 
 {% block title %}Workout Catalog - FitSense{% endblock %}
-
 {% block coach_page_title %}Workout Catalog{% endblock %}
 {% block coach_page_subtitle %}Browse and manage your workout routines{% endblock %}
 
 {% block stylesheets %}
 {{ parent() }}
 <style>
-.gradient-text {
-    background: linear-gradient(135deg, #22C55E, #84CC16);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.gradient-btn {
-    background: linear-gradient(135deg, #22C55E, #84CC16);
-}
-
-.card-hover {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(34, 197, 94, 0.15);
-}
-
-.search-input:focus {
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
-}
-
-.icon-glow {
-    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.4));
-}
-
-.shine-effect {
-    position: relative;
-    overflow: hidden;
-}
-
-.shine-effect::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        to bottom right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.03) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: rotate(45deg);
-    animation: shine 3s infinite;
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-}
-
-/* Dropdown Styles */
-.dropdown-container {
-    position: relative;
-}
-
-.dropdown-button {
-    cursor: pointer;
-    user-select: none;
-}
-
+.gradient-btn { background: linear-gradient(135deg, #22C55E, #84CC16); }
+.card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(34,197,94,0.15); }
+.search-input:focus { box-shadow: 0 0 0 2px rgba(34,197,94,0.3); }
+.dropdown-container { position: relative; }
+.dropdown-button { cursor: pointer; user-select: none; }
 .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    margin-top: 0.5rem;
-    background: #0D0D0D;
-    border: 1px solid #1F1F1F;
-    border-radius: 12px;
-    padding: 0.5rem;
-    z-index: 50;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    position: absolute; top: 100%; left: 0; right: 0; margin-top: 0.5rem;
+    background: #0D0D0D; border: 1px solid #1F1F1F; border-radius: 12px;
+    padding: 0.5rem; z-index: 50; max-height: 300px; overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
-
-.dropdown-menu::-webkit-scrollbar {
-    width: 8px;
-}
-
-.dropdown-menu::-webkit-scrollbar-track {
-    background: #1F1F1F;
-    border-radius: 4px;
-}
-
-.dropdown-menu::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 4px;
-}
-
-.dropdown-menu::-webkit-scrollbar-thumb:hover {
-    background: #4B5563;
-}
-
+.dropdown-menu::-webkit-scrollbar { width: 8px; }
+.dropdown-menu::-webkit-scrollbar-track { background: #1F1F1F; border-radius: 4px; }
+.dropdown-menu::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
 .dropdown-item {
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; gap: 0.75rem;
 }
-
-.dropdown-item:hover {
-    background: #1F1F1F;
-}
-
-.dropdown-item.selected {
-    background: rgba(34, 197, 94, 0.1);
-}
-
+.dropdown-item:hover { background: #1F1F1F; }
+.dropdown-item.selected { background: rgba(34,197,94,0.1); }
 .checkbox-custom {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #374151;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+    width: 18px; height: 18px; border: 2px solid #374151; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s;
 }
-
 .dropdown-item.selected .checkbox-custom {
-    background: linear-gradient(135deg, #22C55E, #84CC16);
-    border-color: #22C55E;
+    background: linear-gradient(135deg, #22C55E, #84CC16); border-color: #22C55E;
 }
-
-.checkbox-custom svg {
-    display: none;
-    width: 12px;
-    height: 12px;
-}
-
-.dropdown-item.selected .checkbox-custom svg {
-    display: block;
-}
-
+.checkbox-custom svg { display: none; width: 12px; height: 12px; }
+.dropdown-item.selected .checkbox-custom svg { display: block; }
 .selected-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem 0.75rem;
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #22C55E;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.375rem 0.75rem; background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3); border-radius: 8px;
+    font-size: 0.875rem; font-weight: 600; color: #22C55E;
 }
-
 .selected-badge button {
-    background: none;
-    border: none;
-    color: #22C55E;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    transition: opacity 0.2s;
+    background: none; border: none; color: #22C55E; cursor: pointer;
+    padding: 0; display: flex; align-items: center; transition: opacity 0.2s;
 }
-
-.selected-badge button:hover {
-    opacity: 0.7;
-}
-
-/* Confirmation Modal Recovery */
+.selected-badge button:hover { opacity: 0.7; }
 #confirmModal.hidden { display: none; }
 .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
 .modal-content-delete {
-    background: #0D0D0D;
-    border: 1px solid #1F1F1F;
-    border-radius: 16px;
-    max-width: 450px;
-    width: 90%;
-    padding: 2rem;
+    background: #0D0D0D; border: 1px solid #1F1F1F; border-radius: 16px;
+    max-width: 450px; width: 90%; padding: 2rem;
 }
 </style>
 {% endblock %}
 
 {% block coach_content %}
 <div class="space-y-8">
+
     <!-- Action Bar -->
     <div class="flex items-center justify-end gap-3 mb-6">
-        <a href="{{ path('coach_exercise_list') }}" 
+        <a href="{{ path('coach_exercise_list') }}"
            class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-sm transition-all border border-gray-700 text-gray-300">
-            <i class="fas fa-list-check mr-2"></i>
-            Manage Exercises
+            <i class="fas fa-list-check mr-2"></i>Manage Exercises
         </a>
-        <a href="{{ path('coach_workout_create') }}" 
+        <a href="{{ path('coach_workout_create') }}"
            class="px-6 py-2.5 gradient-btn rounded-lg font-bold text-sm text-black shadow-lg hover:shadow-xl transition-all {{ exerciseCount == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
            {% if exerciseCount == 0 %}onclick="return false;"{% endif %}>
-            <i class="fas fa-plus mr-2"></i>
-            Create Workout
+            <i class="fas fa-plus mr-2"></i>Create Workout
         </a>
+
+                   
     </div>
 
-    <!-- Search Bar & Filters -->
+
+    <!-- Search & Filter -->
     <div class="space-y-4 bg-gray-900/40 p-6 rounded-2xl border border-gray-800">
         <div class="flex flex-col lg:flex-row gap-4">
-            <!-- Search Bar -->
+
+            <!-- Search -->
             <div class="relative flex-1">
-                <input type="text" 
-                       id="searchInput"
-                       placeholder="Search a workout..." 
+                <input type="text" id="searchInput" value="{{ q }}" placeholder="Search a workout..."
                        class="w-full px-5 py-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500 search-input transition-all">
                 <i class="fas fa-search absolute right-5 top-1/2 -translate-y-1/2 text-gray-600"></i>
             </div>
 
-            <!-- Objectives Dropdown Filter -->
-            <div class="dropdown-container w-full lg:w-80">
-                <button id="dropdownButton" class="dropdown-button w-full px-5 py-3.5 bg-gray-900 border border-gray-700 rounded-xl text-left flex items-center justify-between hover:border-green-500 transition-all text-sm">
-                    <span class="text-gray-400" id="dropdownLabel">Filter by objectives</span>
-                    <i class="fas fa-chevron-down text-gray-600 transition-transform" id="dropdownIcon"></i>
-                </button>
+            <!-- Dropdown -->
+            <div class="dropdown-container w-full lg:w-72">
+                <div id="dropdownButton"
+                     class="dropdown-button flex items-center justify-between px-5 py-3.5 bg-gray-900 border border-gray-700 rounded-xl transition-all hover:border-green-500">
+                    <span id="dropdownLabel" class="text-sm font-medium {{ selectedObjectifs|length > 0 ? 'text-white' : 'text-gray-400' }}">
+                        {% if selectedObjectifs|length > 0 %}
+                            {{ selectedObjectifs|length }} objective(s) selected
+                        {% else %}
+                            Filter by objectives
+                        {% endif %}
+                    </span>
+                    <i id="dropdownIcon" class="fas fa-chevron-down text-gray-500 transition-transform duration-200"></i>
+                </div>
 
                 <div id="dropdownMenu" class="dropdown-menu hidden">
-                    {% set allObjectives = [] %}
-                    {% for workout in workouts %}
-                        {% for objectif in workout.objectifs %}
-                            {% if objectif.name not in allObjectives %}
-                                {% set allObjectives = allObjectives|merge([objectif.name]) %}
-                            {% endif %}
-                        {% endfor %}
-                    {% endfor %}
-
-                    {% for objectif in allObjectives %}
-                        <div class="dropdown-item" data-value="{{ objectif|lower|replace({' ': '-'}) }}">
+                    {% for obj in objectifs %}
+                        <div class="dropdown-item {{ (obj.id ~ '') in selectedObjectifs ? 'selected' : '' }}"
+                             data-value="{{ obj.id }}"
+                             data-label="{{ obj.name }}">
                             <div class="checkbox-custom">
-                                <i class="fas fa-check text-[10px] text-white hidden"></i>
+                                <svg viewBox="0 0 12 12" fill="none">
+                                    <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                             </div>
-                            <span class="text-gray-300 font-medium text-sm">{{ objectif }}</span>
+                            <span class="text-sm text-gray-300">{{ obj.name }}</span>
                         </div>
+                    {% else %}
+                        <p class="text-gray-500 text-sm px-4 py-3">No objectives available</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
-        <!-- Selected Objectives Tags -->
-        <div id="selectedTags" class="flex flex-wrap gap-2"></div>
+        <!-- Tags -->
+        <div id="selectedTags" class="flex flex-wrap gap-2">
+            {% for obj in objectifs %}
+                {% if (obj.id ~ '') in selectedObjectifs %}
+                    <div class="selected-badge" data-badge="{{ obj.id }}">
+                        <span>{{ obj.name }}</span>
+                        <button type="button" onclick="removeObjective('{{ obj.id }}')">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
     </div>
 
-    <!-- Alerts -->
+    <!-- Flash Messages -->
     {% for message in app.flashes('success') %}
-        <div class="bg-green-500/10 border border-green-500/20 rounded-xl px-6 py-4 flex items-center justify-between animate-fadeIn">
+        <div class="bg-green-500/10 border border-green-500/20 rounded-xl px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3 text-green-400">
                 <i class="fas fa-check-circle"></i>
                 <span class="font-medium">{{ message }}</span>
@@ -278,7 +153,7 @@
     {% endfor %}
 
     {% for message in app.flashes('warning') %}
-        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl px-6 py-4 flex items-center justify-between animate-fadeIn">
+        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3 text-amber-400">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span class="font-medium">{{ message }}</span>
@@ -296,7 +171,7 @@
                 <div>
                     <h3 class="text-base font-bold mb-1">No exercises available</h3>
                     <p class="text-gray-400 text-sm">
-                        Create at least one exercise before building workouts. 
+                        Create at least one exercise before building workouts.
                         <a href="{{ path('coach_exercise_create') }}" class="text-blue-400 underline hover:text-blue-300 font-semibold">Create exercise</a>
                     </p>
                 </div>
@@ -304,21 +179,18 @@
         </div>
     {% endif %}
 
-    <!-- Section Title with Results Counter -->
+    <!-- Counter -->
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
             <span class="w-2 h-2 bg-green-500 rounded-full"></span>
             Available Routines
         </h2>
         <span id="resultsCounter" class="text-xs font-bold text-gray-600 bg-gray-900 px-3 py-1 rounded-full border border-gray-800">
-            {% if workouts is not empty %}
-                {{ workouts|length }} workout(s)
-            {% endif %}
+            {{ workouts|length }} workout(s)
         </span>
     </div>
 
     {% if workouts is empty %}
-        <!-- Empty State -->
         <div id="emptyState" class="flex flex-col items-center justify-center py-24 bg-gray-900/20 rounded-2xl border border-dashed border-gray-800">
             <div class="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mb-6">
                 <i class="fas fa-dumbbell text-3xl text-gray-600"></i>
@@ -333,21 +205,19 @@
             </p>
         </div>
     {% else %}
-        <!-- Workouts List -->
         <div id="workoutsList" class="grid grid-cols-1 gap-4">
             {% include 'coach/workout_catalog/_list.html.twig' %}
         </div>
-
-        <!-- No Results State -->
         <div id="noResultsState" class="hidden flex-col items-center justify-center py-24 bg-gray-900/20 rounded-2xl border border-gray-800">
             <i class="fas fa-search text-gray-800 text-5xl mb-6"></i>
             <h3 class="text-xl font-bold text-gray-400 mb-2">No workouts found</h3>
             <p class="text-gray-600">Try adjusting your search query or filters</p>
         </div>
     {% endif %}
-    <!-- Delete Confirmation Modal -->
+
+    <!-- Delete Modal -->
     <div id="confirmModal" class="hidden modal-overlay">
-        <div class="modal-content-delete animate-fadeIn">
+        <div class="modal-content-delete">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
                     <i class="fas fa-trash-alt text-red-500 text-2xl"></i>
@@ -355,228 +225,184 @@
                 <h3 class="text-2xl font-bold text-white mb-2">Delete Workout?</h3>
                 <p class="text-gray-400">
                     Are you sure you want to delete <span id="workoutNameModal" class="text-white font-semibold"></span>?
-                    <br>
-                    This action cannot be undone.
+                    <br>This action cannot be undone.
                 </p>
             </div>
             <div class="flex gap-3">
-                <button id="cancelBtn" 
-                        class="flex-1 px-5 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-semibold transition border border-gray-700">
-                    Cancel
-                </button>
-                <button id="confirmBtn" 
-                        class="flex-1 px-5 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition shadow-lg shadow-red-500/20">
-                    Delete Workout
-                </button>
+                <button id="cancelBtn" class="flex-1 px-5 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-semibold transition border border-gray-700">Cancel</button>
+                <button id="confirmBtn" class="flex-1 px-5 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition">Delete Workout</button>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
+
 {% block scripts %}
-    {{ parent() }}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('searchInput');
-        const resultsCounter = document.getElementById('resultsCounter');
-        const noResultsState = document.getElementById('noResultsState');
-        const workoutsList = document.getElementById('workoutsList');
-        
-        // Dropdown elements
-        const dropdownButton = document.getElementById('dropdownButton');
-        const dropdownMenu = document.getElementById('dropdownMenu');
-        const dropdownIcon = document.getElementById('dropdownIcon');
-        const dropdownLabel = document.getElementById('dropdownLabel');
-        const selectedTags = document.getElementById('selectedTags');
-        const dropdownItems = document.querySelectorAll('.dropdown-item');
-        
-        // Modal elements
-        const confirmModal = document.getElementById('confirmModal');
-        const workoutNameModal = document.getElementById('workoutNameModal');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const confirmBtn = document.getElementById('confirmBtn');
-        let currentForm = null;
-        
-        let selectedObjectives = [];
-        let currentSearch = '';
-        let timeout = null;
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-        function initDeleteModals() {
-            const deleteForms = document.querySelectorAll('.delete-form');
-            deleteForms.forEach(form => {
-                const deleteBtn = form.querySelector('.delete-btn');
-                deleteBtn.onclick = function(e) {
-                    e.preventDefault();
-                    currentForm = form;
-                    const workoutName = form.dataset.workoutName;
-                    workoutNameModal.textContent = workoutName;
-                    confirmModal.classList.remove('hidden');
-                };
-            });
+    const searchInput    = document.getElementById('searchInput');
+    const resultsCounter = document.getElementById('resultsCounter');
+    const workoutsList   = document.getElementById('workoutsList');
+    const noResultsState = document.getElementById('noResultsState');
+    const dropdownButton = document.getElementById('dropdownButton');
+    const dropdownMenu   = document.getElementById('dropdownMenu');
+    const dropdownIcon   = document.getElementById('dropdownIcon');
+    const dropdownLabel  = document.getElementById('dropdownLabel');
+    const selectedTagsEl = document.getElementById('selectedTags');
+    const confirmModal     = document.getElementById('confirmModal');
+    const workoutNameModal = document.getElementById('workoutNameModal');
+    const cancelBtn        = document.getElementById('cancelBtn');
+    const confirmBtn       = document.getElementById('confirmBtn');
+
+    let currentForm        = null;
+    let searchTimeout      = null;
+    let selectedObjectives = [];
+
+    // Init depuis les items déjà sélectionnés au rendu Twig
+    document.querySelectorAll('.dropdown-item.selected').forEach(item => {
+        selectedObjectives.push({ value: item.dataset.value, text: item.dataset.label });
+    });
+
+    // ── Dropdown ──────────────────────────────────────────────────────────────
+    dropdownButton.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isHidden = dropdownMenu.classList.toggle('hidden');
+        dropdownIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
+            dropdownMenu.classList.add('hidden');
+            dropdownIcon.style.transform = 'rotate(0deg)';
         }
+    });
 
-        initDeleteModals();
-
-        // Cancel deletion
-        cancelBtn.addEventListener('click', function() {
-            confirmModal.classList.add('hidden');
-            currentForm = null;
-        });
-
-        // Confirm deletion
-        confirmBtn.addEventListener('click', function() {
-            if (currentForm) {
-                currentForm.submit();
-            }
-        });
-
-        // Close modal on overlay click
-        confirmModal.addEventListener('click', function(e) {
-            if (e.target === confirmModal) {
-                confirmModal.classList.add('hidden');
-                currentForm = null;
-            }
-        });
-
-        // Close modal on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) {
-                confirmModal.classList.add('hidden');
-                currentForm = null;
-            }
-        });
-
-        // Toggle dropdown
-        dropdownButton.addEventListener('click', function(e) {
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function (e) {
             e.stopPropagation();
-            dropdownMenu.classList.toggle('hidden');
-            if (dropdownIcon) {
-                dropdownIcon.style.transform = dropdownMenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-            }
-        });
+            const value = this.dataset.value;
+            const text  = this.dataset.label;
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (dropdownMenu && !dropdownMenu.contains(e.target) && e.target !== dropdownButton) {
-                dropdownMenu.classList.add('hidden');
-                if (dropdownIcon) dropdownIcon.style.transform = 'rotate(0deg)';
-            }
-        });
-
-        // Handle dropdown item selection
-        dropdownItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const value = this.dataset.value;
-                const text = this.querySelector('span').textContent;
-                
-                if (this.classList.contains('selected')) {
-                    this.classList.remove('selected');
-                    selectedObjectives = selectedObjectives.filter(obj => obj.value !== value);
-                } else {
-                    this.classList.add('selected');
-                    selectedObjectives.push({ value: value, text: text });
-                }
-                
-                updateSelectedTags();
-                updateDropdownLabel();
-                ajaxFilter();
-            });
-        });
-
-        function ajaxFilter() {
-            const query = searchInput.value;
-            const objectives = selectedObjectives.map(obj => obj.value);
-            
-            workoutsList.style.opacity = '0.5';
-
-            const url = new URL('{{ path('coach_workout_catalog') }}', window.location.origin);
-            url.searchParams.set('q', query);
-            objectives.forEach(obj => url.searchParams.append('objectifs[]', obj));
-            url.searchParams.set('ajax', '1');
-
-            fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.text())
-            .then(html => {
-                workoutsList.innerHTML = html;
-                workoutsList.style.opacity = '1';
-                
-                const count = workoutsList.querySelectorAll('.workout-card').length;
-                resultsCounter.textContent = `${count} workout(s)`;
-                
-                if (count === 0) {
-                    workoutsList.style.display = 'none';
-                    noResultsState.style.display = 'flex';
-                } else {
-                    workoutsList.style.display = 'grid';
-                    noResultsState.style.display = 'none';
-                }
-                
-                initDeleteModals();
-            })
-            .catch(error => {
-                console.error('Error fetching workouts:', error);
-                workoutsList.style.opacity = '1';
-            });
-        }
-
-        // Update selected tags display
-        function updateSelectedTags() {
-            selectedTags.innerHTML = '';
-            
-            selectedObjectives.forEach(obj => {
-                const badge = document.createElement('div');
-                badge.className = 'selected-badge';
-                badge.innerHTML = `
-                    <span>${obj.text}</span>
-                    <button onclick="removeObjective('${obj.value}')">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                `;
-                selectedTags.appendChild(badge);
-            });
-        }
-
-        // Update dropdown label
-        function updateDropdownLabel() {
-            if (selectedObjectives.length === 0) {
-                dropdownLabel.textContent = 'Filter by objectives';
-                dropdownLabel.classList.add('text-gray-400');
-                dropdownLabel.classList.remove('text-white');
+            if (this.classList.contains('selected')) {
+                this.classList.remove('selected');
+                selectedObjectives = selectedObjectives.filter(o => o.value !== value);
             } else {
-                dropdownLabel.textContent = `${selectedObjectives.length} objective(s) selected`;
-                dropdownLabel.classList.remove('text-gray-400');
-                dropdownLabel.classList.add('text-white');
+                this.classList.add('selected');
+                selectedObjectives.push({ value, text });
             }
-        }
 
-        // Remove objective (global function for onclick)
-        window.removeObjective = function(value) {
-            selectedObjectives = selectedObjectives.filter(obj => obj.value !== value);
-            
-            // Update dropdown item
-            dropdownItems.forEach(item => {
-                if (item.dataset.value === value) {
-                    item.classList.remove('selected');
-                }
-            });
-            
             updateSelectedTags();
             updateDropdownLabel();
             ajaxFilter();
-        };
+        });
+    });
 
-        // Search functionality
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                clearTimeout(timeout);
-                timeout = setTimeout(ajaxFilter, 300);
+    window.removeObjective = function (value) {
+        selectedObjectives = selectedObjectives.filter(o => o.value !== value);
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            if (item.dataset.value === value) item.classList.remove('selected');
+        });
+        updateSelectedTags();
+        updateDropdownLabel();
+        ajaxFilter();
+    };
+
+    function updateSelectedTags() {
+        selectedTagsEl.innerHTML = '';
+        selectedObjectives.forEach(obj => {
+            const badge = document.createElement('div');
+            badge.className = 'selected-badge';
+            badge.innerHTML = `
+                <span>${obj.text}</span>
+                <button type="button" onclick="removeObjective('${obj.value}')">
+                    <i class="fas fa-times text-xs"></i>
+                </button>`;
+            selectedTagsEl.appendChild(badge);
+        });
+    }
+
+    function updateDropdownLabel() {
+        if (selectedObjectives.length === 0) {
+            dropdownLabel.textContent = 'Filter by objectives';
+            dropdownLabel.classList.add('text-gray-400');
+            dropdownLabel.classList.remove('text-white');
+        } else {
+            dropdownLabel.textContent = `${selectedObjectives.length} objective(s) selected`;
+            dropdownLabel.classList.remove('text-gray-400');
+            dropdownLabel.classList.add('text-white');
+        }
+    }
+
+    // ── AJAX ──────────────────────────────────────────────────────────────────
+    function ajaxFilter() {
+        if (!workoutsList) return;
+        workoutsList.style.opacity = '0.5';
+
+        const url = new URL('{{ path('coach_workout_catalog') }}', window.location.origin);
+        url.searchParams.set('q', searchInput ? searchInput.value : '');
+        selectedObjectives.forEach(o => url.searchParams.append('objectifs[]', o.value));
+        url.searchParams.set('ajax', '1');
+
+        fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.text())
+            .then(html => {
+                workoutsList.innerHTML     = html;
+                workoutsList.style.opacity = '1';
+
+                const count = workoutsList.querySelectorAll('.workout-card').length;
+                if (resultsCounter) resultsCounter.textContent = `${count} workout(s)`;
+
+                if (count === 0) {
+                    workoutsList.style.display = 'none';
+                    if (noResultsState) noResultsState.style.display = 'flex';
+                } else {
+                    workoutsList.style.display = 'grid';
+                    if (noResultsState) noResultsState.style.display = 'none';
+                }
+                initDeleteModals();
+            })
+            .catch(err => {
+                console.error('Fetch error:', err);
+                workoutsList.style.opacity = '1';
             });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(ajaxFilter, 300);
+        });
+    }
+
+    // ── Delete modal ──────────────────────────────────────────────────────────
+    function initDeleteModals() {
+        document.querySelectorAll('.delete-form').forEach(form => {
+            const btn = form.querySelector('.delete-btn');
+            if (!btn) return;
+            btn.onclick = function (e) {
+                e.preventDefault();
+                currentForm = form;
+                workoutNameModal.textContent = form.dataset.workoutName;
+                confirmModal.classList.remove('hidden');
+            };
+        });
+    }
+
+    initDeleteModals();
+
+    cancelBtn.addEventListener('click', () => { confirmModal.classList.add('hidden'); currentForm = null; });
+    confirmBtn.addEventListener('click', () => { if (currentForm) currentForm.submit(); });
+    confirmModal.addEventListener('click', e => {
+        if (e.target === confirmModal) { confirmModal.classList.add('hidden'); currentForm = null; }
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) {
+            confirmModal.classList.add('hidden'); currentForm = null;
         }
     });
-    </script>
+});
+</script>
 {% endblock %}

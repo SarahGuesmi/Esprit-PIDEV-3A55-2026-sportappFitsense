@@ -4,6 +4,8 @@ namespace App\Controller\Coach;
 
 use App\Entity\Questionnaire;
 use App\Repository\QuestionnaireRepository;
+use App\Repository\FeedbackResponseRepository;
+use App\Entity\FeedbackResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class QuestionnaireController extends AbstractController
 {
     #[Route('s', name: 'coach_questionnaire_index')]
-    public function index(QuestionnaireRepository $repository, EntityManagerInterface $em, Request $request): Response
+    public function index(QuestionnaireRepository $repository, FeedbackResponseRepository $feedbackRepo, EntityManagerInterface $em, Request $request): Response
     {
         $search = $request->query->get('search', '');
         
@@ -35,11 +37,49 @@ class QuestionnaireController extends AbstractController
         $quizzes = $qb->getQuery()->getResult();
         $workouts = $em->getRepository(\App\Entity\Workout::class)->findAll();
 
+        // Get user responses for feedback from workouts linked to coach's templates
+        $userResponses = $repository->findUserResponsesForCoach($this->getUser());
+
+        // Also get feedback from the new FeedbackResponse entity
+        // For now, show all feedback responses regardless of coach so that
+        // every submitted feedback appears in this dashboard.
+        $feedbackResponses = $feedbackRepo->findAll();
+
         return $this->render('coach/questionnaires.html.twig', [
             'quizzes' => $quizzes,
             'workouts' => $workouts,
             'search' => $search,
+            'userResponses' => $userResponses,
+            'feedbackResponses' => $feedbackResponses,
         ]);
+    }
+
+    #[Route('/feedback/{id}/delete', name: 'coach_feedback_delete', methods: ['POST'])]
+    public function deleteFeedback(FeedbackResponse $feedback, EntityManagerInterface $em): Response
+    {
+        // Allow any coach to delete any feedback
+        $em->remove($feedback);
+        $em->flush();
+
+        $this->addFlash('success', 'Feedback deleted successfully!');
+        return $this->redirectToRoute('coach_questionnaire_index');
+    }
+
+    #[Route('/response/{id}/delete', name: 'coach_response_delete', methods: ['POST'])]
+    public function deleteResponse(int $id, EntityManagerInterface $em, QuestionnaireRepository $repository): Response
+    {
+        // Find the questionnaire response and delete it
+        $response = $repository->find($id);
+        
+        if (!$response) {
+            throw $this->createNotFoundException('Response not found');
+        }
+
+        $em->remove($response);
+        $em->flush();
+
+        $this->addFlash('success', 'Response deleted successfully!');
+        return $this->redirectToRoute('coach_questionnaire_index');
     }
 
     #[Route('/create', name: 'coach_questionnaire_create', methods: ['POST'])]
@@ -169,5 +209,44 @@ class QuestionnaireController extends AbstractController
 
         $this->addFlash('success', 'Quiz deleted successfully!');
         return $this->redirectToRoute('coach_questionnaire_index');
+    }
+
+    #[Route('/response', name: 'coach_questionnaire_response', methods: ['POST'])]
+    public function submitResponse(Request $request, EntityManagerInterface $em): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        $questionnaireId = $data['questionnaire_id'] ?? null;
+        $workoutId = $data['workout_id'] ?? null;
+        $responseValue = $data['response'] ?? '';
+
+        if (!$questionnaireId || !$workoutId || !$responseValue) {
+            return $this->json(['success' => false, 'message' => 'Missing required fields'], 400);
+        }
+
+        $questionnaire = $em->getRepository(Questionnaire::class)->find($questionnaireId);
+        if (!$questionnaire) {
+            return $this->json(['success' => false, 'message' => 'Questionnaire not found'], 404);
+        }
+
+        $workout = $em->getRepository(\App\Entity\Workout::class)->find($workoutId);
+        if (!$workout) {
+            return $this->json(['success' => false, 'message' => 'Workout not found'], 404);
+        }
+
+        // Create a new response questionnaire
+        $response = new Questionnaire();
+        $response->setTitre($questionnaire->getTitre());
+        $response->setOptions([$responseValue]);
+        $response->setType('response');
+        $response->setUser($this->getUser());
+        $response->setUserName($this->getUser()->getNom() . ' ' . $this->getUser()->getPrenom());
+        $response->setDateSoumission(new \DateTimeImmutable());
+        $response->addWorkout($workout);
+
+        $em->persist($response);
+        $em->flush();
+
+        return $this->json(['success' => true, 'message' => 'Feedback submitted successfully!']);
     }
 }

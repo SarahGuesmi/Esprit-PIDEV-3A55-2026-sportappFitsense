@@ -23,7 +23,16 @@ return [
         'path' => './vendor/symfony/stimulus-bundle/assets/dist/loader.js',
     ],
     '@hotwired/turbo' => [
-        'version' => '7.3.0',
+        'version' => '8.0.23',
+    ],
+    'chart.js' => [
+        'version' => '4.5.1',
+    ],
+    '@symfony/ux-chartjs' => [
+        'version' => '2.32.0',
+    ],
+    '@kurkle/color' => [
+        'version' => '0.3.4',
     ],
     'chart.js' => [
         'version' => '4.5.1',

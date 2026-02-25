@@ -1,0 +1,355 @@
+{% extends 'base_user.html.twig' %}
+
+{% block title %}FitSense - Exercise Library{% endblock %}
+
+{% block user_page_title %}Exercise Library{% endblock %}
+{% block user_page_subtitle %}Browse and discover exercises tailored to your goals{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.exercise-gif {
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.exercise-gif-fallback {
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    filter: brightness(0.5) saturate(0.6);
+}
+.exercise-card-wrapper:hover .exercise-gif,
+.exercise-card-wrapper:hover .exercise-gif-fallback {
+    transform: scale(1.07);
+}
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #9ca3af;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.filter-chip:hover {
+    border-color: rgba(96,165,250,0.5);
+    background: rgba(96,165,250,0.1);
+    color: #60a5fa;
+}
+.filter-chip.active-body {
+    border-color: rgba(96,165,250,0.6);
+    background: rgba(59,130,246,0.2);
+    color: #60a5fa;
+}
+.filter-chip.active-target {
+    border-color: rgba(52,211,153,0.6);
+    background: rgba(16,185,129,0.2);
+    color: #34d399;
+}
+.search-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: #fff;
+    padding: 10px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    font-size: 14px;
+}
+.search-input::placeholder { color: #6b7280; }
+.search-input:focus { border-color: rgba(96,165,250,0.5); background: rgba(96,165,250,0.05); }
+.select-dark {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: #9ca3af;
+    padding: 9px 14px;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 36px;
+}
+.select-dark:focus { border-color: rgba(96,165,250,0.5); }
+.select-dark option { background: #1f2937; color: #fff; }
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #9ca3af;
+    text-decoration: none;
+}
+.pagination-btn:hover {
+    border-color: rgba(96,165,250,0.5);
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+}
+.no-preview-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 5px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    white-space: nowrap;
+}
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="space-y-8">
+
+    {# Search & Filters Panel #}
+    <div class="glass-card p-6 space-y-6">
+
+        <form method="GET" action="{{ path('coach_exercises') }}" class="flex gap-3">
+            <div class="relative flex-1">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none"></i>
+                <input type="text"
+                       name="search"
+                       value="{{ search }}"
+                       placeholder="Search exercise by name…"
+                       class="search-input pl-10">
+            </div>
+            <button type="submit"
+                    class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition whitespace-nowrap">
+                <i class="fas fa-search mr-1"></i> Search
+            </button>
+            {% if search %}
+                <a href="{{ path('coach_exercises') }}"
+                   class="px-4 py-2 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 text-sm font-semibold transition whitespace-nowrap">
+                    <i class="fas fa-times mr-1"></i> Reset
+                </a>
+            {% endif %}
+        </form>
+
+        <div class="border-t border-white/5"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+                    <i class="fas fa-person-running mr-1 text-blue-400"></i> Body Part
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    {% for part in bodyPartList %}
+                        <a href="{{ path('coach_exercises', {bodyPart: part}) }}"
+                           class="filter-chip {{ activeBodyPart == part ? 'active-body' : '' }}">
+                            {{ part }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+                    <i class="fas fa-bullseye mr-1 text-emerald-400"></i> Target Muscle
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    {% for t in targetList %}
+                        <a href="{{ path('coach_exercises', {target: t}) }}"
+                           class="filter-chip {{ activeTarget == t ? 'active-target' : '' }}">
+                            {{ t }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
+                    <i class="fas fa-dumbbell mr-1 text-purple-400"></i> Equipment
+                </p>
+                <div class="relative">
+                    <select class="select-dark"
+                            onchange="window.location.href='{{ path('coach_exercises') }}?equipment='+this.value">
+                        <option value="">All equipment</option>
+                        {% for eq in equipmentList %}
+                            <option value="{{ eq }}" {{ activeEquipment == eq ? 'selected' : '' }}>{{ eq }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-wrap">
+                {% if activeBodyPart %}
+                    <span class="badge-pill bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <i class="fas fa-circle-dot text-[9px]"></i> {{ activeBodyPart }}
+                    </span>
+                {% endif %}
+                {% if activeTarget %}
+                    <span class="badge-pill bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <i class="fas fa-circle-dot text-[9px]"></i> {{ activeTarget }}
+                    </span>
+                {% endif %}
+                {% if activeEquipment %}
+                    <span class="badge-pill bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        <i class="fas fa-circle-dot text-[9px]"></i> {{ activeEquipment }}
+                    </span>
+                {% endif %}
+                {% if search %}
+                    <span class="badge-pill bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                        <i class="fas fa-search text-[9px]"></i> "{{ search }}"
+                    </span>
+                {% endif %}
+            </div>
+            <span class="text-xs text-gray-500 font-semibold shrink-0">
+                <span class="text-white font-bold">{{ exercises|length }}</span> exercise(s) found
+            </span>
+        </div>
+    </div>
+
+    {# Exercise Grid #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {% for ex in exercises %}
+            <div class="glass-card overflow-hidden group exercise-card-wrapper hover:ring-2 hover:ring-blue-500/50 transition-all duration-300">
+
+                {# Image zone #}
+                <div class="overflow-hidden relative">
+
+                    {% if ex.gifUrl %}
+                        <img src="{{ path('coach_gif_proxy', {url: ex.gifUrl}) }}"
+                             class="exercise-gif"
+                             alt="{{ ex.name }}"
+                             loading="lazy"
+                             onerror="this.onerror=null;this.src='/assets/images/sport-hero.png';this.className='exercise-gif-fallback';this.parentElement.querySelector('.no-preview-overlay').style.display='flex';">
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent pointer-events-none"></div>
+
+                        <div class="no-preview-overlay" style="display:none;">
+                            <i class="fas fa-image text-gray-500 text-xs"></i>
+                            <span style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6b7280;">No preview</span>
+                        </div>
+
+                    {% else %}
+                        <img src="/assets/images/sport-hero.png"
+                             class="exercise-gif-fallback"
+                             alt="{{ ex.name }}"
+                             loading="lazy">
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent pointer-events-none"></div>
+
+                        <div class="no-preview-overlay">
+                            <i class="fas fa-image text-gray-500 text-xs"></i>
+                            <span style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6b7280;">No preview</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="absolute bottom-3 left-3 z-10">
+                        <span class="badge-pill bg-blue-600/80 text-white backdrop-blur-sm border border-blue-400/30">
+                            <i class="fas fa-person-running text-[9px]"></i> {{ ex.bodyPart }}
+                        </span>
+                    </div>
+                </div>
+
+                {# Card body #}
+                <div class="p-4 space-y-3">
+                    <h3 class="font-bold text-white text-sm capitalize line-clamp-1 group-hover:text-blue-400 transition">
+                        {{ ex.name }}
+                    </h3>
+
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="badge-pill bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                            <i class="fas fa-bullseye text-[9px]"></i> {{ ex.target }}
+                        </span>
+                        <span class="badge-pill bg-purple-500/15 text-purple-400 border border-purple-500/20">
+                            <i class="fas fa-dumbbell text-[9px]"></i> {{ ex.equipment }}
+                        </span>
+                    </div>
+
+                    <a href="{{ path('coach_exercise_detail', {id: ex.id}) }}"
+                       class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-800 hover:bg-white hover:text-black rounded-xl font-bold text-xs transition duration-300">
+                        View Details <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="col-span-full py-20 text-center">
+                <div class="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-dumbbell text-3xl text-gray-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-300">No exercises found</h3>
+                <p class="text-gray-500 max-w-xs mx-auto mt-2">Try adjusting your filters or search term.</p>
+                <a href="{{ path('coach_exercises') }}"
+                   class="inline-flex items-center gap-2 mt-6 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition">
+                    <i class="fas fa-rotate-left"></i> Clear all filters
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Pagination #}
+    {% if not search and not activeBodyPart and not activeTarget and not activeEquipment %}
+        <div class="flex items-center justify-between pt-2">
+            <div>
+                {% if currentPage > 0 %}
+                    <a href="{{ path('coach_exercises', {page: currentPage - 1}) }}" class="pagination-btn">
+                        <i class="fas fa-arrow-left text-xs"></i> Previous
+                    </a>
+                {% else %}
+                    <span></span>
+                {% endif %}
+            </div>
+
+            <span class="text-sm text-gray-500 font-semibold">
+                Page <span class="text-white font-bold">{{ currentPage + 1 }}</span>
+            </span>
+
+            <a href="{{ path('coach_exercises', {page: currentPage + 1}) }}" class="pagination-btn">
+                Next <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

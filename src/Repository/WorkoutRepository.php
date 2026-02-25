@@ -48,6 +48,33 @@ class WorkoutRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByUserObjectifsFiltered(User $user, ?string $niveau, ?int $dureeMax): array
+{
+    $objectifs = $user->getObjectifs();
+
+    if ($objectifs->isEmpty()) {
+        return [];
+    }
+
+    $qb = $this->createQueryBuilder('w')
+        ->join('w.objectifs', 'o')
+        ->where('o IN (:objectifs)')
+        ->setParameter('objectifs', $objectifs->toArray())
+        ->orderBy('w.nom', 'ASC');
+
+    if ($niveau) {
+        $qb->andWhere('w.niveau = :niveau')
+           ->setParameter('niveau', $niveau);
+    }
+
+    if ($dureeMax) {
+        $qb->andWhere('w.duree <= :duree')
+           ->setParameter('duree', $dureeMax);
+    }
+
+    return $qb->getQuery()->getResult();
+}
+
     //    /**
     //     * @return Workout[] Returns an array of Workout objects
     //     */

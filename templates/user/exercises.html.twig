@@ -1,0 +1,159 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Exercise Library - FitSense{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">💪 Exercise Library</h1>
+            <p class="text-gray-400">Browse and discover exercises to enhance your workouts</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-700">
+            <form method="get" action="{{ path('user_exercises') }}" class="space-y-4">
+                <!-- Search -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Search Exercise</label>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        value="{{ search }}"
+                        placeholder="Search by name..."
+                        class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                </div>
+
+                <!-- Filters Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Body Part</label>
+                        <select name="bodyPart" class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Body Parts</option>
+                            {% for part in bodyPartList %}
+                                <option value="{{ part }}" {% if activeBodyPart == part %}selected{% endif %}>
+                                    {{ part|capitalize }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Target Muscle</label>
+                        <select name="target" class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Targets</option>
+                            {% for t in targetList %}
+                                <option value="{{ t }}" {% if activeTarget == t %}selected{% endif %}>
+                                    {{ t|capitalize }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Equipment</label>
+                        <select name="equipment" class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Equipment</option>
+                            {% for eq in equipmentList %}
+                                <option value="{{ eq }}" {% if activeEquipment == eq %}selected{% endif %}>
+                                    {{ eq|capitalize }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition">
+                        Apply Filters
+                    </button>
+                    <a href="{{ path('user_exercises') }}" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition">
+                        Clear Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Exercises Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for exercise in exercises %}
+                <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700 hover:border-blue-500 transition group">
+                    {% if exercise.gifUrl %}
+                        <div class="aspect-video bg-gray-900 flex items-center justify-center overflow-hidden">
+                            <img 
+                                src="{{ path('user_gif_proxy', {url: exercise.gifUrl}) }}" 
+                                alt="{{ exercise.name }}"
+                                class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            >
+                        </div>
+                    {% else %}
+                        <div class="aspect-video bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                            <span class="text-6xl">💪</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold mb-2 group-hover:text-blue-400 transition">
+                            {{ exercise.name|capitalize }}
+                        </h3>
+
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-400">Body Part:</span>
+                                <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-xs font-medium">
+                                    {{ exercise.bodyPart|capitalize }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-400">Target:</span>
+                                <span class="px-2 py-1 bg-green-500/20 text-green-400 rounded-lg text-xs font-medium">
+                                    {{ exercise.target|capitalize }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-400">Equipment:</span>
+                                <span class="px-2 py-1 bg-purple-500/20 text-purple-400 rounded-lg text-xs font-medium">
+                                    {{ exercise.equipment|capitalize }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <a href="{{ path('user_api_exercise_detail', {id: exercise.id}) }}" 
+                           class="mt-4 block w-full text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-span-full text-center py-12">
+                    <p class="text-gray-400 text-lg">No exercises found. Try adjusting your filters.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if exercises|length == 20 %}
+            <div class="mt-8 flex justify-center gap-4">
+                {% if currentPage > 0 %}
+                    <a href="{{ path('user_exercises', {page: currentPage - 1, bodyPart: activeBodyPart, target: activeTarget, equipment: activeEquipment, search: search}) }}" 
+                       class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition">
+                        ← Previous
+                    </a>
+                {% endif %}
+                
+                <span class="px-6 py-2 bg-gray-800 rounded-lg font-medium">
+                    Page {{ currentPage + 1 }}
+                </span>
+
+                <a href="{{ path('user_exercises', {page: currentPage + 1, bodyPart: activeBodyPart, target: activeTarget, equipment: activeEquipment, search: search}) }}" 
+                   class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition">
+                    Next →
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

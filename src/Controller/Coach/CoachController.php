@@ -3,6 +3,8 @@
 namespace App\Controller\Coach;
 
 use App\Entity\Exercise;
+use App\Entity\Questionnaire;
+use App\Entity\FeedbackResponse;
 use App\Entity\Recommendation;
 use App\Entity\RecommendedExercise;
 use App\Entity\EtatMental;
@@ -11,17 +13,349 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\Mime\Address;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Repository\WorkoutRepository;
+use App\Repository\ExerciseRepository;
+use Symfony\UX\Chartjs\Model\Chart;
+use Symfony\UX\Chartjs\Model\Dataset\PieDataset;
+use Symfony\UX\Chartjs\Model\Dataset\BarDataset;
+use Symfony\UX\Chartjs\Model\Dataset\DoughnutDataset;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+
 
 #[Route('/coach')]
 #[IsGranted('ROLE_COACH')]
 class CoachController extends AbstractController
 {
+#[Route('/dashboard', name: 'coach_dashboard')]
+public function dashboard(
+    WorkoutRepository $workoutRepo,
+    ExerciseRepository $exerciseRepo,
+    ChartBuilderInterface $chartBuilder,
+    EntityManagerInterface $em
+): Response
+{
+    // ================= Total workouts =================
+    $totalWorkouts = $workoutRepo->count([]);
+
+    // ================= Durée moyenne =================
+    $workouts = $workoutRepo->findAll();
+    $totalDuration = array_sum(array_map(fn($w) => $w->getDuree() ?? 0, $workouts));
+    $avgDuration = $workouts ? round($totalDuration / count($workouts), 2) : 0;
+
+    // ================= Exercices les plus utilisés =================
+    $exercises = $exerciseRepo->findAll();
+    $exerciseUsage = [];
+    foreach ($exercises as $ex) {
+        $count = count($ex->getWorkouts());
+        if ($count > 0) {
+            $exerciseUsage[$ex->getNom()] = $count;
+        }
+    }
+    arsort($exerciseUsage);
+    $topExercise = array_key_first($exerciseUsage) ?? '—';
+
+    // ================= Chart - Exercises Bar =================
+    $exerciseChart = $chartBuilder->createChart(Chart::TYPE_BAR);
+    $exerciseChart->setData([
+        'labels' => array_keys($exerciseUsage),
+        'datasets' => [[
+            'label' => 'Uses',
+            'data' => array_values($exerciseUsage),
+            'backgroundColor' => [
+                '#00f5a0','#38bdf8','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#818cf8'
+            ],
+        ]]
+    ]);
+
+    // ================= Chart - Goals Doughnut =================
+    $goalDistribution = [];
+    foreach ($workouts as $w) {
+        $objectifs = $w->getObjectifs();
+        if ($objectifs->isEmpty()) {
+            $goalDistribution['Unknown'] = ($goalDistribution['Unknown'] ?? 0) + 1;
+        } else {
+            foreach ($objectifs as $obj) {
+                $goalDistribution[$obj->getName()] = ($goalDistribution[$obj->getName()] ?? 0) + 1;
+            }
+        }
+    }
+    arsort($goalDistribution);
+
+    $goalChart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+    $goalChart->setData([
+        'labels' => array_keys($goalDistribution),
+        'datasets' => [[
+            'data' => array_values($goalDistribution),
+            'backgroundColor' => [
+                '#00f5a0','#38bdf8','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#818cf8'
+            ],
+        ]]
+    ]);
+
+    // ================= Chart - Levels Pie =================
+    $levelDistribution = [];
+    foreach ($workouts as $w) {
+        $level = ucfirst(strtolower(trim($w->getNiveau() ?? 'Unknown')));
+        $levelDistribution[$level] = ($levelDistribution[$level] ?? 0) + 1;
+    }
+    arsort($levelDistribution);
+
+    $levelChart = $chartBuilder->createChart(Chart::TYPE_PIE);
+    $levelChart->setData([
+        'labels' => array_keys($levelDistribution),
+        'datasets' => [[
+            'data' => array_values($levelDistribution),
+            'backgroundColor' => [
+                '#00f5a0','#38bdf8','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#818cf8'
+            ],
+        ]]
+    ]);
+
+    // ================= SATISFACTION KPI (FeedbackResponse + Workout) =================
+    $coach = $this->getUser();
+
+    // On utilise ici directement les entités FeedbackResponse reliées à un coach et un workout.
+    $feedbackRepo = $em->getRepository(FeedbackResponse::class);
+    $feedbacks = $feedbackRepo->createQueryBuilder('f')
+        ->innerJoin('f.workout', 'w')
+        ->andWhere('f.coach = :coach')
+        ->setParameter('coach', $coach)
+        ->orderBy('f.createdAt', 'ASC')
+        ->getQuery()
+        ->getResult();
+
+    $total = \count($feedbacks);
+
+    // Mapping simple texte -> score 1–5
+    $ratingMap = [
+        'excellent' => 5,
+        'very good' => 4,
+        'good'      => 4,
+        'average'   => 3,
+        'neutral'   => 3,
+        'poor'      => 2,
+        'bad'       => 2,
+        'very poor' => 1,
+    ];
+
+    $sumScores = 0;
+    $scoredCount = 0;
+
+    // Compteurs pour la répartition par niveau
+    $excellentCount = 0;
+    $goodCount = 0;
+    $averageCount = 0;
+    $poorCount = 0;
+
+    // Distribution brute par libellé de rating (pour le Bar chart)
+    $ratingDistribution = [];
+    // Distribution temporelle (pour le Line chart)
+    $dateBuckets = [];
+
+    foreach ($feedbacks as $fb) {
+        /** @var FeedbackResponse $fb */
+        $label = trim((string) $fb->getRating());
+        $key = strtolower($label);
+        $score = $ratingMap[$key] ?? null;
+
+        if ($score !== null) {
+            $sumScores += $score;
+            $scoredCount++;
+
+            // Catégorisation en 4 niveaux principaux
+            switch (true) {
+                case $score === 5:
+                    $excellentCount++;
+                    break;
+                case $score === 4:
+                    $goodCount++;
+                    break;
+                case $score === 3:
+                    $averageCount++;
+                    break;
+                default: // 1–2
+                    $poorCount++;
+                    break;
+            }
+        }
+
+        // Comptage par libellé
+        if ($label !== '') {
+            $ratingDistribution[$label] = ($ratingDistribution[$label] ?? 0) + 1;
+        }
+
+        // Bucket par jour pour l'évolution temporelle
+        $dayKey = $fb->getCreatedAt()->format('Y-m-d');
+        if (!isset($dateBuckets[$dayKey])) {
+            $dateBuckets[$dayKey] = ['sum' => 0, 'count' => 0];
+        }
+        if ($score !== null) {
+            $dateBuckets[$dayKey]['sum'] += $score;
+            $dateBuckets[$dayKey]['count']++;
+        }
+    }
+
+    $avgNote = $scoredCount > 0 ? round($sumScores / $scoredCount, 2) : 0.0;
+    // % satisfaits = Excellent + Good
+    $percentSatisfaits = $scoredCount > 0
+        ? (int) round(($excellentCount + $goodCount) / $scoredCount * 100)
+        : 0;
+
+    // Progression vs last week (volume de réponses)
+    $now = new \DateTimeImmutable();
+    $startThisWeek = $now->modify('monday this week')->setTime(0, 0);
+    $startLastWeek = $startThisWeek->modify('-7 days');
+    $endLastWeek = $startThisWeek->modify('-1 second');
+
+    $nbThisWeek = (int) $feedbackRepo->createQueryBuilder('f')
+        ->select('COUNT(f.id)')
+        ->andWhere('f.coach = :coach')
+        ->andWhere('f.createdAt >= :start')
+        ->andWhere('f.createdAt <= :end')
+        ->setParameter('coach', $coach)
+        ->setParameter('start', $startThisWeek)
+        ->setParameter('end', $now)
+        ->getQuery()
+        ->getSingleScalarResult();
+
+    $nbLastWeek = (int) $feedbackRepo->createQueryBuilder('f')
+        ->select('COUNT(f.id)')
+        ->andWhere('f.coach = :coach')
+        ->andWhere('f.createdAt >= :start')
+        ->andWhere('f.createdAt <= :end')
+        ->setParameter('coach', $coach)
+        ->setParameter('start', $startLastWeek)
+        ->setParameter('end', $endLastWeek)
+        ->getQuery()
+        ->getSingleScalarResult();
+
+    $progression = $nbLastWeek > 0
+        ? (int) round(($nbThisWeek - $nbLastWeek) / $nbLastWeek * 100)
+        : 100;
+
+    // Line chart: évolution de la note moyenne par jour
+    ksort($dateBuckets);
+    $lineLabels = array_keys($dateBuckets);
+    $lineData = [];
+    foreach ($dateBuckets as $bucket) {
+        $lineData[] = $bucket['count'] > 0 ? round($bucket['sum'] / $bucket['count'], 2) : 0;
+    }
+
+    $satisfactionLineChart = $chartBuilder->createChart(Chart::TYPE_LINE);
+    $satisfactionLineChart->setData([
+        'labels' => $lineLabels,
+        'datasets' => [[
+            'label' => 'Note moyenne',
+            'data' => $lineData,
+            'borderColor' => 'rgba(56,189,248,1)',
+            'backgroundColor' => 'rgba(56,189,248,0.2)',
+            'tension' => 0.3,
+        ]],
+    ]);
+
+    $satisfactionDoughnutChart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+    $satisfactionDoughnutChart->setData([
+        'labels' => ['Excellent', 'Good', 'Average', 'Poor'],
+        'datasets' => [[
+            'data' => [
+                $excellentCount,
+                $goodCount,
+                $averageCount,
+                $poorCount,
+            ],
+            'backgroundColor' => [
+                'rgba(34,197,94,0.85)',   // Excellent
+                'rgba(56,189,248,0.85)',  // Good
+                'rgba(250,204,21,0.9)',   // Average
+                'rgba(248,113,113,0.9)',  // Poor
+            ],
+        ]],
+    ]);
+
+    // Bar: distribution par libellé de rating (intensité ressentie)
+    ksort($ratingDistribution);
+    $barLabels = array_keys($ratingDistribution);
+    $barData = array_values($ratingDistribution);
+
+    $satisfactionBarChart = $chartBuilder->createChart(Chart::TYPE_BAR);
+    $satisfactionBarChart->setData([
+        'labels' => $barLabels,
+        'datasets' => [[
+            'label' => 'Nombre de réponses',
+            'data' => $barData,
+            'backgroundColor' => 'rgba(56,189,248,0.7)',
+        ]],
+    ]);
+
+    // Gauge: progression vs objective
+    $objectif = 100;
+    $atteint = max(0, min($objectif, $progression + 100));
+    $reste = max(0, $objectif - $atteint);
+
+    $satisfactionGaugeChart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+    $satisfactionGaugeChart->setData([
+        'labels' => ['Atteint', 'Reste'],
+        'datasets' => [[
+            'data' => [$atteint, $reste],
+            'backgroundColor' => [
+                'rgba(56,189,248,0.9)',
+                'rgba(31,41,55,0.6)',
+            ],
+        ]],
+    ]);
+    $satisfactionGaugeChart->setOptions([
+        'rotation' => -90,
+        'circumference' => 180,
+        'cutout' => '70%',
+    ]);
+
+    // Derniers feedbacks réels (pour affichage détaillé)
+    $recentFeedbacks = $feedbackRepo->createQueryBuilder('f')
+        ->innerJoin('f.workout', 'w')
+        ->addSelect('w')
+        ->andWhere('f.coach = :coach')
+        ->setParameter('coach', $coach)
+        ->orderBy('f.createdAt', 'DESC')
+        ->setMaxResults(5)
+        ->getQuery()
+        ->getResult();
+
+    return $this->render('coach/dashboard.html.twig', [
+        'totalWorkouts' => $totalWorkouts,
+        'avgDuration' => $avgDuration,
+        'topExercise' => $topExercise,
+        'exerciseChart' => $exerciseChart,
+        'goalChart' => $goalChart,
+        'levelChart' => $levelChart,
+        'nbFeedbacks' => $total,
+        'satisfactionLineChart' => $satisfactionLineChart,
+        'satisfactionDoughnutChart' => $satisfactionDoughnutChart,
+        'satisfactionBarChart' => $satisfactionBarChart,
+        'recentFeedbacks' => $recentFeedbacks,
+    ]);
+}
+
+    #[Route('/send-daily-report', name: 'coach_send_daily_report')]
+    public function sendDailyReport(
+        \App\Service\WeeklyReportService $reportService
+    ): Response
+    {
+        $coach = $this->getUser();
+        
+        // Send report for today (test mode)
+        $result = $reportService->sendDailyReport($coach, true);
+        
+        if ($result['success']) {
+            $this->addFlash('success', 'Daily report sent successfully to ' . $coach->getEmail());
+        } else {
+            $this->addFlash('error', 'Failed to send report: ' . $result['message']);
+        }
+        
+        return $this->redirectToRoute('coach_dashboard');
+    }
+
     #[Route('/users', name: 'coach_users_index')]
     public function users(Request $request, EntityManagerInterface $em): Response
     {
@@ -63,6 +397,10 @@ class CoachController extends AbstractController
             'users' => $users,
         ]);
     }
+
+
+
+
 
     #[Route('/mental-health', name: 'coach_mental_health_index')]
     public function mentalHealth(Request $request, EntityManagerInterface $em): Response
@@ -110,7 +448,7 @@ class CoachController extends AbstractController
     }
 
     #[Route('/mental-health/recommendation/add', name: 'coach_mental_health_recommend_add', methods: ['POST'])]
-    public function addRecommendation(Request $request, EntityManagerInterface $em, MailerInterface $mailer, LoggerInterface $logger): Response
+    public function addRecommendation(Request $request, EntityManagerInterface $em): Response
     {
         $userId = $request->request->get('user_id');
         $exerciseTitles = $request->request->all('exercise_titles');
@@ -144,27 +482,6 @@ class CoachController extends AbstractController
 
         $em->persist($recommendation);
         $em->flush();
-
-        // Send Email Notification
-        try {
-            $email = (new TemplatedEmail())
-                ->from(new Address('sarahguesmi223@gmail.com', 'FitSense Wellness'))
-                ->to($user->getEmail())
-                ->subject('New Wellness Recommendation from your Coach')
-                ->htmlTemplate('emails/recommendation_email.html.twig')
-                ->context([
-                    'user_name' => $user->getFirstname(),
-                    'coach_name' => $this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname(),
-                    'notes' => $notes,
-                    'exercises' => $recommendation->getRecommendedExercises()
-                ]);
-
-            $mailer->send($email);
-        } catch (\Exception $e) {
-            $logger->error('Failed to send recommendation email: ' . $e->getMessage(), [
-                'exception' => $e
-            ]);
-        }
 
         $this->addFlash('success', 'Recommendation saved successfully.');
         return $this->redirectToRoute('coach_mental_health_recommendations_list');

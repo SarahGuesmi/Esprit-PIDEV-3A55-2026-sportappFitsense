@@ -1,5 +1,4 @@
 <?php
-// src/Form/ExerciseType.php
 
 namespace App\Form;
 
@@ -12,6 +11,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Form\Type\VichImageType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 class ExerciseType extends AbstractType
 {
@@ -25,31 +26,24 @@ class ExerciseType extends AbstractType
                     'class' => 'form-control'
                 ],
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Name is required'
-                    ]),
-                    new Assert\Length([
-                        'max' => 255,
-                        'maxMessage' => 'Name cannot exceed {{ limit }} characters'
-                    ])
+                    new Assert\NotBlank(['message' => 'Name is required']),
+                    new Assert\Length(['max' => 255, 'maxMessage' => 'Name cannot exceed {{ limit }} characters'])
                 ]
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Exercise Type',
                 'choices' => [
-                    'Cardio' => 'Cardio',
-                    'Strength' => 'Strength',
-                    'Flexibility' => 'Flexibility',
-                    'Balance' => 'Balance',
-                    'HIIT' => 'HIIT',
-                    'Endurance' => 'Endurance',
+                    'Cardio'       => 'Cardio',
+                    'Strength'     => 'Strength',
+                    'Flexibility'  => 'Flexibility',
+                    'Balance'      => 'Balance',
+                    'HIIT'         => 'HIIT',
+                    'Endurance'    => 'Endurance',
                 ],
                 'attr' => ['class' => 'form-control'],
                 'placeholder' => 'Select a type',
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Type is required'
-                    ])
+                    new Assert\NotBlank(['message' => 'Type is required'])
                 ]
             ])
             ->add('duree', IntegerType::class, [
@@ -61,22 +55,25 @@ class ExerciseType extends AbstractType
                 ],
                 'help' => 'Exercise duration in seconds',
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Duration is required'
-                    ]),
-                    new Assert\Positive([
-                        'message' => 'Duration must be a positive number'
-                    ])
+                    new Assert\NotBlank(['message' => 'Duration is required']),
+                    new Assert\Positive(['message' => 'Duration must be a positive number'])
                 ]
             ])
+            ->add('imageFile', VichImageType::class, [
+                'required'     => false,
+                'allow_delete' => true,
+                'download_uri' => false,
+                'label'        => 'Exercise Image',
+                'attr'         => ['class' => 'block w-full text-sm text-gray-400']
+            ])
+
+            ->add('youtubeVideoId', HiddenType::class, [
+                    'required' => false,
+                    'label'    => false,
+            ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
                 'required' => false,
-                'attr' => [
-                    'placeholder' => 'Describe the exercise, execution instructions...',
-                    'class' => 'form-control',
-                    'rows' => 4
-                ]
+                'attr' => ['rows' => 6],
             ]);
     }
 

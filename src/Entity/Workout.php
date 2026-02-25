@@ -17,6 +17,11 @@ class Workout
     #[ORM\Column]
     private ?int $id = null;
 
+    // ================= Coach =================
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $coach = null;
+
     // ================= Nom =================
     #[Assert\NotBlank(message: "Le nom est obligatoire.")]
     #[Assert\Length(
@@ -71,6 +76,17 @@ class Workout
         return $this->id;
     }
 
+    public function getCoach(): ?User
+    {
+        return $this->coach;
+    }
+
+    public function setCoach(?User $coach): static
+    {
+        $this->coach = $coach;
+        return $this;
+    }
+
     public function getNom(): ?string
     {
         return $this->nom;
@@ -98,11 +114,11 @@ class Workout
         return $this->duree;
     }
 
-   public function setDuree(?int $duree): static
-{
-    $this->duree = $duree;
-    return $this;
-}
+    public function setDuree(?int $duree): static
+    {
+        $this->duree = $duree;
+        return $this;
+    }
 
     public function getDescription(): ?string
     {
@@ -155,6 +171,20 @@ class Workout
         if ($this->objectifs->removeElement($objectif)) {
             $objectif->removeWorkout($this);
         }
+        return $this;
+    }
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    private ?string $status = null;
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): static
+    {
+        $this->status = $status;
         return $this;
     }
 }
