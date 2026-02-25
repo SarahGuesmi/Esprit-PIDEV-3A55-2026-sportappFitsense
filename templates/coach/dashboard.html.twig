@@ -1,56 +1,103 @@
 {% extends 'coach/base_coach.html.twig' %}
 
 {% block coach_content %}
-    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700 mb-8">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
+  <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-700 mb-8">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
 
-        <div class="relative">
-            <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
-                Coach Dashboard
-            </h1>
-            <p class="text-gray-400 ml-6">Welcome back, Coach! Here's your overview.</p>
+    <div class="relative">
+      <h1 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+        <div class="w-1.5 h-10 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full"></div>
+        Coach Dashboard
+      </h1>
+      <p class="text-gray-400 ml-6">Welcome back, Coach! Here's your overview.</p>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Users Stat -->
+    <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-purple-500/30 transition shadow-lg">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-purple-500/10 rounded-xl">
+          <i class="fas fa-users text-purple-400 text-xl"></i>
         </div>
+        <span class="text-xs font-semibold px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg">+12%</span>
+      </div>
+      <h3 class="text-gray-400 text-sm font-medium">Total Clients</h3>
+      <p class="text-2xl font-bold text-white mt-1">--</p>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Users Stat -->
-        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-purple-500/30 transition shadow-lg">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-purple-500/10 rounded-xl">
-                    <i class="fas fa-users text-purple-400 text-xl"></i>
-                </div>
-                <!-- Placeholder for actual count -->
-                <span class="text-xs font-semibold px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg">+12%</span>
-            </div>
-            <h3 class="text-gray-400 text-sm font-medium">Total Clients</h3>
-            <p class="text-2xl font-bold text-white mt-1">--</p>
+    <!-- Workouts Stat -->
+    <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-blue-500/30 transition shadow-lg">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-blue-500/10 rounded-xl">
+          <i class="fas fa-dumbbell text-blue-400 text-xl"></i>
         </div>
-
-        <!-- Workouts Stat -->
-        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-blue-500/30 transition shadow-lg">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-blue-500/10 rounded-xl">
-                    <i class="fas fa-dumbbell text-blue-400 text-xl"></i>
-                </div>
-                <span class="text-xs font-semibold px-2.5 py-1 bg-blue-500/10 text-blue-400 rounded-lg">Active</span>
-            </div>
-            <h3 class="text-gray-400 text-sm font-medium">Workout Plans</h3>
-            <p class="text-2xl font-bold text-white mt-1">--</p>
-        </div>
-
-        <!-- Mental Health Stat -->
-        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-pink-500/30 transition shadow-lg">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-pink-500/10 rounded-xl">
-                    <i class="fas fa-brain text-pink-400 text-xl"></i>
-                </div>
-                <span class="text-xs font-semibold px-2.5 py-1 bg-pink-500/10 text-pink-400 rounded-lg">New</span>
-            </div>
-            <h3 class="text-gray-400 text-sm font-medium">Mental Health Logs</h3>
-            <p class="text-2xl font-bold text-white mt-1">--</p>
-        </div>
+        <span class="text-xs font-semibold px-2.5 py-1 bg-blue-500/10 text-blue-400 rounded-lg">Active</span>
+      </div>
+      <h3 class="text-gray-400 text-sm font-medium">Workout Plans</h3>
+      <p class="text-2xl font-bold text-white mt-1">--</p>
     </div>
+
+    <!-- Mental Health Stat -->
+    <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-pink-500/30 transition shadow-lg">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-pink-500/10 rounded-xl">
+          <i class="fas fa-brain text-pink-400 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold px-2.5 py-1 bg-pink-500/10 text-pink-400 rounded-lg">New</span>
+      </div>
+      <h3 class="text-gray-400 text-sm font-medium">Mental Health Logs</h3>
+      <p class="text-2xl font-bold text-white mt-1">--</p>
+    </div>
+  </div>
+
+  {# =========================
+     CHARTS SECTION
+     ========================= #}
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+    <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-pink-500/30 transition shadow-lg">
+
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-pink-500/10 rounded-xl">
+            <i class="fas fa-heart text-pink-400 text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-white font-bold">Top Recipes</h3>
+            <p class="text-gray-400 text-xs">Most favorited by users ❤️</p>
+          </div>
+        </div>
+
+        <span class="text-xs font-semibold px-3 py-1 bg-pink-500/10 text-pink-400 rounded-lg">
+          Top 5
+        </span>
+      </div>
+
+      <div class="bg-gray-900/40 rounded-xl p-4 border border-gray-700 h-[320px] relative">
+
+        {# ✅ affichage chart seulement si data existe #}
+        {% if hasFavoritesData %}
+          <div class="w-full h-full">
+            {{ render_chart(topRecipesChart) }}
+          </div>
+        {% else %}
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center">
+              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-pink-500/10 flex items-center justify-center">
+                <i class="fas fa-chart-bar text-pink-400"></i>
+              </div>
+              <p class="text-gray-300 text-sm font-semibold">No data yet</p>
+              <p class="text-gray-500 text-xs">Users haven’t favorited your recipes.</p>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+
+    </div>
+  </div>
+
 {% endblock %}

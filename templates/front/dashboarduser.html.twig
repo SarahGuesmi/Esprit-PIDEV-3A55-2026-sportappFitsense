@@ -1,162 +1,274 @@
+{# templates/front/dashboarduser.html.twig #}
 {% extends 'base_user.html.twig' %}
 
 {% block title %}FitSense - My Dashboard{% endblock %}
-
 {% block user_page_title %}My Dashboard{% endblock %}
 {% block user_page_subtitle %}Personal training portal{% endblock %}
 
-{% block user_content %}
-    <!-- Welcome Section -->
-    <div class="relative overflow-hidden glass-card p-10 mb-8 border-none ring-1 ring-white/10">
-        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -ml-24 -mb-24"></div>
-        
-        <div class="relative flex flex-col md:flex-row justify-between items-center gap-8">
-            <div>
-                <h1 class="text-4xl font-extrabold mb-3">Welcome back, {{ app.user.firstname }}! 👋</h1>
-                <p class="text-gray-400 text-lg max-w-xl">
-                    Ready to crush your goals today? Your training schedule is waiting for you. 
-                    Let's maintain that momentum!
-                </p>
-                <div class="mt-8 flex gap-4">
-                    <a href="#" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition transform hover:-translate-y-1">
-                        Start Training
-                    </a>
-                    <a href="{{ path('etat_mental_index') }}" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold transition">
-                        Mental Check
-                    </a>
-                </div>
-            </div>
-            <div class="hidden lg:block">
-                <img src="/assets/images/sport-hero.png" class="w-64 h-auto drop-shadow-2xl animate-bounce-slow" style="animation: bounce 6s ease-in-out infinite;">
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left Column -->
-        <div class="lg:col-span-2 space-y-8">
-            <!-- Progress Section -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass-card p-6 stat-card text-center">
-                    <p class="text-gray-400 text-sm font-medium mb-2 uppercase tracking-wider">Daily Goal</p>
-                    <div class="text-3xl font-bold text-blue-400 mb-1">85%</div>
-                    <div class="w-full bg-gray-800 h-1.5 rounded-full">
-                        <div class="bg-blue-400 h-1.5 rounded-full" style="width: 85%"></div>
-                    </div>
-                </div>
-                <div class="glass-card p-6 stat-card text-center">
-                    <p class="text-gray-400 text-sm font-medium mb-2 uppercase tracking-wider">Workouts</p>
-                    <div class="text-3xl font-bold text-purple-400 mb-1">12</div>
-                    <p class="text-xs text-gray-500">Completed this month</p>
-                </div>
-                <div class="glass-card p-6 stat-card text-center">
-                    <p class="text-gray-400 text-sm font-medium mb-2 uppercase tracking-wider">Calories</p>
-                    <div class="text-3xl font-bold text-orange-400 mb-1">2,450</div>
-                    <p class="text-xs text-gray-500">Burned this week</p>
-                </div>
-            </div>
-
-            <!-- Wellness Trend Chart -->
-            <div class="glass-card p-6 mb-8 group">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold">Wellness Trend</h3>
-                        <p class="text-xs text-gray-500">Your mental health score history</p>
-                    </div>
-                    <div class="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center text-purple-400">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                </div>
-                <div style="height: 250px;">
-                    {{ render_chart(chart) }}
-                </div>
-            </div>
-
-            <!-- Upcoming Workouts -->
-            <div class="glass-card overflow-hidden">
-                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                    <h3 class="text-xl font-bold">Recommended Sessions</h3>
-                    <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-bold">View All</a>
-                </div>
-                <div class="p-6">
-                    <div class="space-y-4">
-                        {% for workout in recommendedWorkouts %}
-                            <div class="flex items-center p-4 bg-gray-800/50 rounded-2xl hover:bg-gray-800 transition group">
-                                <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 mr-4">
-                                    <i class="fas fa-dumbbell"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold group-hover:text-blue-400 transition">{{ workout.nom }}</h4>
-                                    <p class="text-xs text-gray-500">
-                                        {{ workout.objectifs|map(o => o.name)|join(' • ') }} • {{ workout.duree }} mins • {{ workout.niveau|capitalize }}
-                                    </p>
-                                </div>
-                                <a href="{{ path('user_workout_view', {id: workout.id}) }}" class="px-4 py-2 bg-gray-700 rounded-lg text-xs font-bold hover:bg-white hover:text-black transition">
-                                    Join
-                                </a>
-                            </div>
-                        {% else %}
-                            <div class="text-center py-8">
-                                <p class="text-gray-500 italic">No recommended workouts available for your current objectives.</p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="space-y-8">
-            <!-- Mental Health Status -->
-            <div class="glass-card p-8 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border-indigo-500/20">
-                <h3 class="text-xl font-bold mb-6">Mental Wellbeing</h3>
-                <div class="flex items-center gap-4 mb-2">
-                    {% if lastEvaluation %}
-                        <div class="px-3 py-1 {% if lastEvaluation.totalScore > 17 %}bg-green-500/20 text-green-400 border-green-500/30{% elseif lastEvaluation.totalScore > 10 %}bg-orange-500/20 text-orange-400 border-orange-500/30{% else %}bg-red-500/20 text-red-400 border-red-500/30{% endif %} rounded-lg text-xs font-bold border">
-                            {{ lastEvaluation.status }}
-                        </div>
-                        <span class="text-xs text-gray-400">Last check: {{ lastEvaluation.createdAt|date('d M') }}</span>
-                    {% else %}
-                        <div class="px-3 py-1 bg-gray-500/20 text-gray-400 rounded-lg text-xs font-bold border border-gray-500/30">
-                            No Data
-                        </div>
-                    {% endif %}
-                </div>
-                <p class="text-gray-300 text-sm mb-6">
-                    {% if lastEvaluation %}
-                        Score: <strong>{{ lastEvaluation.totalScore }}/25</strong>. 
-                        {{ lastEvaluation.totalScore > 17 ? "You're doing great! Keep it up." : "Take some time for yourself today." }}
-                    {% else %}
-                        Start your journey by taking your first mental health assessment!
-                    {% endif %}
-                </p>
-                <a href="{{ path('etat_mental_new') }}" class="block text-center py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition">
-                    Take New Assessment
-                </a>
-            </div>
-
-            <!-- Nutrition Tip -->
-            <div class="glass-card p-6">
-                <div class="flex items-center gap-3 mb-4">
-                    <i class="fas fa-leaf text-green-400"></i>
-                    <h3 class="font-bold">Nutrition Tip</h3>
-                </div>
-                <p class="text-sm text-gray-400 italic">
-                    "Consume protein within 30 minutes of your workout to maximize muscle recovery."
-                </p>
-            </div>
-
-            <!-- Upgrade Banner -->
-            <div class="p-6 rounded-2xl bg-indigo-600 relative overflow-hidden group">
-                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                <h4 class="text-white font-extrabold mb-1">Upgrade to PRO</h4>
-                <p class="text-indigo-100 text-xs mb-4">Unlock personalized meal plans and 1-on-1 coaching.</p>
-                <button class="bg-white text-indigo-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-50 transition">
-                    Learn More
-                </button>
-            </div>
-        </div>
-    </div>
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .nt-ring{width:160px;height:160px;position:relative;display:flex;align-items:center;justify-content:center}
+    .nt-svg{width:160px;height:160px;transform:rotate(-90deg)}
+    .nt-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:12}
+    .nt-fg{fill:none;stroke-width:12;stroke-linecap:round;stroke-dasharray:289;stroke-dashoffset:289;transition:stroke-dashoffset .7s ease}
+    .nt-cal{stroke:rgba(255,140,90,.95)}
+    .nt-water{stroke:rgba(120,170,255,.95)}
+    .nt-center{position:absolute;text-align:center;line-height:1.1}
+    .nt-value{font-size:40px;font-weight:800;color:#fff}
+    .nt-unit{font-size:12px;letter-spacing:1px;color:rgba(255,255,255,.75)}
+    .nt-hint{margin-top:6px;font-size:12px;color:rgba(255,255,255,.6)}
+  </style>
 {% endblock %}
 
+{% block user_content %}
+
+  <!-- Welcome Section -->
+  <div class="relative overflow-hidden glass-card p-10 mb-8 border-none ring-1 ring-white/10">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -ml-24 -mb-24"></div>
+
+    <div class="relative flex flex-col md:flex-row justify-between items-center gap-8">
+      <div>
+        <h1 class="text-4xl font-extrabold mb-3">Welcome back, {{ app.user.firstname }}! 👋</h1>
+        <p class="text-gray-400 text-lg max-w-xl">
+          Ready to crush your goals today? Your training schedule is waiting for you.
+          Let's maintain that momentum!
+        </p>
+        <div class="mt-8 flex gap-4">
+          <a href="#" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition transform hover:-translate-y-1">
+            Start Training
+          </a>
+          <a href="{{ path('etat_mental_index') }}" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold transition">
+            Mental Check
+          </a>
+        </div>
+      </div>
+      <div class="hidden lg:block">
+        <img src="/assets/images/sport-hero.png" class="w-64 h-auto drop-shadow-2xl animate-bounce-slow" style="animation: bounce 6s ease-in-out infinite;">
+      </div>
+    </div>
+  </div>
+
+  {# =======================
+     Daily Nutrition Tracker
+     ======================= #}
+
+  {% set kcal     = (daily is defined and daily) ? (daily.calories ?? 0) : 0 %}
+  {% set kcalGoal = (daily is defined and daily) ? (daily.caloriesGoal ?? 2000) : 2000 %}
+
+  {% set waterMl   = (daily is defined and daily) ? (daily.waterMl ?? 0) : 0 %}
+  {% set waterGoal = (daily is defined and daily) ? (daily.waterGoal ?? 2500) : 2500 %}
+
+  {% set kcalPct  = kcalGoal > 0 ? (kcal / kcalGoal * 100) : 0 %}
+  {% set waterPct = waterGoal > 0 ? (waterMl / waterGoal * 100) : 0 %}
+
+  <div class="glass-card p-6 mb-8">
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h3 class="text-xl font-extrabold">Daily Nutrition Tracker</h3>
+        <p class="text-gray-400 text-sm mt-1">
+          Track your nutrition daily. Stay with your progress and stay within your goal.
+        </p>
+      </div>
+      <div class="text-xs text-gray-500">
+        {{ "now"|date("l, F d") }}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Calories ring -->
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <div class="flex items-center gap-5">
+          <div class="nt-ring" data-progress="{{ kcalPct }}">
+            <svg viewBox="0 0 120 120" class="nt-svg">
+              <circle class="nt-bg" cx="60" cy="60" r="46"></circle>
+              <circle class="nt-fg nt-cal" cx="60" cy="60" r="46"></circle>
+            </svg>
+            <div class="nt-center">
+              <div class="nt-value">{{ kcal }}</div>
+              <div class="nt-unit">kcal</div>
+              <div class="nt-hint">{{ kcalPct|round(0) }}% of daily goal</div>
+            </div>
+          </div>
+
+          <div class="flex-1">
+            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Calories</p>
+            <p class="text-white font-extrabold mt-1 text-lg">
+              {{ kcal }} / {{ kcalGoal }} kcal
+            </p>
+
+            {% if kcal > kcalGoal %}
+              <p class="text-red-400 text-xs mt-2 font-bold">⚠️ You exceeded your calories goal</p>
+            {% else %}
+              <p class="text-gray-500 text-xs mt-2">
+                Remaining: <b class="text-white">{{ (kcalGoal - kcal) < 0 ? 0 : (kcalGoal - kcal) }}</b> kcal
+              </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Water ring -->
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <div class="flex items-center gap-5">
+          <div class="nt-ring" data-progress="{{ waterPct }}">
+            <svg viewBox="0 0 120 120" class="nt-svg">
+              <circle class="nt-bg" cx="60" cy="60" r="46"></circle>
+              <circle class="nt-fg nt-water" cx="60" cy="60" r="46"></circle>
+            </svg>
+            <div class="nt-center">
+              <div class="nt-value">{{ waterMl }}</div>
+              <div class="nt-unit">ML</div>
+              <div class="nt-hint">{{ waterPct|round(0) }}% of daily goal</div>
+            </div>
+          </div>
+
+          <div class="flex-1">
+            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Water</p>
+            <p class="text-white font-extrabold mt-1 text-lg">
+              {{ (waterMl/1000)|round(1) }}L / {{ (waterGoal/1000)|round(1) }}L
+            </p>
+
+            <form method="POST" action="{{ path('user_water_add_500') }}" class="mt-4">
+              <input type="hidden" name="_token" value="{{ csrf_token('water_add') }}">
+              <button type="submit"
+                      class="h-11 w-full bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/20 text-blue-300 rounded-xl text-sm font-bold transition">
+                + 500 ml 💧
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# =======================
+     Weekly Calories (LEFT) + Right Column (RIGHT)
+     ======================= #}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-start">
+
+    {# LEFT: chart aligned LEFT and same “shape” style #}
+    <div class="lg:col-span-2 flex justify-start">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5 w-full"
+           style="max-width:720px; height:260px;">
+        <div class="mb-3">
+          <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Weekly Calories</p>
+        </div>
+
+        <div style="height:200px;">
+          {% if weeklyChart is defined and weeklyChart %}
+            {{ render_chart(weeklyChart) }}
+          {% else %}
+            <div class="text-gray-500 text-sm italic text-center py-6">
+              No chart data for this week yet.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# RIGHT: everything else (Recommended + 3 cards) #}
+    <div class="lg:col-span-1 space-y-6">
+
+      <!-- Upcoming Workouts -->
+      <div class="glass-card overflow-hidden">
+        <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+          <h3 class="text-xl font-bold">Recommended Sessions</h3>
+          <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-bold">View All</a>
+        </div>
+
+        <div class="p-6">
+          <div class="space-y-4">
+            {% set recs = (recommendedWorkouts is defined and recommendedWorkouts) ? recommendedWorkouts : [] %}
+            {% for workout in recs %}
+              <div class="flex items-center p-4 bg-gray-800/50 rounded-2xl hover:bg-gray-800 transition group">
+                <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 mr-4">
+                  <i class="fas fa-dumbbell"></i>
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-bold group-hover:text-blue-400 transition">{{ workout.nom }}</h4>
+                  <p class="text-xs text-gray-500">
+                    {{ workout.objectifs|map(o => o.name)|join(' • ') }} • {{ workout.duree }} mins • {{ workout.niveau|capitalize }}
+                  </p>
+                </div>
+                <a href="{{ path('user_workout_view', {id: workout.id}) }}" class="px-4 py-2 bg-gray-700 rounded-lg text-xs font-bold hover:bg-white hover:text-black transition">
+                  Join
+                </a>
+              </div>
+            {% else %}
+              <div class="text-center py-6">
+                <p class="text-gray-500 italic">No recommended workouts available for your current objectives.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Mental Wellbeing -->
+      <div class="glass-card p-6 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-500/20">
+        <h3 class="text-xl font-bold mb-4">Mental Wellbeing</h3>
+        <div class="flex items-center gap-4 mb-2">
+          <div class="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-xs font-bold border border-green-500/30">
+            Positive
+          </div>
+          <span class="text-xs text-gray-400">Last check: Today</span>
+        </div>
+        <p class="text-gray-300 text-sm mb-4">
+          You're feeling stable and motivated. Remember to stay hydrated during your sessions!
+        </p>
+        <a href="{{ path('etat_mental_index') }}" class="block text-center py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition">
+          Take New Assessment
+        </a>
+      </div>
+
+      <!-- Nutrition Tip -->
+      <div class="glass-card p-6">
+        <div class="flex items-center gap-3 mb-3">
+          <i class="fas fa-leaf text-green-400"></i>
+          <h3 class="font-bold">Nutrition Tip</h3>
+        </div>
+        <p class="text-sm text-gray-400 italic">
+          "Consume protein within 30 minutes of your workout to maximize muscle recovery."
+        </p>
+      </div>
+
+      <!-- Upgrade to PRO -->
+      <div class="p-6 rounded-2xl bg-indigo-600 relative overflow-hidden group">
+        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+        <h4 class="text-white font-extrabold mb-1">Upgrade to PRO</h4>
+        <p class="text-indigo-100 text-xs mb-4">Unlock personalized meal plans and 1-on-1 coaching.</p>
+        <button class="bg-white text-indigo-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-50 transition">
+          Learn More
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.nt-ring').forEach(r => {
+        const pct = Math.max(0, Math.min(100, parseFloat(r.dataset.progress || '0')));
+        const circle = r.querySelector('.nt-fg');
+        if (!circle) return;
+
+        const circumference = 289;
+        const offset = circumference - (pct / 100) * circumference;
+        circle.style.strokeDasharray = `${circumference}`;
+        circle.style.strokeDashoffset = `${offset}`;
+      });
+
+      const kcal = {{ (daily is defined and daily) ? (daily.calories ?? 0) : 0 }};
+      const goal = {{ (daily is defined and daily) ? (daily.caloriesGoal ?? 2000) : 2000 }};
+      if (kcal > goal) {
+        alert("⚠️ You exceeded your daily calories goal!");
+      }
+    });
+  </script>
+{% endblock %}
