@@ -15,7 +15,7 @@ class RecipeFavoriteController extends AbstractController
     #[IsGranted('ROLE_USER')]
     #[Route('/user/recipes/{id}/favorite', name: 'user_recipe_toggle_favorite', methods: ['POST'])]
     public function toggleFavorite(
-        int $id,
+        string $id,
         Request $request,
         RecetteNutritionnelleRepository $repo,
         EntityManagerInterface $em

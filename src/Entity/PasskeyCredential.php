@@ -2,16 +2,24 @@
 
 namespace App\Entity;
 
+use App\Repository\PasskeyCredentialRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity]
+use App\Trait\BlameableTrait;
+use App\Trait\TimestampableTrait;
+
+#[ORM\Entity(repositoryClass: PasskeyCredentialRepository::class)]
 #[ORM\Table(name: 'passkey_credential')]
+#[ORM\HasLifecycleCallbacks]
 class PasskeyCredential
 {
+    use TimestampableTrait, BlameableTrait;
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'passkeyCredentials')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -28,15 +36,13 @@ class PasskeyCredential
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $signatureCounter = 0;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -85,8 +91,5 @@ class PasskeyCredential
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
+
 }

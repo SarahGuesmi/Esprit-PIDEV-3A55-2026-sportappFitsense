@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,36 +11,35 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity()]
-#[UniqueEntity(fields: ['email'], message: 'This email address already exists.')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: 'app_user')]
+#[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(fields: ['email.email'], message: 'This email address already exists.')]
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface, \Serializable
 {
-    #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
-    #[ORM\Column(type: 'string', length: 180, unique: true)]
-    #[Assert\NotBlank(message: "Email is required")]
-    #[Assert\Email(message: "Please enter a valid email")]
-    private ?string $email = null;
+    #[ORM\Embedded(class: EmailAddress::class)]
+    private EmailAddress $email;
 
     #[ORM\Column(type: 'string')]
     #[Assert\NotBlank(message: "Password is required")]
     #[Assert\Length(min: 6, minMessage: "Password must be at least 6 characters")]
+    #[Ignore]
     private ?string $password = null;
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "First name is required")]
-    #[Assert\Regex(pattern: "/^[a-zA-Z]+$/", message: "First name cannot contain numbers")]
-    private ?string $firstname = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "Last name is required")]
-    #[Assert\Regex(pattern: "/^[a-zA-Z]+$/", message: "Last name cannot contain numbers")]
-    private ?string $lastname = null;
+    #[ORM\Embedded(class: PersonName::class)]
+    private PersonName $name;
 
     #[ORM\Column(type: 'string', length: 50)]
     private ?string $accountStatus = null;
@@ -47,29 +47,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $dateCreation = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: EtatMental::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: EtatMental::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $etatMentals;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfilePhysique::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfilePhysique::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $profilesPhysiques;
 
-    #[ORM\OneToMany(mappedBy: 'coach', targetEntity: RecetteNutritionnelle::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'coach', targetEntity: RecetteNutritionnelle::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $recettes;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: RecetteConsommee::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: RecetteConsommee::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $recettesConsommees;
+
 
     #[ORM\ManyToMany(targetEntity: RecetteNutritionnelle::class, mappedBy: 'favoritedBy')]
     private Collection $favoriteRecipes;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: PasskeyCredential::class, cascade: ['remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: PasskeyCredential::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $passkeyCredentials;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Ignore]
     private ?string $googleAuthenticatorSecret = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $phone = null;
+    #[ORM\Embedded(class: PhoneNumber::class)]
+    private PhoneNumber $phone;
 
     /** Stored filename in uploads/profiles/ (user-uploaded photo). */
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
@@ -78,11 +80,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $username = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: LoginAttempt::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: LoginAttempt::class, cascade: ['persist'])]
     private Collection $loginAttempts;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Recommendation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $userRecommendations;
+
+    #[ORM\OneToMany(mappedBy: 'coach', targetEntity: Recommendation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $coachRecommendations;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserExerciseProgress::class, cascade: ['persist'])]
+    private Collection $exerciseProgress;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ResetPasswordRequest::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $resetPasswordRequests;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: FeedbackResponse::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $feedbacks;
+
+    #[ORM\OneToMany(mappedBy: 'coach', targetEntity: FeedbackResponse::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $coachFeedbacks;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: DailyNutrition::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $dailyNutritions;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Questionnaire::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $questionnaires;
+
 
     public function __construct()
     {
+        $this->email = new EmailAddress();
+        $this->name = new PersonName();
+        $this->phone = new PhoneNumber();
         $this->etatMentals = new ArrayCollection();
         $this->profilesPhysiques = new ArrayCollection();
         $this->recettes = new ArrayCollection();
@@ -90,31 +120,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->favoriteRecipes = new ArrayCollection();
         $this->passkeyCredentials = new ArrayCollection();
         $this->loginAttempts = new ArrayCollection();
+        $this->userRecommendations = new ArrayCollection();
+        $this->coachRecommendations = new ArrayCollection();
+        $this->exerciseProgress = new ArrayCollection();
+        $this->resetPasswordRequests = new ArrayCollection();
+        $this->feedbacks = new ArrayCollection();
+        $this->coachFeedbacks = new ArrayCollection();
+        $this->dailyNutritions = new ArrayCollection();
+        $this->questionnaires = new ArrayCollection();
     }
+
 
     // -------------------------
     // Getters & Setters
     // -------------------------
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
 
     public function getEmail(): ?string
     {
-        return $this->email;
+        return $this->email->getEmail();
     }
 
     public function setEmail(string $email): self
     {
-        $this->email = $email;
+        $this->email = new EmailAddress($email);
         return $this;
     }
 
     public function getUserIdentifier(): string
     {
-        return $this->email;
+        return (string) $this->getEmail();
     }
 
     public function getRoles(): array
@@ -139,7 +178,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(#[\SensitiveParameter] string $password): self
     {
         $this->password = $password;
         return $this;
@@ -152,23 +191,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function getFirstname(): ?string
     {
-        return $this->firstname;
+        return $this->name->getFirstname();
     }
 
     public function setFirstname(string $firstname): self
     {
-        $this->firstname = $firstname;
+        $this->name = new PersonName($firstname, $this->getLastname());
         return $this;
     }
 
     public function getLastname(): ?string
     {
-        return $this->lastname;
+        return $this->name->getLastname();
     }
 
     public function setLastname(string $lastname): self
     {
-        $this->lastname = $lastname;
+        $this->name = new PersonName($this->getFirstname(), $lastname);
         return $this;
     }
 
@@ -372,7 +411,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function getGoogleAuthenticatorUsername(): string
     {
-        return (string) $this->email;
+        return (string) $this->getEmail();
     }
 
     public function getGoogleAuthenticatorSecret(): ?string
@@ -380,7 +419,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         return $this->googleAuthenticatorSecret;
     }
 
-    public function setGoogleAuthenticatorSecret(?string $googleAuthenticatorSecret): void
+    public function setGoogleAuthenticatorSecret(#[\SensitiveParameter] ?string $googleAuthenticatorSecret): void
     {
         $this->googleAuthenticatorSecret = $googleAuthenticatorSecret;
     }
@@ -389,12 +428,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function getPhone(): ?string
     {
-        return $this->phone;
+        return $this->phone->getNumber();
     }
 
     public function setPhone(?string $phone): self
     {
-        $this->phone = $phone;
+        $this->phone = new PhoneNumber($phone);
         return $this;
     }
 
@@ -446,14 +485,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     {
         return [
             'id' => $this->id,
-            'email' => $this->email,
+            'email' => $this->email->getEmail(),
             'password' => $this->password,
             'roles' => $this->roles,
-            'firstname' => $this->firstname,
-            'lastname' => $this->lastname,
+            'firstname' => $this->name->getFirstname(),
+            'lastname' => $this->name->getLastname(),
             'accountStatus' => $this->accountStatus,
             'photo' => $this->photo,
-            'phone' => $this->phone,
+            'phone' => $this->phone->getNumber(),
             'googleAuthenticatorSecret' => $this->googleAuthenticatorSecret,
         ];
     }
@@ -461,15 +500,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     public function __unserialize(array $data): void
     {
         $this->id = $data['id'] ?? null;
-        $this->email = $data['email'] ?? null;
+        $this->email = new EmailAddress($data['email'] ?? null);
         $this->password = $data['password'] ?? null;
         $this->roles = $data['roles'] ?? [];
-        $this->firstname = $data['firstname'] ?? null;
-        $this->lastname = $data['lastname'] ?? null;
+        $this->name = new PersonName($data['firstname'] ?? null, $data['lastname'] ?? null);
         $this->accountStatus = $data['accountStatus'] ?? null;
         $this->photo = $data['photo'] ?? null;
-        $this->phone = $data['phone'] ?? null;
+        $this->phone = new PhoneNumber($data['phone'] ?? null);
         $this->googleAuthenticatorSecret = $data['googleAuthenticatorSecret'] ?? null;
+    }
+
+    public function serialize()
+    {
+        return serialize($this->__serialize());
+    }
+
+    public function unserialize($data)
+    {
+        $this->__unserialize(unserialize($data));
     }
 
     public function getUsername(): ?string

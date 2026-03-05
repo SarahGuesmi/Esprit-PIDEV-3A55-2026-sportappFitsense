@@ -38,7 +38,7 @@
       >
         Check calories
       </button>
-      <div id="foodResult" class="text-sm text-gray-300 mt-2"></div>
+     <div id="foodResult" class="text-sm text-gray-300 mt-2"></div>
       
 
       <form method="POST" action="{{ path('user_food_add') }}" class="flex-1 flex gap-3">
@@ -201,12 +201,13 @@
         e.stopPropagation(); // avoid opening the modal
 
         const recipeId = btn.dataset.recipeId;
+        const favUrl = btn.dataset.favUrl || `/user/recipes/${recipeId}/favorite`;
         const icon = btn.querySelector('i');
 
         btn.disabled = true;
 
         try {
-          const res = await fetch(`/user/recipes/${recipeId}/favorite`, {
+          const res = await fetch(favUrl, {
             method: 'POST',
             headers: {
               'X-Requested-With': 'XMLHttpRequest'

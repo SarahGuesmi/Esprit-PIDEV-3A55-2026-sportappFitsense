@@ -3,7 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\DailyNutritionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+use App\Trait\BlameableTrait;
 
 #[ORM\Entity(repositoryClass: DailyNutritionRepository::class)]
 #[ORM\Table(name: 'daily_nutrition')]
@@ -11,9 +15,10 @@ use Doctrine\ORM\Mapping as ORM;
 class DailyNutrition
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     // ✅ Date du jour (sans heure)
     #[ORM\Column(name: 'day_date', type: 'date_immutable')]
@@ -36,13 +41,14 @@ class DailyNutrition
     private int $waterGoal ;
 
     // ✅ Lien vers user
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'dailyNutritions')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+
     private ?User $user = null;
 
     // ================= Getters/Setters =================
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -82,6 +88,20 @@ public function isOverGoalAlertShown(): bool
 public function setOverGoalAlertShown(bool $shown): self
 {
     $this->overGoalAlertShown = $shown;
+    return $this;
+}
+
+#[ORM\Column(type: 'boolean')]
+private bool $waterGoalAlertShown = false;
+
+public function isWaterGoalAlertShown(): bool
+{
+    return $this->waterGoalAlertShown;
+}
+
+public function setWaterGoalAlertShown(bool $shown): self
+{
+    $this->waterGoalAlertShown = $shown;
     return $this;
 }
 

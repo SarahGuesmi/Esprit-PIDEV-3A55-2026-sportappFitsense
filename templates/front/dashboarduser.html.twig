@@ -11,13 +11,15 @@
     .nt-ring{width:160px;height:160px;position:relative;display:flex;align-items:center;justify-content:center}
     .nt-svg{width:160px;height:160px;transform:rotate(-90deg)}
     .nt-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:12}
+    .nt-bg-water{stroke:rgba(56,189,248,.1)}
     .nt-fg{fill:none;stroke-width:12;stroke-linecap:round;stroke-dasharray:289;stroke-dashoffset:289;transition:stroke-dashoffset .7s ease}
     .nt-cal{stroke:rgba(255,140,90,.95)}
-    .nt-water{stroke:rgba(120,170,255,.95)}
+    .nt-water{stroke:rgba(56,189,248,1)}
     .nt-center{position:absolute;text-align:center;line-height:1.1}
     .nt-value{font-size:40px;font-weight:800;color:#fff}
     .nt-unit{font-size:12px;letter-spacing:1px;color:rgba(255,255,255,.75)}
     .nt-hint{margin-top:6px;font-size:12px;color:rgba(255,255,255,.6)}
+    .nt-hint-water{color:rgba(56,189,248,.8); font-weight: 600;}
   </style>
 {% endblock %}
 
@@ -114,13 +116,13 @@
         <div class="flex items-center gap-5">
           <div class="nt-ring" data-progress="{{ waterPct }}">
             <svg viewBox="0 0 120 120" class="nt-svg">
-              <circle class="nt-bg" cx="60" cy="60" r="46"></circle>
+              <circle class="nt-bg nt-bg-water" cx="60" cy="60" r="46"></circle>
               <circle class="nt-fg nt-water" cx="60" cy="60" r="46"></circle>
             </svg>
             <div class="nt-center">
               <div class="nt-value">{{ waterMl }}</div>
               <div class="nt-unit">ML</div>
-              <div class="nt-hint">{{ waterPct|round(0) }}% of daily goal</div>
+              <div class="nt-hint nt-hint-water">{{ waterPct|round(0) }}% of daily goal</div>
             </div>
           </div>
 
@@ -147,7 +149,7 @@
     </div>
   </div>
 
-  {# =======================
+ {# =======================
      Weekly Calories (LEFT) + Right Column (RIGHT)
      ======================= #}
 
@@ -172,6 +174,7 @@
         </div>
       </div>
     </div>
+
 
     {# RIGHT: everything else (Recommended + 3 cards) #}
     <div class="lg:col-span-1 space-y-6">

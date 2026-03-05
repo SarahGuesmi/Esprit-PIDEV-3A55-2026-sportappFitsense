@@ -7,6 +7,9 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 // Suppress deprecation warnings from old SendGrid library
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
+// Standardize timezone to UTC for auditor alignment
+date_default_timezone_set('UTC');
+
 if (!is_dir(dirname(__DIR__).'/vendor')) {
     throw new LogicException('Dependencies are missing. Try running "composer install".');
 }

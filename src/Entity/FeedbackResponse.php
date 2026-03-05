@@ -4,19 +4,26 @@ namespace App\Entity;
 
 use App\Repository\FeedbackResponseRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+use App\Trait\BlameableTrait;
+use App\Trait\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: FeedbackResponseRepository::class)]
 #[ORM\Table(name: 'feedback_response')]
+#[ORM\HasLifecycleCallbacks]
 class FeedbackResponse
 {
+    use TimestampableTrait, BlameableTrait;
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'feedbacks')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
+
 
     #[ORM\ManyToOne(targetEntity: Workout::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -28,12 +35,12 @@ class FeedbackResponse
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'coachFeedbacks')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?User $coach = null;
+
 
     #[ORM\Column(type: 'string', length: 20, nullable: true)]
     private ?string $sentiment = null;
@@ -46,10 +53,9 @@ class FeedbackResponse
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -98,16 +104,7 @@ class FeedbackResponse
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
 
     public function getCoach(): ?User
     {

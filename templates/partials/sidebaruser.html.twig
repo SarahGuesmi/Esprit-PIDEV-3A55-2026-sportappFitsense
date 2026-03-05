@@ -3,6 +3,22 @@
         <!-- FitSense Header with Logo -->
         <div class="p-6 pb-4 border-b border-white/5 logo-container relative">
             <div class="text-center">
+                <!-- User Avatar -->
+                <div class="mb-4">
+                    {% if app.user.avatarPath %}
+                        {% if app.user.photo starts with 'http' %}
+                            <img src="{{ app.user.avatarPath }}" alt="{{ app.user.firstname }}" class="w-16 h-16 rounded-full object-cover border-2 border-violet-500/40 shadow-lg mx-auto">
+                        {% else %}
+                            <img src="{{ asset(app.user.avatarPath) }}" alt="{{ app.user.firstname }}" class="w-16 h-16 rounded-full object-cover border-2 border-violet-500/40 shadow-lg mx-auto">
+                        {% endif %}
+                    {% else %}
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center border-2 border-violet-500/30 mx-auto">
+                            <i class="fas fa-user text-violet-400 text-xl"></i>
+                        </div>
+                    {% endif %}
+                    <p class="text-sm font-semibold text-white mt-2">{{ app.user.firstname }} {{ app.user.lastname }}</p>
+                </div>
+                
                 <h1 class="text-2xl font-black mb-3 logo-title">
                     <span class="bg-gradient-to-r from-[#8B5CF6] to-[#D8B4FE] bg-clip-text text-transparent uppercase tracking-tighter">
                         FitSense
@@ -18,62 +34,66 @@
             </button>
         </div>
 
-        <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
-            <a href="{{ path('dashboard_user') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'dashboard_user' ? 'active' : '' }}">
-                <i class="fas fa-th-large"></i>
-                <span class="sidebar-text">Dashboard</span>
-            </a>
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto flex flex-col min-h-0 custom-sidebar-scroll">
+            <nav class="px-3 py-4 space-y-1.5">
+                <a href="{{ path('dashboard_user') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'dashboard_user' ? 'active' : '' }}">
+                    <i class="fas fa-th-large"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
 
-            <a href="{{ path('user_my_workouts') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_my_workouts' ? 'active' : '' }}">
-                <i class="fas fa-dumbbell"></i>
-                <span class="sidebar-text">My Workouts</span>
-            </a>
+                <a href="{{ path('user_my_workouts') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_my_workouts' ? 'active' : '' }}">
+                    <i class="fas fa-dumbbell"></i>
+                    <span class="sidebar-text">My Workouts</span>
+                </a>
 
-            <a href="{{ path('etat_mental_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'etat_mental' ? 'active' : '' }}">
-                <i class="fas fa-heartbeat"></i>
-                <span class="sidebar-text">Mental Health</span>
-            </a>
+                <a href="{{ path('etat_mental_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'etat_mental' ? 'active' : '' }}">
+                    <i class="fas fa-heartbeat"></i>
+                    <span class="sidebar-text">Mental Health</span>
+                </a>
 
-            <a href="{{ path('user_nutrition') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_nutrition' ? 'active' : '' }}">
-                <i class="fas fa-utensils"></i>
-                <span class="sidebar-text">Nutrition</span>
-            </a>
+                <a href="{{ path('user_nutrition') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'user_nutrition' ? 'active' : '' }}">
+                    <i class="fas fa-utensils"></i>
+                    <span class="sidebar-text">Nutrition</span>
+                </a>
 
-            <a href="{{ path('app_chat_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'app_chat_index' ? 'active' : '' }}" id="sidebar-chat-link">
-                <i class="fas fa-comments"></i>
-                <span class="sidebar-text">Chatroom</span>
-                <span id="chat-sidebar-unread" class="chat-sidebar-unread-badge" style="display: none;">0</span>
-            </a>
-        </nav>
+                <a href="{{ path('app_chat_index') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'app_chat_index' ? 'active' : '' }}" id="sidebar-chat-link">
+                    <i class="fas fa-comments"></i>
+                    <span class="sidebar-text">Chatroom</span>
+                    <span id="chat-sidebar-unread" class="chat-sidebar-unread-badge" style="display: none;">0</span>
+                </a>
+            </nav>
 
-        <!-- Profile Section -->
-        <div class="px-3 py-4 border-t border-white/5">
-            <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3 portal-label">Settings</p>
-            <a href="{{ path('profile_edit') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'profile_edit' ? 'active' : '' }}">
-                <i class="fas fa-user-edit"></i>
-                <span class="sidebar-text">Profile</span>
-            </a>
-            <a href="{{ path('profile_setup_height') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'profile_setup' ? 'active' : '' }}">
-                <i class="fas fa-user-circle"></i>
-                <span class="sidebar-text">Account Settings</span>
-            </a>
-            <a href="{{ path('security_2fa_settings') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'security_2fa' ? 'active' : '' }}">
-                <i class="fas fa-shield-alt"></i>
-                <span class="sidebar-text">Security (2FA)</span>
-            </a>
-            <a href="{{ path('profile_security') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'profile_security' ? 'active' : '' }}">
-                <i class="fas fa-history"></i>
-                <span class="sidebar-text">Login History</span>
-            </a>
+            <!-- Profile Section -->
+            <div class="px-3 py-4 border-t border-white/5">
+                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3 portal-label shadow-sm">Settings</p>
+                <a href="{{ path('profile_edit') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'profile_edit' ? 'active' : '' }}">
+                    <i class="fas fa-user-edit"></i>
+                    <span class="sidebar-text">Profile</span>
+                </a>
+                <a href="{{ path('profile_setup_height') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'profile_setup' ? 'active' : '' }}">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="sidebar-text">Account Settings</span>
+                </a>
+                <a href="{{ path('security_2fa_settings') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'security_2fa' ? 'active' : '' }}">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="sidebar-text">Security (2FA)</span>
+                </a>
+                <a href="{{ path('profile_security') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'profile_security' ? 'active' : '' }}">
+                    <i class="fas fa-history"></i>
+                    <span class="sidebar-text">Login History</span>
+                </a>
+            </div>
+
+            <!-- Logout -->
+            <div class="p-3 border-t border-white/5 mt-auto">
+                <a href="{{ path('app_logout') }}" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
+                    <i class="fas fa-power-off"></i>
+                    <span class="sidebar-text">Sign Out</span>
+                </a>
+            </div>
         </div>
 
-        <!-- Logout -->
-        <div class="p-3 border-t border-white/5 mt-auto">
-            <a href="{{ path('app_logout') }}" class="sidebar-link logout-link hover:bg-red-500/10 hover:text-red-400">
-                <i class="fas fa-power-off"></i>
-                <span class="sidebar-text">Sign Out</span>
-            </a>
-        </div>
     </div>
 </aside>
 

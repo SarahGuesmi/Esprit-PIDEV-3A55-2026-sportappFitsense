@@ -27,6 +27,7 @@
     type="button"
     class="js-fav-btn absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-900/50 backdrop-blur-md border border-white/10 flex items-center justify-center transition hover:scale-105 z-30"
     data-recipe-id="{{ r.id }}"
+    data-fav-url="{{ path('user_recipe_toggle_favorite', { id: r.id }) }}"
     data-fav="{{ app.user and r.favoritedBy.contains(app.user) ? '1' : '0' }}"
     aria-label="Toggle favorite"
   >

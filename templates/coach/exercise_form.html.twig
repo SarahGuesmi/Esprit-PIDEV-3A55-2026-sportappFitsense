@@ -56,6 +56,15 @@
     border-bottom: none !important;
     border-radius: 12px 12px 0 0 !important;
 }
+/* Garder seulement la première toolbar Quill */
+#quillEditor .ql-toolbar ~ .ql-toolbar {
+    display: none !important;
+}
+
+/* ou approche plus brutale */
+.ql-toolbar:not(:first-of-type) {
+    display: none !important;
+}
 .ql-container {
     background: #0D0D0D !important;
     border: 1px solid #1F1F1F !important;
@@ -255,15 +264,59 @@
             </div>
         </div>
 
-        <!-- ✅ Description avec Quill Editor -->
+        <!-- ✅ Description avec Quill Editor — UNE SEULE FOIS en HTML pur -->
+<!-- Description avec éditeur custom -->
         <div class="form-group">
             <label class="form-label">Description</label>
 
-            {# Champ caché Symfony — reçoit le HTML de Quill avant submit #}
-            {{ form_widget(form.description, {'attr': {'id': 'descriptionHidden', 'style': 'display:none;'}}) }}
+            {% do form.description.setRendered() %}
+            <input type="hidden"
+                   name="{{ form.description.vars.full_name }}"
+                   id="descriptionHidden">
+            <script>
+                var EXISTING_DESCRIPTION = {{ form.description.vars.value|default('')|json_encode|raw }};
+            </script>
 
-            {# Éditeur Quill visible #}
-            <div id="quillEditor"></div>
+            <!-- Toolbar custom -->
+            <div id="customToolbar" style="
+                background:#1a1a1a;
+                border:1px solid #1F1F1F;
+                border-bottom:none;
+                border-radius:12px 12px 0 0;
+                padding:8px 12px;
+                display:flex;
+                gap:4px;
+                flex-wrap:wrap;
+            ">
+                <button type="button" onclick="fmt('bold')"         title="Bold"         style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;font-weight:bold;">B</button>
+                <button type="button" onclick="fmt('italic')"       title="Italic"       style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;font-style:italic;">I</button>
+                <button type="button" onclick="fmt('underline')"    title="Underline"    style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;text-decoration:underline;">U</button>
+                <button type="button" onclick="fmtList('insertOrderedList')"   title="Ordered list"   style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;">1.</button>
+                <button type="button" onclick="fmtList('insertUnorderedList')" title="Unordered list" style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;">•</button>
+                <button type="button" onclick="fmt('justifyLeft')"   title="Align left"   style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;">⬤</button>
+                <button type="button" onclick="fmt('justifyCenter')" title="Align center" style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;">≡</button>
+                <button type="button" onclick="fmt('removeFormat')"  title="Clear"        style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;border-radius:6px;color:#e5e7eb;cursor:pointer;">✕</button>
+            </div>
+
+            <!-- Zone de saisie -->
+            <div id="descEditor"
+                 contenteditable="true"
+                 style="
+                    background:#0D0D0D;
+                    border:1px solid #1F1F1F;
+                    border-top:none;
+                    border-radius:0 0 12px 12px;
+                    color:#e5e7eb;
+                    min-height:180px;
+                    padding:16px 20px;
+                    font-size:0.95rem;
+                    line-height:1.6;
+                    outline:none;
+                 "
+                 oninput="syncDesc()"
+                 onfocus="this.style.borderColor='#22C55E'"
+                 onblur="this.style.borderColor='#1F1F1F'"
+            ></div>
         </div>
 
         <!-- Image Upload -->
@@ -290,7 +343,6 @@
                 <span class="text-gray-600 font-normal normal-case ml-1">(optional)</span>
             </label>
 
-            {# ✅ CORRECTION : data-role à la place de id pour éviter le conflit Symfony #}
             {{ form_widget(form.youtubeVideoId, {'attr': {'data-role': 'yt-video-id'}}) }}
 
             {# Barre de recherche #}
@@ -360,32 +412,27 @@
 {% endblock %}
 
 {% block scripts %}
-{{ parent() }}
-<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
+// ── Éditeur description custom ──
+function fmt(cmd) {
+    document.getElementById('descEditor').focus();
+    document.execCommand(cmd, false, null);
+    syncDesc();
+}
+function fmtList(cmd) {
+    document.getElementById('descEditor').focus();
+    document.execCommand(cmd, false, null);
+    syncDesc();
+}
+function syncDesc() {
+    document.getElementById('descriptionHidden').value = document.getElementById('descEditor').innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-
-    // ── Quill Editor ──
-    const descriptionHidden = document.getElementById('descriptionHidden');
-
-    const quill = new Quill('#quillEditor', {
-        theme: 'snow',
-        placeholder: 'Décrivez comment effectuer l\'exercice (étapes, conseils, positions...)...',
-        modules: {
-            toolbar: [
-                [{ 'header': [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline'],
-                [{ 'color': [] }, { 'background': [] }],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                [{ 'align': [] }],
-                ['clean']
-            ]
-        }
-    });
-
-    // Charger le contenu existant en mode edit
-    if (descriptionHidden && descriptionHidden.value) {
-        quill.root.innerHTML = descriptionHidden.value;
+    // Charger contenu existant
+    if (typeof EXISTING_DESCRIPTION !== 'undefined' && EXISTING_DESCRIPTION) {
+        document.getElementById('descEditor').innerHTML = EXISTING_DESCRIPTION;
+        document.getElementById('descriptionHidden').value = EXISTING_DESCRIPTION;
     }
 
     // ── Validation formulaire ──
@@ -394,11 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reqFields = form.querySelectorAll('.required');
 
     form.addEventListener('submit', (e) => {
-        // Copier le HTML de Quill dans le champ caché avant envoi
-        if (descriptionHidden) {
-            descriptionHidden.value = quill.root.innerHTML;
-        }
-
+        syncDesc();
         let hasError = false;
         alertBox.classList.add('hidden');
         reqFields.forEach(f => {
@@ -429,64 +472,34 @@ document.addEventListener('DOMContentLoaded', () => {
                      || document.querySelector('input[name*="youtubeVideoId"]')
                      || document.querySelector('input[name*="youtube_video_id"]');
 
-    console.log('🔍 hiddenInput trouvé :', hiddenInput);
-
     let searchTimeout = null;
 
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         const q = searchInput.value.trim();
-
-        if (q.length < 2) {
-            resultsGrid.innerHTML = '';
-            loader.classList.add('hidden');
-            return;
-        }
-
+        if (q.length < 2) { resultsGrid.innerHTML = ''; loader.classList.add('hidden'); return; }
         loader.classList.remove('hidden');
         resultsGrid.innerHTML = '';
-
         searchTimeout = setTimeout(() => {
             fetch(`/coach/youtube-search?q=${encodeURIComponent(q)}`)
-                .then(r => {
-                    if (!r.ok) throw new Error(`Erreur HTTP ${r.status}`);
-                    return r.json();
-                })
-                .then(videos => {
-                    loader.classList.add('hidden');
-                    renderResults(videos);
-                })
-                .catch(err => {
-                    loader.classList.add('hidden');
-                    console.error('Erreur YouTube :', err);
-                    resultsGrid.innerHTML = `<p style="color:#ef4444;font-size:.85rem;">Erreur : ${err.message}</p>`;
-                });
+                .then(r => { if (!r.ok) throw new Error(`Erreur HTTP ${r.status}`); return r.json(); })
+                .then(videos => { loader.classList.add('hidden'); renderResults(videos); })
+                .catch(err => { loader.classList.add('hidden'); resultsGrid.innerHTML = `<p style="color:#ef4444;font-size:.85rem;">Erreur : ${err.message}</p>`; });
         }, 300);
     });
 
     function renderResults(videos) {
         resultsGrid.innerHTML = '';
-
-        if (!videos.length) {
-            resultsGrid.innerHTML = '<p style="color:#6b7280;font-size:.85rem;margin-top:8px;">Aucune vidéo trouvée.</p>';
-            return;
-        }
-
+        if (!videos.length) { resultsGrid.innerHTML = '<p style="color:#6b7280;font-size:.85rem;margin-top:8px;">Aucune vidéo trouvée.</p>'; return; }
         videos.forEach(v => {
             const card = document.createElement('div');
             card.className = 'yt-card';
-
             card.innerHTML = `
                 <img src="${v.thumbnail}" alt="${v.title}" loading="lazy">
                 <div class="yt-card-info">
                     <div class="yt-card-title">${v.title}</div>
-                    <div class="yt-card-channel">
-                        <i class="fab fa-youtube" style="color:#ff4444;font-size:10px;"></i>
-                        ${v.channelName}
-                    </div>
-                </div>
-            `;
-
+                    <div class="yt-card-channel"><i class="fab fa-youtube" style="color:#ff4444;font-size:10px;"></i> ${v.channelName}</div>
+                </div>`;
             card.addEventListener('click', () => selectVideo(v, card));
             resultsGrid.appendChild(card);
         });
@@ -495,11 +508,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function selectVideo(v, card) {
         resultsGrid.querySelectorAll('.yt-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
-
         if (hiddenInput) hiddenInput.value = v.videoId;
-
-        previewThumb.src           = v.thumbnail;
-        previewTitle.textContent   = v.title;
+        previewThumb.src = v.thumbnail;
+        previewTitle.textContent = v.title;
         previewChannel.textContent = v.channelName;
         preview.classList.remove('hidden');
     }
@@ -511,7 +522,6 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.value = '';
         resultsGrid.innerHTML = '';
     });
-
 });
 </script>
 {% endblock %}

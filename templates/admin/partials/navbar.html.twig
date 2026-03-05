@@ -21,7 +21,8 @@
         <!-- Right side - User Menu -->
         <div class="flex items-center gap-8">
             <!-- Notifications -->
-            <a href="{{ path('admin_notifications') }}" class="relative p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 group/nav-bell" title="View Notifications">
+            {% set notif_path = is_granted('ROLE_ADMIN') ? path('admin_notifications') : path('user_notifications') %}
+            <a href="{{ notif_path }}" class="relative p-2.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 group/nav-bell" title="View Notifications">
                 <i class="fas fa-bell text-xl transition-transform group-hover/nav-bell:scale-110"></i>
                 {% set unreadCount = unread_notifications_count() %}
                 {% if unreadCount > 0 %}

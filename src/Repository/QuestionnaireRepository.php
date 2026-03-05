@@ -33,7 +33,7 @@ class QuestionnaireRepository extends ServiceEntityRepository
     /**
      * @return Questionnaire[] Returns an array of Questionnaire by workout ID
      */
-    public function findByWorkoutId(int $workoutId): array
+    public function findByWorkoutId(string $workoutId): array
     {
         return $this->createQueryBuilder('q')
             ->innerJoin('q.workouts', 'w')

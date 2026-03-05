@@ -409,22 +409,25 @@ body::before {
                         return;
                     }
                     qrImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(data.qrUrl);
+                    let isRedirecting = false;
                     faceIdPollInterval = setInterval(async function () {
+                        if (isRedirecting) return;
                         try {
                             const s = await fetch("{{ path('passkey_login_status') }}?session=" + encodeURIComponent(data.sessionId));
                             const st = await s.json();
-                            if (st.status === "authenticated") {
+                            if (st.status === "authenticated" && !isRedirecting) {
+                                isRedirecting = true;
                                 clearInterval(faceIdPollInterval);
-                                faceIdPollInterval = null;
                                 qrStatus.textContent = "Success! Redirecting…";
                                 window.location.href = "{{ path('passkey_login_confirm') }}?session=" + encodeURIComponent(data.sessionId);
                             } else if (st.status === "expired") {
                                 clearInterval(faceIdPollInterval);
-                                faceIdPollInterval = null;
                                 qrStatus.textContent = "Link expired. Cancel and try again.";
                             }
                         } catch (e) {}
-                    }, 1500);
+                    }, 400);
+
+
                 } catch (e) {
                     qrStatus.textContent = "Error. Try again.";
                     btnFaceId.disabled = false;

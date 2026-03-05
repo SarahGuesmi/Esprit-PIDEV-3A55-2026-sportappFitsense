@@ -42,7 +42,7 @@ class FeedbackResponseRepository extends ServiceEntityRepository
     /**
      * @return FeedbackResponse[] Returns all feedback responses for a specific workout
      */
-    public function findByWorkout(int $workoutId): array
+    public function findByWorkout(string $workoutId): array
     {
         return $this->createQueryBuilder('f')
             ->andWhere('f.workout = :workoutId')
@@ -53,12 +53,14 @@ class FeedbackResponseRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return FeedbackResponse[] Returns all feedback responses
+     * @return FeedbackResponse[] Returns all feedback responses with pagination
      */
-    public function findAll(): array
+    public function findAll(int $limit = 100, int $offset = 0): array
     {
         return $this->createQueryBuilder('f')
             ->orderBy('f.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
     }

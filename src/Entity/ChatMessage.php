@@ -3,21 +3,28 @@
 namespace App\Entity;
 
 use App\Repository\ChatMessageRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+
+use App\Trait\BlameableTrait;
+use App\Trait\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: ChatMessageRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class ChatMessage
 {
+    use TimestampableTrait, BlameableTrait;
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\Column(type: 'text')]
     private ?string $content = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -43,11 +50,10 @@ class ChatMessage
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
         $this->isDeleted = false;
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -63,16 +69,7 @@ class ChatMessage
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
 
     public function getSender(): ?User
     {
@@ -101,7 +98,7 @@ class ChatMessage
         return $this->readAt;
     }
 
-    public function setReadAt(?\DateTimeImmutable $readAt): static
+    protected function setReadAt(?\DateTimeImmutable $readAt): static
     {
         $this->readAt = $readAt;
         return $this;
@@ -112,7 +109,7 @@ class ChatMessage
         return $this->deletedBySenderAt;
     }
 
-    public function setDeletedBySenderAt(?\DateTimeImmutable $deletedBySenderAt): static
+    protected function setDeletedBySenderAt(?\DateTimeImmutable $deletedBySenderAt): static
     {
         $this->deletedBySenderAt = $deletedBySenderAt;
         return $this;
@@ -123,7 +120,7 @@ class ChatMessage
         return $this->deletedByReceiverAt;
     }
 
-    public function setDeletedByReceiverAt(?\DateTimeImmutable $deletedByReceiverAt): static
+    protected function setDeletedByReceiverAt(?\DateTimeImmutable $deletedByReceiverAt): static
     {
         $this->deletedByReceiverAt = $deletedByReceiverAt;
         return $this;

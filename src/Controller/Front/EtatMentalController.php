@@ -36,7 +36,7 @@ class EtatMentalController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
 
             $etat->setUser($this->getUser());
-            $etat->setCreatedAt(new \DateTimeImmutable());
+            // createdAt is set automatically by TimestampableTrait
 
             $total = 
                 $etat->getStressLevel() +
@@ -67,7 +67,7 @@ class EtatMentalController extends AbstractController
     }
 
     #[Route('/etat-mental/{id}', name: 'etat_mental_result')]
-    public function show(int $id, \App\Repository\EtatMentalRepository $repo, EntityManagerInterface $em): Response
+    public function show(string $id, \App\Repository\EtatMentalRepository $repo, EntityManagerInterface $em): Response
     {
         $etat = $repo->find($id);
 
@@ -101,7 +101,7 @@ class EtatMentalController extends AbstractController
     }
 
     #[Route('/etat-mental/{id}/exercises', name: 'etat_mental_exercises')]
-    public function recommendations(int $id, \App\Repository\EtatMentalRepository $repo): Response
+    public function recommendations(string $id, \App\Repository\EtatMentalRepository $repo): Response
     {
         $etat = $repo->find($id);
 

@@ -295,6 +295,53 @@
 
     </div>
 
+    {# =========================
+         CHARTS SECTION
+         ========================= #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700 hover:border-pink-500/30 transition shadow-lg">
+
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-pink-500/10 rounded-xl">
+                        <i class="fas fa-heart text-pink-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold">Top Recipes</h3>
+                        <p class="text-gray-400 text-xs">Most favorited by users ❤️</p>
+                    </div>
+                </div>
+
+                <span class="text-xs font-semibold px-3 py-1 bg-pink-500/10 text-pink-400 rounded-lg">
+                    Top 5
+                </span>
+            </div>
+
+            <div class="bg-gray-900/40 rounded-xl p-4 border border-gray-700 h-[320px] relative">
+
+                {# ✅ affichage chart seulement si data existe #}
+                {% if hasFavoritesData %}
+                    <div class="w-full h-full">
+                        {{ render_chart(topRecipesChart) }}
+                    </div>
+                {% else %}
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-pink-500/10 flex items-center justify-center">
+                                <i class="fas fa-chart-bar text-pink-400"></i>
+                            </div>
+                            <p class="text-gray-300 text-sm font-semibold">No data yet</p>
+                            <p class="text-gray-500 text-xs">Users haven’t favorited your recipes.</p>
+                        </div>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+
     <div class="section-header">
         <span class="section-title">Athlete Satisfaction</span>
         <div class="section-line"></div>

@@ -5,15 +5,20 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: \App\Repository\QuestionnaireRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Questionnaire
 {
-    #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
  
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'questionnaires')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?User $user = null;
 
@@ -146,7 +151,7 @@ class Questionnaire
 
     // Getters and Setters
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -289,10 +294,18 @@ class Questionnaire
         return $this->dateSoumission;
     }
 
-    public function setDateSoumission(?\DateTimeImmutable $dateSoumission): self
+    protected function setDateSoumission(?\DateTimeImmutable $dateSoumission): self
     {
         $this->dateSoumission = $dateSoumission;
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function setDateSoumissionValue(): void
+    {
+        if ($this->dateSoumission === null && $this->type === 'response') {
+            $this->dateSoumission = new \DateTimeImmutable();
+        }
     }
 
     public function getUserName(): ?string

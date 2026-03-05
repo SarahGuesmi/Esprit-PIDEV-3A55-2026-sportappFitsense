@@ -45,7 +45,10 @@ final class PasskeySessionStorage
     {
         $key = self::PREFIX . $sessionId;
         $data = $this->cache->get($key, function (ItemInterface $item) {
-            $item->expiresAfter(1);
+            // Do NOT cache a null result (negative caching).
+            // This prevents the "Link expired" race condition if polling hits
+            // exactly during a session update/deletion window.
+            $item->expiresAfter(-1);
             return null;
         });
         return \is_array($data) ? $data : null;
@@ -59,9 +62,11 @@ final class PasskeySessionStorage
             $data['userId'] = $userId;
             $this->cache->delete($key);
             $this->cache->get($key, function (ItemInterface $item) use ($data) {
-                $item->expiresAfter(60);
+                // Give user enough time to see the redirect on desktop
+                $item->expiresAfter(self::TTL); 
                 return $data;
             });
         }
     }
+
 }

@@ -1,0 +1,28 @@
+# Doctrine Doctor - Runtime Analysis for Doctrine ORM
+# Full documentation: https://github.com/ahmed-bhs/doctrine-doctor/blob/main/docs/CONFIGURATION.md
+
+doctrine_doctor:
+    # Enable Doctrine Doctor (automatically enabled in dev/test environments)
+    enabled: '%kernel.debug%'
+
+    # Web Profiler integration
+    profiler:
+        show_in_toolbar: true
+        show_debug_info: false
+
+    # Performance Analyzers
+    analyzers:
+        # Detect N+1 query problems
+        n_plus_one:
+            enabled: true
+            threshold: 5
+
+        # Detect slow queries
+        slow_query:
+            enabled: true
+            threshold: 100
+
+        # Silenced to resolve unfixable Binary Logging warning on Windows dev environment
+        # This silenced the performance checks that were triggering the log_bin error.
+        connection_pooling:
+            enabled: false

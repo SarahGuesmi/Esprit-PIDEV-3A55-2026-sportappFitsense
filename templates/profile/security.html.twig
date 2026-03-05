@@ -62,7 +62,7 @@
                     <h3 class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1">Last Login Location</h3>
                     <p class="text-white text-base font-bold">
                         {% if attempts|length > 0 %}
-                            {{ attempts[0].city }}, {{ attempts[0].country }}
+                            {{ attempts[0].city }}, {{ attempts[0].country.value|default('N/A') }}
                         {% else %}
                             N/A
                         {% endif %}
@@ -129,7 +129,7 @@
                     {% for attempt in attempts %}
                         <tr class="hover:bg-white/[0.02] transition-colors group">
                             <td class="px-6 py-4">
-                                {% if attempt.status == 'success' %}
+                                {% if attempt.status.value == 'success' %}
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                                         <i class="fas fa-check-circle text-[10px]"></i>
                                         Success
@@ -148,7 +148,7 @@
                                     </span>
                                     <span class="text-gray-500 text-[11px] flex items-center gap-1">
                                         <i class="fas fa-globe-africa"></i>
-                                        {{ attempt.country ?: 'N/A' }}
+                                        {{ attempt.country.value|default('N/A') }}
                                     </span>
                                 </div>
                             </td>

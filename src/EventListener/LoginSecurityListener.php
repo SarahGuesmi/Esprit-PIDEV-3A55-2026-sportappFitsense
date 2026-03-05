@@ -3,6 +3,7 @@
 namespace App\EventListener;
 
 use App\Service\LoginSecurityService;
+use App\Enum\LoginStatus;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
@@ -22,7 +23,7 @@ class LoginSecurityListener
         $request = $event->getRequest();
         $ipAddress = $request->getClientIp();
 
-        $this->loginSecurityService->recordAttempt($user->getUserIdentifier(), $ipAddress, 'success');
+        $this->loginSecurityService->recordAttempt($user->getUserIdentifier(), $ipAddress, LoginStatus::Success);
     }
 
     public function onLoginFailure(LoginFailureEvent $event): void
@@ -38,6 +39,6 @@ class LoginSecurityListener
             $email = $passport->getBadge(UserBadge::class)->getUserIdentifier();
         }
 
-        $this->loginSecurityService->recordAttempt($email, $ipAddress, 'failure');
+        $this->loginSecurityService->recordAttempt($email, $ipAddress, LoginStatus::Failure);
     }
 }

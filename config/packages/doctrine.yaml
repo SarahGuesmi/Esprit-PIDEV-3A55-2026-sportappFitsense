@@ -8,6 +8,11 @@ doctrine:
 
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
+        
+        # Fix timezone mismatch between MySQL and PHP
+        options:
+            # Set MySQL session timezone to match PHP timezone (UTC)
+            1002: "SET time_zone = '+00:00'"  # PDO::MYSQL_ATTR_INIT_COMMAND
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

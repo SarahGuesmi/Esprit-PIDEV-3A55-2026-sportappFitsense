@@ -3,19 +3,27 @@
 namespace App\Entity;
 
 use App\Repository\EtatMentalRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
+use App\Trait\BlameableTrait;
+use App\Trait\TimestampableTrait;
+
 #[ORM\Entity(repositoryClass: EtatMentalRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class EtatMental
 {
+    use TimestampableTrait, BlameableTrait;
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'etatMentals')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\Column(type: 'integer')]
@@ -44,13 +52,12 @@ class EtatMental
     #[ORM\Column(type: 'string', length: 50)]
     private ?string $status = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -158,17 +165,7 @@ class EtatMental
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
 
     public function getDescription(): ?string
     {

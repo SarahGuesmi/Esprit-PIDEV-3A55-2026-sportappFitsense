@@ -20,21 +20,24 @@ class QuestionnaireController extends AbstractController
     #[Route('s', name: 'coach_questionnaire_index')]
     public function index(QuestionnaireRepository $repository, FeedbackResponseRepository $feedbackRepo, EntityManagerInterface $em, Request $request): Response
     {
-        $search = $request->query->get('search', '');
+        $search = trim($request->query->get('search', ''));
         
-        $qb = $repository->createQueryBuilder('q')
-            ->where('q.type = :type')
-            ->andWhere('q.coach = :coach')
-            ->setParameter('type', 'template')
-            ->setParameter('coach', $this->getUser())
-            ->orderBy('q.id', 'DESC');
-
         if (!empty($search)) {
-            $qb->andWhere('q.titre LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+            $qb = $repository->createQueryBuilder('q')
+                ->where('q.type = :type')
+                ->andWhere('q.coach = :coach')
+                ->andWhere('q.titre LIKE :search')
+                ->setParameter('type', 'template')
+                ->setParameter('coach', $this->getUser())
+                ->setParameter('search', '%' . $search . '%')
+                ->orderBy('q.id', 'DESC');
+            $quizzes = $qb->getQuery()->getResult();
+        } else {
+            $quizzes = $repository->findBy([
+                'coach' => $this->getUser(),
+                'type' => 'template'
+            ], ['id' => 'DESC']);
         }
-
-        $quizzes = $qb->getQuery()->getResult();
         $workouts = $em->getRepository(\App\Entity\Workout::class)->findAll();
 
         // Get user responses for feedback from workouts linked to coach's templates
@@ -66,7 +69,7 @@ class QuestionnaireController extends AbstractController
     }
 
     #[Route('/response/{id}/delete', name: 'coach_response_delete', methods: ['POST'])]
-    public function deleteResponse(int $id, EntityManagerInterface $em, QuestionnaireRepository $repository): Response
+    public function deleteResponse(string $id, EntityManagerInterface $em, QuestionnaireRepository $repository): Response
     {
         // Find the questionnaire response and delete it
         $response = $repository->find($id);
@@ -240,8 +243,8 @@ class QuestionnaireController extends AbstractController
         $response->setOptions([$responseValue]);
         $response->setType('response');
         $response->setUser($this->getUser());
-        $response->setUserName($this->getUser()->getNom() . ' ' . $this->getUser()->getPrenom());
-        $response->setDateSoumission(new \DateTimeImmutable());
+        $response->setUserName($this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname());
+        // dateSoumission will be set automatically by PrePersist lifecycle callback
         $response->addWorkout($workout);
 
         $em->persist($response);

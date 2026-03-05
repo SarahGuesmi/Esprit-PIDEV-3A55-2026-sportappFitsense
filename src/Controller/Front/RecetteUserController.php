@@ -2,6 +2,7 @@
 
 namespace App\Controller\Front;
 
+use App\Service\DailyNutritionService;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\RecetteConsommee;
 use App\Repository\RecetteNutritionnelleRepository;
@@ -58,12 +59,13 @@ class RecetteUserController extends AbstractController
         ]);
     }
 
-#[Route('/user/meals/consume', name: 'meal_consume', methods: ['POST'])]
-public function consumeMeal(
-    Request $request,
-    EntityManagerInterface $em,
-    RecetteNutritionnelleRepository $repo
-): Response {
+    #[Route('/user/recipes/consume', name: 'user_recipe_consume', methods: ['POST'])]
+    public function consumeMeal(
+        Request $request,
+        EntityManagerInterface $em,
+        RecetteNutritionnelleRepository $repo,
+        DailyNutritionService $nutritionService
+    ): Response {
     /** @var \App\Entity\User $user */
     $user = $this->getUser();
     if (!$user) {
@@ -100,38 +102,103 @@ public function consumeMeal(
     $em->flush();
 
     // ✅ Sync with DailyNutrition for the chart
-    $dailyRepo = $em->getRepository(\App\Entity\DailyNutrition::class);
-    $profileRepo = $em->getRepository(\App\Entity\ProfilePhysique::class);
-    $daily = $this->getOrCreateDaily($user, $dailyRepo, $profileRepo, $em);
-    $daily->setCalories($daily->getCalories() + $cons->getKcal());
-    $em->flush();
+    $daily = $nutritionService->getOrCreateDaily($user);
+    if ($daily) {
+        $daily->setCalories($daily->getCalories() + $cons->getKcal());
+        $em->flush();
+    }
 
     $this->addFlash('success', 'Saved ✅');
     return $this->redirectToRoute('user_nutrition');
 }
 
-private function getOrCreateDaily($user, $dailyRepo, $profileRepo, $em): \App\Entity\DailyNutrition
-{
-    $today = new \DateTimeImmutable('today');
-    $daily = $dailyRepo->findTodayForUser($user);
-    if ($daily) return $daily;
+    #[Route('/user/food/preview', name: 'user_food_preview', methods: ['POST'])]
+    public function foodPreview(Request $request, HttpClientInterface $http): JsonResponse
+    {
+        $food = trim((string) $request->request->get('food', ''));
+        
+        if ($food === '') {
+            return $this->json(['success' => false, 'message' => 'Food name is required']);
+        }
 
-    $profile = $profileRepo->findOneBy(['user' => $user], ['id' => 'DESC']);
-    $weight = $profile?->getWeight() ?: 70;
+        try {
+            $usdaApiKey = $_ENV['USDA_API_KEY'] ?? '';
+            
+            if (empty($usdaApiKey)) {
+                return $this->json([
+                    'success' => false, 
+                    'message' => 'USDA API key not configured'
+                ]);
+            }
 
-    $daily = new \App\Entity\DailyNutrition();
-    $daily->setUser($user);
-    $daily->setDayDate($today->setTime(0, 0, 0));
-    $daily->setCalories(0);
-    $daily->setWaterMl(0);
-    $daily->setCaloriesGoal((int)($weight * 28)); // Fallback logic
-    $daily->setWaterGoal((int)($weight * 30));
+            // Call USDA FoodData Central API
+            $response = $http->request('GET', 'https://api.nal.usda.gov/fdc/v1/foods/search', [
+                'query' => [
+                    'query' => $food,
+                    'api_key' => $usdaApiKey,
+                    'pageSize' => 1,
+                ],
+            ]);
 
-    $em->persist($daily);
-    $em->flush();
+            $data = $response->toArray();
+            
+            if (empty($data['foods'])) {
+                return $this->json(['success' => false, 'message' => 'Food not found']);
+            }
 
-    return $daily;
-}
+            $foodItem = $data['foods'][0];
+            $nutrients = $foodItem['foodNutrients'] ?? [];
+            
+            // Find energy (calories) - nutrient ID 1008
+            $kcal = 0;
+            foreach ($nutrients as $nutrient) {
+                if (($nutrient['nutrientId'] ?? 0) == 1008 || 
+                    stripos($nutrient['nutrientName'] ?? '', 'Energy') !== false) {
+                    $kcal = round($nutrient['value'] ?? 0);
+                    break;
+                }
+            }
+            
+            return $this->json([
+                'success' => true,
+                'food' => $foodItem['description'] ?? $food,
+                'kcal' => $kcal,
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'API error: ' . $e->getMessage()]);
+        }
+    }
+
+    #[Route('/user/food/add', name: 'user_food_add', methods: ['POST'])]
+    public function addFood(
+        Request $request,
+        EntityManagerInterface $em,
+        DailyNutritionService $nutritionService
+    ): Response {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $food = trim((string) $request->request->get('food', ''));
+        $kcal = (int) $request->request->get('kcal', 0);
+
+        if ($food === '' || $kcal <= 0) {
+            $this->addFlash('error', 'Invalid food data');
+            return $this->redirectToRoute('user_nutrition');
+        }
+
+        // Add to daily nutrition
+        $daily = $nutritionService->getOrCreateDaily($user);
+        if ($daily) {
+            $daily->setCalories($daily->getCalories() + $kcal);
+            $em->flush();
+        }
+
+        $this->addFlash('success', "Added {$food} ({$kcal} kcal) ✅");
+        return $this->redirectToRoute('user_nutrition');
+    }
 
 #[Route('/user/recipes/themealdb-search', name: 'user_recipes_themealdb_search', methods: ['GET'])]
 public function themealdbSearch(Request $request, HttpClientInterface $http){

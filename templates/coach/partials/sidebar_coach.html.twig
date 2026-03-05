@@ -36,7 +36,7 @@
                 <span id="chat-sidebar-unread" class="chat-sidebar-unread-badge" style="display: none;">0</span>
             </a>
 
-            <a href="{{ path('coach_workout_catalog') }}" class="sidebar-link {{ app.request.attributes.get('_route') == 'coach_workout_catalog' ? 'active' : '' }}">
+            <a href="{{ path('coach_workout_catalog') }}" class="sidebar-link {{ app.request.attributes.get('_route') starts with 'coach_workout' or app.request.attributes.get('_route') starts with 'coach_exercise' ? 'active' : '' }}">
                 <i class="fas fa-dumbbell"></i>
                 <span class="sidebar-text">Workout Catalog</span>
             </a>

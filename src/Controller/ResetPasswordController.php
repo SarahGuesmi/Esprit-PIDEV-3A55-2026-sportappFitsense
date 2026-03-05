@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\ChangePasswordFormType;
 use App\Form\ResetPasswordRequestFormType;
+use App\Service\SendGridMailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,6 +29,7 @@ class ResetPasswordController extends AbstractController
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
         private EntityManagerInterface $entityManager,
+        private MailerInterface $mailer,
     ) {
     }
 
@@ -35,7 +37,7 @@ class ResetPasswordController extends AbstractController
      * Display & process form to request a password reset.
      */
     #[Route('', name: 'app_forgot_password_request')]
-    public function request(Request $request, MailerInterface $mailer, TranslatorInterface $translator): Response
+    public function request(Request $request, TranslatorInterface $translator): Response
     {
         $form = $this->createForm(ResetPasswordRequestFormType::class);
         $form->handleRequest($request);
@@ -44,8 +46,7 @@ class ResetPasswordController extends AbstractController
             /** @var string $email */
             $email = $form->get('email')->getData();
 
-            return $this->processSendingPasswordResetEmail($email, $mailer, $translator
-            );
+            return $this->processSendingPasswordResetEmail($email, $translator);
         }
 
         return $this->render('reset_password/request.html.twig', [
@@ -128,7 +129,7 @@ class ResetPasswordController extends AbstractController
         ]);
     }
 
-    private function processSendingPasswordResetEmail(string $emailFormData, MailerInterface $mailer, TranslatorInterface $translator): RedirectResponse
+    private function processSendingPasswordResetEmail(string $emailFormData, TranslatorInterface $translator): RedirectResponse
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
             'email' => $emailFormData,
@@ -142,23 +143,39 @@ class ResetPasswordController extends AbstractController
         try {
             $resetToken = $this->resetPasswordHelper->generateResetToken($user);
         } catch (ResetPasswordExceptionInterface $e) {
+            // Throttle protection - user already requested a reset recently
             return $this->redirectToRoute('app_check_email');
         }
 
-        $email = (new TemplatedEmail())
-            ->from(new Address('sarahguesmi223@gmail.com', 'FitSense Support'))
-            ->to((string) $user->getEmail())
-            ->subject('Your password reset request')
-            ->htmlTemplate('reset_password/email.html.twig')
-            ->context([
-                'resetToken' => $resetToken,
-                'user' => $user,
-                'resetUrl' => $this->generateUrl('app_reset_password', ['token' => $resetToken->getToken()], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
-                'expiresInMessage' => $resetToken->getExpiresAt()->diff(new \DateTimeImmutable())->format('%h hour(s) and %i minute(s)'),
-            ])
-        ;
+        // Generate reset URL
+        $resetUrl = $this->generateUrl(
+            'app_reset_password', 
+            ['token' => $resetToken->getToken()], 
+            \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL
+        );
 
-        $mailer->send($email);
+        // Calculate expiration time
+        $expiresInMessage = $resetToken->getExpiresAt()->diff(new \DateTimeImmutable())->format('%h hour(s) and %i minute(s)');
+
+        // Send email via Gmail
+        $userName = $user->getFirstname() . ' ' . $user->getLastname();
+        
+        try {
+            $email = (new TemplatedEmail())
+                ->from(new Address('sarahguesmi223@gmail.com', 'FitSense'))
+                ->to($user->getEmail())
+                ->subject('Reset Your FitSense Password')
+                ->htmlTemplate('reset_password/email.html.twig')
+                ->context([
+                    'resetToken' => $resetToken,
+                    'userName' => $userName,
+                ]);
+
+            $this->mailer->send($email);
+            $this->addFlash('success', 'Password reset email sent! Check your inbox.');
+        } catch (\Exception $e) {
+            error_log('Failed to send password reset email: ' . $e->getMessage());
+        }
 
         // Store the token object in session for retrieval in check-email route.
         $this->setTokenObjectInSession($resetToken);

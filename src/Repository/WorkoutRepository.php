@@ -50,16 +50,19 @@ class WorkoutRepository extends ServiceEntityRepository
 
     public function findByUserObjectifsFiltered(User $user, ?string $niveau, ?int $dureeMax): array
 {
-    $objectifs = $user->getObjectifs();
+    // Get the user's objectif names (since each profile has its own ObjectifSportif rows,
+    // we match by name rather than by entity ID)
+    $names = $user->getObjectifNames();
 
-    if ($objectifs->isEmpty()) {
+    if (empty($names)) {
         return [];
     }
 
     $qb = $this->createQueryBuilder('w')
+        ->leftJoin('w.exercises', 'e')->addSelect('e')
         ->join('w.objectifs', 'o')
-        ->where('o IN (:objectifs)')
-        ->setParameter('objectifs', $objectifs->toArray())
+        ->where('o.name IN (:names)')
+        ->setParameter('names', $names)
         ->orderBy('w.nom', 'ASC');
 
     if ($niveau) {
@@ -74,6 +77,24 @@ class WorkoutRepository extends ServiceEntityRepository
 
     return $qb->getQuery()->getResult();
 }
+
+    /**
+     * Find a workout with its exercises loaded
+     */
+    public function findWithExercises(string $id): ?Workout
+    {
+        // Use find() first to correctly resolve the UUID string to binary
+        $workout = $this->find($id);
+        if (!$workout) {
+            return null;
+        }
+
+        // Eagerly initialize the lazy collections
+        $workout->getExercises()->toArray();
+        $workout->getObjectifs()->toArray();
+
+        return $workout;
+    }
 
     //    /**
     //     * @return Workout[] Returns an array of Workout objects

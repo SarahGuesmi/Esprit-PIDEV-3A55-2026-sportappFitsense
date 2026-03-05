@@ -50,9 +50,9 @@ class RecetteNutritionnelleRepository extends ServiceEntityRepository
     public function topFavoritesForCoach(User $coach, int $limit = 5): array
     {
         return $this->createQueryBuilder('r')
-            ->select('r.title AS title, COUNT(u.id) AS favorites')
-            ->leftJoin('r.favoritedBy', 'u')
-            ->andWhere('r.coach = :coach')
+            ->select('r.title, COUNT(fav.id) AS favorites')
+            ->leftJoin('r.favoritedBy', 'fav')
+            ->where('r.coach = :coach')
             ->setParameter('coach', $coach)
             ->groupBy('r.id')
             ->orderBy('favorites', 'DESC')

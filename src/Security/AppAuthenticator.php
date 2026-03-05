@@ -4,6 +4,7 @@ namespace App\Security;
 
 use App\Entity\ProfilePhysique;
 use App\Entity\User;
+use App\Enum\LoginStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -68,7 +69,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
         // 3. If email provided, check if user exists and is active
         if (!empty($email)) {
-            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email.email' => $email]);
             if (!$user) {
                 $errors['email'] = 'Email address not found.';
             } elseif ($user->getAccountStatus() === 'inactive') {
@@ -99,13 +100,20 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
-            return new RedirectResponse($targetPath);
+        $user = $token->getUser();
+
+        // Record successful login
+        if ($user instanceof User) {
+            $this->loginSecurityService->recordAttempt(
+                (string) $user->getEmail(),
+                $request->getClientIp(),
+                LoginStatus::Success
+            );
         }
 
-        $user = $token->getUser();
-        
-        // redirection par rôle (admin first)
+        // Role-based redirect FIRST — admins and coaches always go to their own dashboard.
+        // The targetPath is intentionally skipped so visiting /user/* before login
+        // doesn't accidentally redirect a coach to the user dashboard.
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
         }
@@ -114,20 +122,30 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($this->urlGenerator->generate('coach_dashboard'));
         }
 
-        // If user has no username yet (new sign-up), redirect to username setup
-        if ($user instanceof User && !$user->getUsername()) {
-            return new RedirectResponse($this->urlGenerator->generate('username_setup'));
+        // For regular users: respect the saved target path (e.g. redirected to login mid-browse)
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
         }
 
-        // Check if user has a profile
-        $profile = $this->entityManager->getRepository(ProfilePhysique::class)->findOneBy(['user' => $user]);
-        
-        if (!$profile) {
-            // User doesn't have a profile, redirect to profile setup
-            return new RedirectResponse($this->urlGenerator->generate('profile_setup_height'));
+        // Check if this is a fresh sign-up to see if we should show setup pages
+        $isNewSignup = $request->getSession()->remove('is_new_signup');
+
+        if ($isNewSignup) {
+            // If user has no username yet (new sign-up), redirect to username setup
+            if ($user instanceof User && !$user->getUsername()) {
+                return new RedirectResponse($this->urlGenerator->generate('username_setup'));
+            }
+
+            // Check if user has a profile
+            $profile = $this->entityManager->getRepository(ProfilePhysique::class)->findOneBy(['user' => $user]);
+            
+            if (!$profile) {
+                // User doesn't have a profile, redirect to profile setup
+                return new RedirectResponse($this->urlGenerator->generate('profile_setup_height'));
+            }
         }
 
-        // User has a profile, redirect to dashboard
+        // Default redirect for regular login or already set-up users
         return new RedirectResponse($this->urlGenerator->generate('dashboard_user'));
     }
 
@@ -142,6 +160,15 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($this->urlGenerator->generate('account_deactivated'));
         }
         if ($exception instanceof BadCredentialsException) {
+            // Record failed attempt
+            $email = (string) $request->request->get('email', '');
+            if ($email !== '') {
+                $this->loginSecurityService->recordAttempt(
+                    $email,
+                    $request->getClientIp(),
+                    LoginStatus::Failure
+                );
+            }
             // Wrap wrong password error in delimited string
             $exception = new CustomUserMessageAuthenticationException('password:Incorrect password.');
         }

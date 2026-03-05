@@ -13,11 +13,10 @@ class WeeklyReportService
     public function __construct(
         private FeedbackResponseRepository $feedbackRepo,
         private EntityManagerInterface $em,
-        private string $sendgridApiKey,
-        private string $fromEmail,
-        private string $fromName
+        private SendGridMailerService $sendGridMailer
     ) {
     }
+
 
     /**
      * Génère et envoie le rapport quotidien pour un coach
@@ -324,42 +323,16 @@ HTML;
     }
 
     /**
-     * Envoie un email via SendGrid
+     * Envoie un email via SendGridMailerService (CURL-independent)
      */
     private function sendEmail(string $to, string $subject, string $htmlContent): array
     {
-        try {
-            $from = new \SendGrid\Email(null, $this->fromEmail);
-            $toEmail = new \SendGrid\Email(null, $to);
-            $content = new \SendGrid\Content("text/html", $htmlContent);
-            
-            $email = new Mail($from, $subject, $toEmail, $content);
-
-            // Configure SendGrid with SSL certificate
-            $cacertPath = __DIR__ . '/../../cacert.pem';
-            $options = [
-                'curl' => [
-                    CURLOPT_CAINFO => $cacertPath,
-                ]
-            ];
-            
-            $sendgrid = new SendGrid($this->sendgridApiKey, $options);
-            $response = $sendgrid->client->mail()->send()->post($email);
-
-            $statusCode = $response->statusCode();
-            $success = $statusCode >= 200 && $statusCode < 300;
-            
-            return [
-                'success' => $success,
-                'message' => $success ? 'Email sent successfully' : 'SendGrid returned status ' . $statusCode,
-                'statusCode' => $statusCode
-            ];
-
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => $e->getMessage()
-            ];
-        }
+        $success = $this->sendGridMailer->sendEmail($to, $subject, $htmlContent);
+        
+        return [
+            'success' => $success,
+            'message' => $success ? 'Email sent successfully (via HttpClient)' : 'Failed to send email via SendGrid API',
+            'statusCode' => $success ? 202 : 500
+        ];
     }
 }

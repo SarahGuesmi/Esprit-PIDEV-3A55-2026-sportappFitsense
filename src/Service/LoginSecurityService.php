@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Entity\LoginAttempt;
 use App\Entity\User;
+use App\Enum\LoginStatus;
+use App\Enum\Country;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -31,9 +33,9 @@ class LoginSecurityService
         $this->mailer = $mailer;
     }
 
-    public function recordAttempt(string $email, string $ipAddress, string $status): LoginAttempt
+    public function recordAttempt(string $email, string $ipAddress, LoginStatus $status): LoginAttempt
     {
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email.email' => $email]);
         $location = $this->ipInfoService->getLocationData($ipAddress);
 
         $attempt = new LoginAttempt();
@@ -43,18 +45,35 @@ class LoginSecurityService
         $attempt->setUser($user);
         $attempt->setCity($location['city'] ?? null);
         $attempt->setRegion($location['region'] ?? null);
-        $attempt->setCountry($location['country'] ?? null);
+        $attempt->setCountry(Country::tryFrom($location['country'] ?? ''));
         $attempt->setIsp($location['isp'] ?? null);
 
         $this->entityManager->persist($attempt);
         $this->entityManager->flush();
 
-        if ($status === 'success' && $user) {
-            $this->checkUnusualLocation($user, $attempt);
+        if ($status === LoginStatus::Success) {
+            // Reset failed attempts for this IP upon successful login
+            $this->clearFailedAttempts($ipAddress);
+            if ($user) {
+                $this->checkUnusualLocation($user, $attempt);
+            }
         }
 
         return $attempt;
     }
+
+    public function clearFailedAttempts(string $ipAddress): void
+    {
+        $this->entityManager->createQueryBuilder()
+            ->delete(LoginAttempt::class, 'la')
+            ->where('la.ipAddress = :ip')
+            ->andWhere('la.status = :status')
+            ->setParameter('ip', $ipAddress)
+            ->setParameter('status', LoginStatus::Failure->value)
+            ->getQuery()
+            ->execute();
+    }
+
 
     public function isIpBlocked(string $ipAddress): bool
     {
@@ -67,7 +86,7 @@ class LoginSecurityService
             ->andWhere('la.status = :status')
             ->andWhere('la.timestamp >= :window')
             ->setParameter('ip', $ipAddress)
-            ->setParameter('status', 'failure')
+            ->setParameter('status', LoginStatus::Failure->value)
             ->setParameter('window', $window)
             ->getQuery()
             ->getSingleScalarResult();
@@ -85,7 +104,7 @@ class LoginSecurityService
             ->andWhere('la.id != :currentId')
             ->andWhere('la.country IS NOT NULL')
             ->setParameter('user', $user)
-            ->setParameter('status', 'success')
+            ->setParameter('status', LoginStatus::Success->value)
             ->setParameter('currentId', $currentAttempt->getId())
             ->setMaxResults(10)
             ->getQuery()
@@ -95,7 +114,27 @@ class LoginSecurityService
             return; // First login or first with location
         }
 
+        // Prevent spam: don't send unusual location email if we sent one recently (e.g., last 5 mins)
+        // This handles cases where multiple login successes are recorded quickly (e.g. Passkey redirects)
+        $recentNotification = $this->entityManager->getRepository(LoginAttempt::class)
+            ->createQueryBuilder('la')
+            ->select('COUNT(la.id)')
+            ->where('la.user = :user')
+            ->andWhere('la.status = :status')
+            ->andWhere('la.timestamp >= :recent')
+            ->setParameter('user', $user)
+            ->setParameter('status', LoginStatus::Success->value)
+            ->setParameter('recent', new \DateTimeImmutable('-5 minutes'))
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        if ($recentNotification > 1) { // 1 is the current attempt
+            return;
+        }
+
+
         $knownCountries = array_unique(array_map(fn($la) => $la->getCountry(), $pastSuccess));
+
         
         if (!in_array($currentAttempt->getCountry(), $knownCountries)) {
             $this->sendUnusualLocationNotification($user, $currentAttempt);

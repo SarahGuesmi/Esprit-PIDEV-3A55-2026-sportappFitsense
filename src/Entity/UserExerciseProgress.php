@@ -4,19 +4,28 @@ namespace App\Entity;
 
 use App\Repository\UserExerciseProgressRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+
+use App\Trait\BlameableTrait;
+use App\Trait\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: UserExerciseProgressRepository::class)]
+#[ORM\Table(name: 'user_exercise_progression')]
 #[ORM\UniqueConstraint(name: 'user_exercise_unique', columns: ['user_id', 'exercise_id'])]
+#[ORM\HasLifecycleCallbacks]
 class UserExerciseProgress
 {
+    use TimestampableTrait, BlameableTrait;
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'exerciseProgress')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
+
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -31,15 +40,13 @@ class UserExerciseProgress
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $completedAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?Uuid { return $this->id; }
 
     public function getUser(): ?User { return $this->user; }
     public function setUser(?User $user): static { $this->user = $user; return $this; }
@@ -56,5 +63,5 @@ class UserExerciseProgress
     public function getCompletedAt(): ?\DateTimeImmutable { return $this->completedAt; }
     public function setCompletedAt(?\DateTimeImmutable $completedAt): static { $this->completedAt = $completedAt; return $this; }
 
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+
 }

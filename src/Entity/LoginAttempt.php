@@ -2,24 +2,28 @@
 
 namespace App\Entity;
 
+use App\Enum\Country;
+use App\Enum\LoginStatus;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity()]
 class LoginAttempt
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\Column(type: 'string', length: 45)]
     private ?string $ipAddress = null;
 
-    #[ORM\Column(type: 'string', length: 180)]
-    private ?string $email = null;
+    #[ORM\Embedded(class: EmailAddress::class)]
+    private EmailAddress $email;
 
     #[ORM\Column(type: 'string', length: 20)]
-    private ?string $status = null; // 'success' or 'failure'
+    private ?string $status = null;
 
     #[ORM\Column(type: 'string', length: 10, nullable: true)]
     private ?string $country = null;
@@ -42,10 +46,11 @@ class LoginAttempt
 
     public function __construct()
     {
+        $this->email = new EmailAddress();
         $this->timestamp = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -63,34 +68,34 @@ class LoginAttempt
 
     public function getEmail(): ?string
     {
-        return $this->email;
+        return $this->email->getEmail();
     }
 
     public function setEmail(string $email): self
     {
-        $this->email = $email;
+        $this->email = new EmailAddress($email);
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?LoginStatus
     {
-        return $this->status;
+        return $this->status ? LoginStatus::from($this->status) : null;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(LoginStatus $status): self
     {
-        $this->status = $status;
+        $this->status = $status->value;
         return $this;
     }
 
-    public function getCountry(): ?string
+    public function getCountry(): ?Country
     {
-        return $this->country;
+        return $this->country ? Country::from($this->country) : null;
     }
 
-    public function setCountry(?string $country): self
+    public function setCountry(?Country $country): self
     {
-        $this->country = $country;
+        $this->country = $country?->value;
         return $this;
     }
 
@@ -132,7 +137,7 @@ class LoginAttempt
         return $this->timestamp;
     }
 
-    public function setTimestamp(\DateTimeImmutable $timestamp): self
+    protected function setTimestamp(\DateTimeImmutable $timestamp): self
     {
         $this->timestamp = $timestamp;
         return $this;

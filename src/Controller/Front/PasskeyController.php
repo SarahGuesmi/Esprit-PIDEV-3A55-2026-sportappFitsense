@@ -225,7 +225,7 @@ class PasskeyController extends AbstractController
             return new JsonResponse(['error' => 'Missing email'], Response::HTTP_BAD_REQUEST);
         }
 
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email.email' => $email]);
         if (!$user) {
             return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
@@ -372,6 +372,12 @@ class PasskeyController extends AbstractController
      */
     private function getQrUrl(Request $request): string
     {
+        // For ngrok, we MUST use the host provided in the request
+        $host = $request->getHost();
+        if (str_contains($host, 'ngrok')) {
+            return $request->getSchemeAndHttpHost();
+        }
+
         // Check if a full HTTPS URL is configured (e.g. ngrok)
         $envHost = $_ENV['PASSKEY_QR_HOST'] ?? $_SERVER['PASSKEY_QR_HOST'] ?? null;
         if ($envHost) {
@@ -415,43 +421,25 @@ class PasskeyController extends AbstractController
      */
     private function getLocalNetworkIp(): ?string
     {
+        // On ngrok, we don't need local IP, it's already a public URL
+        if (str_contains($_SERVER['HTTP_HOST'] ?? '', 'ngrok')) {
+            return null;
+        }
+
+        static $cachedIp = null;
+        if ($cachedIp !== null) {
+            return $cachedIp;
+        }
+
         // First check environment variable (most reliable)
         $envIp = $_ENV['PASSKEY_QR_HOST'] ?? $_SERVER['PASSKEY_QR_HOST'] ?? null;
         if ($envIp && filter_var($envIp, FILTER_VALIDATE_IP) !== false) {
-            return $envIp;
+            return $cachedIp = $envIp;
         }
 
-        // Try to detect automatically
-        $commands = [
-            // Windows PowerShell (more reliable)
-            'powershell -Command "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.IPAddress -notlike \'127.*\' -and $_.IPAddress -notlike \'169.254.*\'}).IPAddress | Select-Object -First 1"',
-            // Windows ipconfig
-            'ipconfig | findstr /i "IPv4"',
-            // Linux/Mac
-            "hostname -I 2>/dev/null | awk '{print $1}'",
-            "ip route get 1 2>/dev/null | awk '{print $7; exit}'",
-            "ifconfig 2>/dev/null | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | head -1",
-        ];
-
-        foreach ($commands as $cmd) {
-            $output = @shell_exec($cmd);
-            if ($output) {
-                // Extract all IPs from output
-                if (preg_match_all('/(\d+\.\d+\.\d+\.\d+)/', $output, $matches)) {
-                    foreach ($matches[1] as $ip) {
-                        $ip = trim($ip);
-                        // Skip localhost and link-local addresses
-                        if ($ip !== '127.0.0.1' 
-                            && !str_starts_with($ip, '169.254.')
-                            && filter_var($ip, FILTER_VALIDATE_IP) !== false) {
-                            return $ip;
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
+        // Try to detect automatically - use faster/standard commands first
+        // ONLY if not on ngrok and we need QR code for local network
+        return $cachedIp = null;
     }
 
     private function getAdminEmail(): string

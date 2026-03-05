@@ -4,22 +4,25 @@ namespace App\Entity;
 
 use App\Repository\RecetteConsommeeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: RecetteConsommeeRepository::class)]
 class RecetteConsommee
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'recettesConsommees')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?RecetteNutritionnelle $recette = null;
+
 
     #[ORM\Column]
     private ?\DateTimeImmutable $dateConsommation = null;
@@ -38,7 +41,7 @@ class RecetteConsommee
         $this->dateConsommation = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -70,7 +73,7 @@ class RecetteConsommee
         return $this->dateConsommation;
     }
 
-    public function setDateConsommation(\DateTimeImmutable $dateConsommation): static
+    protected function setDateConsommation(\DateTimeImmutable $dateConsommation): static
     {
         $this->dateConsommation = $dateConsommation;
         return $this;

@@ -3,6 +3,8 @@ parameters:
     consumption_upload_dir: '%kernel.project_dir%/public/uploads/consumption'
     recipes_upload_dir: '%kernel.project_dir%/public/uploads/recipes'
     rapidapi_key: '%env(RAPIDAPI_KEY)%'
+    ipinfo_token: '%env(IPINFO_TOKEN)%'
+
 
 services:
     _defaults:
@@ -17,6 +19,16 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+
+    App\Service\IPInfoService:
+        arguments:
+            $apiToken: '%ipinfo_token%'
+
+    App\EventListener\LoginSecurityListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
+
     # ⚠️ DOIT être après le bloc App\
     App\Service\ExerciseApiService:
         arguments:
@@ -30,12 +42,15 @@ services:
         arguments:
             $openaiApiKey: '%env(OPENAI_API_KEY)%'
 
-    App\Service\WeeklyReportService:
-        arguments:
-            $sendgridApiKey: '%env(SENDGRID_API_KEY)%'
-            $fromEmail: '%env(SENDGRID_FROM_EMAIL)%'
-            $fromName: '%env(SENDGRID_FROM_NAME)%'
 
     App\EventListener\AuthenticationSuccessListener:
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+
+    App\Service\OpenAiService:
+        arguments:
+            $apiKey: '%env(API_KEY)%'
+
+    App\Service\SendGridMailerService:
+        arguments:
+            $httpClient: '@http_client'

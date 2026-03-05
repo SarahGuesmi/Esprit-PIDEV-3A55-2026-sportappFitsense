@@ -447,7 +447,9 @@
 
     <!-- JavaScript -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        (function() {
+            function initPage() {
+                console.log('Initializing User Management Page...');
 
             // Flash messages fade out
             document.querySelectorAll('.mb-6').forEach(flash => {
@@ -525,7 +527,7 @@
             //   AJAX filtering
             // ────────────────────────────────────────────────
             function ajaxFilter() {
-                const q = searchInput.value;
+                const q = searchInput.value.trim();
                 const status = filterStatus.value;
                 const role = filterRole.value;
 
@@ -548,6 +550,7 @@
                     tableBody.style.opacity = '1';
                     
                     const visibleCount = tableBody.querySelectorAll('.table-row').length;
+                    
                     if (q || status || role) {
                         searchResults.innerHTML = `<i class="fas fa-search mr-2"></i>Showing ${visibleCount} user(s)`;
                     } else {
@@ -559,6 +562,7 @@
                 })
                 .catch(error => {
                     console.error('Error fetching users:', error);
+                    searchResults.innerHTML = `<i class="fas fa-exclamation-triangle mr-2 text-red-400"></i>Error loading users. Please try again.`;
                     tableBody.style.opacity = '1';
                 });
             }
@@ -687,7 +691,16 @@
                     closeModal(bulkDeleteModal);
                 }
             });
-        });
+            }
+            
+            // Run on initial load and turbo navigation
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPage);
+            } else {
+                initPage();
+            }
+            document.addEventListener('turbo:load', initPage);
+        })();
     </script>
 
 {% endblock %}

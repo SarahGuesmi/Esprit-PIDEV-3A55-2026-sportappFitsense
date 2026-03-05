@@ -17,6 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Repository\WorkoutRepository;
 use App\Repository\ExerciseRepository;
+use App\Repository\RecetteNutritionnelleRepository;
 use Symfony\UX\Chartjs\Model\Chart;
 use Symfony\UX\Chartjs\Model\Dataset\PieDataset;
 use Symfony\UX\Chartjs\Model\Dataset\BarDataset;
@@ -33,28 +34,37 @@ public function dashboard(
     WorkoutRepository $workoutRepo,
     ExerciseRepository $exerciseRepo,
     ChartBuilderInterface $chartBuilder,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    RecetteNutritionnelleRepository $recetteRepo
 ): Response
 {
     // ================= Total workouts =================
-    $totalWorkouts = $workoutRepo->count([]);
+    $workouts = $workoutRepo->findAll();
+    $totalWorkouts = count($workouts);
 
     // ================= Durée moyenne =================
-    $workouts = $workoutRepo->findAll();
-    $totalDuration = array_sum(array_map(fn($w) => $w->getDuree() ?? 0, $workouts));
-    $avgDuration = $workouts ? round($totalDuration / count($workouts), 2) : 0;
+    // Fixed: Use aggregation query instead of loading all workouts
+    $avgDuration = $workoutRepo->createQueryBuilder('w')
+        ->select('AVG(w.duree)')
+        ->getQuery()
+        ->getSingleScalarResult() ?? 0;
+    $avgDuration = round($avgDuration, 2);
 
     // ================= Exercices les plus utilisés =================
-    $exercises = $exerciseRepo->findAll();
-    $exerciseUsage = [];
-    foreach ($exercises as $ex) {
-        $count = count($ex->getWorkouts());
-        if ($count > 0) {
-            $exerciseUsage[$ex->getNom()] = $count;
-        }
-    }
-    arsort($exerciseUsage);
-    $topExercise = array_key_first($exerciseUsage) ?? '—';
+    // Fixed: Use query with limit instead of loading all exercises
+    $exerciseUsage = $exerciseRepo->createQueryBuilder('e')
+        ->select('e.nom as name, COUNT(w.id) as workoutCount')
+        ->leftJoin('e.workouts', 'w')
+        ->groupBy('e.id')
+        ->addGroupBy('e.nom')
+        ->having('COUNT(w.id) > 0')
+        ->orderBy('workoutCount', 'DESC')
+        ->setMaxResults(10)
+        ->getQuery()
+        ->getArrayResult();
+    
+    $topExercise = !empty($exerciseUsage) ? $exerciseUsage[0]['name'] : '—';
+    $exerciseUsage = array_column($exerciseUsage, 'workoutCount', 'name');
 
     // ================= Chart - Exercises Bar =================
     $exerciseChart = $chartBuilder->createChart(Chart::TYPE_BAR);
@@ -120,8 +130,6 @@ public function dashboard(
     $feedbackRepo = $em->getRepository(FeedbackResponse::class);
     $feedbacks = $feedbackRepo->createQueryBuilder('f')
         ->innerJoin('f.workout', 'w')
-        ->andWhere('f.coach = :coach')
-        ->setParameter('coach', $coach)
         ->orderBy('f.createdAt', 'ASC')
         ->getQuery()
         ->getResult();
@@ -143,11 +151,11 @@ public function dashboard(
     $sumScores = 0;
     $scoredCount = 0;
 
-    // Compteurs pour la répartition par niveau
-    $excellentCount = 0;
-    $goodCount = 0;
-    $averageCount = 0;
-    $poorCount = 0;
+    // Compteurs pour la répartition par sentiment (IA)
+    $positiveCount = 0;
+    $neutralCount = 0;
+    $negativeCount = 0;
+
 
     // Distribution brute par libellé de rating (pour le Bar chart)
     $ratingDistribution = [];
@@ -163,25 +171,23 @@ public function dashboard(
         if ($score !== null) {
             $sumScores += $score;
             $scoredCount++;
-
-            // Catégorisation en 4 niveaux principaux
-            switch (true) {
-                case $score === 5:
-                    $excellentCount++;
-                    break;
-                case $score === 4:
-                    $goodCount++;
-                    break;
-                case $score === 3:
-                    $averageCount++;
-                    break;
-                default: // 1–2
-                    $poorCount++;
-                    break;
-            }
         }
 
-        // Comptage par libellé
+        // Sentiment IA
+        $sentiment = $fb->getSentiment() ?: 'neutral';
+        switch ($sentiment) {
+            case 'positive':
+                $positiveCount++;
+                break;
+            case 'negative':
+                $negativeCount++;
+                break;
+            default:
+                $neutralCount++;
+                break;
+        }
+
+        // Comptage par libellé (rating)
         if ($label !== '') {
             $ratingDistribution[$label] = ($ratingDistribution[$label] ?? 0) + 1;
         }
@@ -197,11 +203,13 @@ public function dashboard(
         }
     }
 
+
     $avgNote = $scoredCount > 0 ? round($sumScores / $scoredCount, 2) : 0.0;
     // % satisfaits = Excellent + Good
-    $percentSatisfaits = $scoredCount > 0
-        ? (int) round(($excellentCount + $goodCount) / $scoredCount * 100)
+    $percentSatisfaits = $total > 0
+        ? (int) round($positiveCount / $total * 100)
         : 0;
+
 
     // Progression vs last week (volume de réponses)
     $now = new \DateTimeImmutable();
@@ -211,10 +219,8 @@ public function dashboard(
 
     $nbThisWeek = (int) $feedbackRepo->createQueryBuilder('f')
         ->select('COUNT(f.id)')
-        ->andWhere('f.coach = :coach')
         ->andWhere('f.createdAt >= :start')
         ->andWhere('f.createdAt <= :end')
-        ->setParameter('coach', $coach)
         ->setParameter('start', $startThisWeek)
         ->setParameter('end', $now)
         ->getQuery()
@@ -222,10 +228,8 @@ public function dashboard(
 
     $nbLastWeek = (int) $feedbackRepo->createQueryBuilder('f')
         ->select('COUNT(f.id)')
-        ->andWhere('f.coach = :coach')
         ->andWhere('f.createdAt >= :start')
         ->andWhere('f.createdAt <= :end')
-        ->setParameter('coach', $coach)
         ->setParameter('start', $startLastWeek)
         ->setParameter('end', $endLastWeek)
         ->getQuery()
@@ -257,22 +261,21 @@ public function dashboard(
 
     $satisfactionDoughnutChart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
     $satisfactionDoughnutChart->setData([
-        'labels' => ['Excellent', 'Good', 'Average', 'Poor'],
+        'labels' => ['Positive 😊', 'Neutral 😐', 'Negative 😞'],
         'datasets' => [[
             'data' => [
-                $excellentCount,
-                $goodCount,
-                $averageCount,
-                $poorCount,
+                $positiveCount,
+                $neutralCount,
+                $negativeCount,
             ],
             'backgroundColor' => [
-                'rgba(34,197,94,0.85)',   // Excellent
-                'rgba(56,189,248,0.85)',  // Good
-                'rgba(250,204,21,0.9)',   // Average
-                'rgba(248,113,113,0.9)',  // Poor
+                'rgba(34,197,94,0.85)',   // Positive
+                'rgba(250,204,21,0.9)',   // Neutral
+                'rgba(248,113,113,0.9)',  // Negative
             ],
         ]],
     ]);
+
 
     // Bar: distribution par libellé de rating (intensité ressentie)
     ksort($ratingDistribution);
@@ -315,12 +318,33 @@ public function dashboard(
     $recentFeedbacks = $feedbackRepo->createQueryBuilder('f')
         ->innerJoin('f.workout', 'w')
         ->addSelect('w')
-        ->andWhere('f.coach = :coach')
-        ->setParameter('coach', $coach)
         ->orderBy('f.createdAt', 'DESC')
         ->setMaxResults(5)
         ->getQuery()
         ->getResult();
+
+    // ================= TOP FAVORITE RECIPES (per coach) =================
+    $top = $recetteRepo->topFavoritesForCoach($coach, 5); // title + favorites
+    $favLabels = array_map(fn($x) => $x['title'], $top);
+    $favData   = array_map(fn($x) => (int) $x['favorites'], $top);
+
+    $topRecipesChart = $chartBuilder->createChart(Chart::TYPE_BAR);
+    $topRecipesChart->setData([
+        'labels' => $favLabels,
+        'datasets' => [[
+            'label' => 'Favorites ❤️',
+            'data' => $favData,
+            'borderWidth' => 1,
+            'borderRadius' => 10,
+        ]],
+    ]);
+    $topRecipesChart->setOptions([
+        'responsive' => true,
+        'maintainAspectRatio' => false,
+        'scales' => [
+            'y' => ['beginAtZero' => true],
+        ],
+    ]);
 
     return $this->render('coach/dashboard.html.twig', [
         'totalWorkouts' => $totalWorkouts,
@@ -334,6 +358,8 @@ public function dashboard(
         'satisfactionDoughnutChart' => $satisfactionDoughnutChart,
         'satisfactionBarChart' => $satisfactionBarChart,
         'recentFeedbacks' => $recentFeedbacks,
+        'topRecipesChart' => $topRecipesChart,
+        'hasFavoritesData' => count($favLabels) > 0 && count($favData) > 0,
     ]);
 }
 

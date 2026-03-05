@@ -314,6 +314,10 @@
     </style>
 {% endblock %}
 
+{% block importmap %}
+    {{ importmap('app') }}
+{% endblock %}
+
 {% block body %}
     <div class="admin-theme bg-[#0B0C10]">
         <!-- Sidebar -->
@@ -359,7 +363,9 @@
 
     <!-- Toggle Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        (function() {
+            function initAdminLayout() {
+                console.log('Initializing Admin Layout...');
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.getElementById('main-content');
             const desktopToggle = document.getElementById('desktop-sidebar-toggle');
@@ -435,7 +441,16 @@
                     }, 300);
                 }
             });
-        });
+            }
+
+            // Run on initial load and turbo navigation
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAdminLayout);
+            } else {
+                initAdminLayout();
+            }
+            document.addEventListener('turbo:load', initAdminLayout);
+        })();
     </script>
     {% include 'admin/partials/footer.html.twig' %}
 

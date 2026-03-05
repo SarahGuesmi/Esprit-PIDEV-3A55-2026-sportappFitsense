@@ -4,10 +4,6 @@ namespace App\Controller;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Writer\SvgWriter;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -60,14 +56,12 @@ class SecurityController extends AbstractController
         $user->setGoogleAuthenticatorSecret($secret);
         $qrContent = $this->googleAuthenticator->getQRContent($user);
 
-        $qrCode = Builder::create()
-            ->writer(new SvgWriter())
-            ->data($qrContent)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(ErrorCorrectionLevel::Medium)
-            ->build();
-
-        $qrCodeDataUri = $qrCode->getDataUri();
+        // Use external QR service instead of local Endroid library (avoids extra PHP version constraints)
+        $encoded = rawurlencode($qrContent);
+        $qrCodeDataUri = sprintf(
+            'https://api.qrserver.com/v1/create-qr-code/?size=192x192&data=%s',
+            $encoded
+        );
 
         if ($request->isMethod('POST')) {
             $code = trim((string) $request->request->get('_code', ''));

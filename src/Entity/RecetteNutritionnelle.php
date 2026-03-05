@@ -7,15 +7,22 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
+use App\Trait\BlameableTrait;
+use App\Trait\TimestampableTrait;
+
 #[ORM\Entity(repositoryClass: RecetteNutritionnelleRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class RecetteNutritionnelle
 {
+    use TimestampableTrait, BlameableTrait;
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Title is required.")]
@@ -52,17 +59,19 @@ class RecetteNutritionnelle
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+
 
     #[ORM\ManyToOne(inversedBy: 'recettes')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $coach = null;
 
     // ✅ Favorites: pivot table recipe_favorites(user_id, recette_nutritionnelle_id)
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'favoriteRecipes')]
     #[ORM\JoinTable(name: 'recipe_favorites')]
+    #[ORM\JoinColumn(name: 'recette_nutritionnelle_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'user_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private Collection $favoritedBy;
+
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Assert\Count(min: 1, minMessage: "Please select at least one objective.")]
@@ -71,11 +80,10 @@ class RecetteNutritionnelle
     public function __construct()
     {
         $this->favoritedBy = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
         $this->objectifs = [];
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -168,16 +176,7 @@ class RecetteNutritionnelle
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
 
     public function getCoach(): ?User
     {

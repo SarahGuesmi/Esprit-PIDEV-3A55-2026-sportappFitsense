@@ -9,7 +9,11 @@
     {# Profile photo at top #}
     <div class="flex flex-col items-center mb-8">
         {% if app.user.avatarPath %}
-            <img src="{{ asset(app.user.avatarPath) }}" alt="Your photo" class="w-28 h-28 rounded-full object-cover border-4 border-violet-500/40 shadow-lg shadow-violet-500/20">
+            {% if app.user.photo starts with 'http' %}
+                <img src="{{ app.user.avatarPath }}" alt="Your photo" class="w-28 h-28 rounded-full object-cover border-4 border-violet-500/40 shadow-lg shadow-violet-500/20">
+            {% else %}
+                <img src="{{ asset(app.user.avatarPath) }}" alt="Your photo" class="w-28 h-28 rounded-full object-cover border-4 border-violet-500/40 shadow-lg shadow-violet-500/20">
+            {% endif %}
         {% else %}
             <div class="w-28 h-28 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center border-4 border-violet-500/30">
                 <i class="fas fa-user text-4xl text-violet-400"></i>
@@ -68,7 +72,11 @@
         <div class="flex flex-wrap items-center gap-6">
             <div class="flex-shrink-0">
                 {% if app.user.avatarPath %}
-                    <img src="{{ asset(app.user.avatarPath) }}" alt="Your photo" class="w-20 h-20 rounded-full object-cover border-2 border-violet-500/30">
+                    {% if app.user.photo starts with 'http' %}
+                        <img src="{{ app.user.avatarPath }}" alt="Your photo" class="w-20 h-20 rounded-full object-cover border-2 border-violet-500/30">
+                    {% else %}
+                        <img src="{{ asset(app.user.avatarPath) }}" alt="Your photo" class="w-20 h-20 rounded-full object-cover border-2 border-violet-500/30">
+                    {% endif %}
                 {% else %}
                     <div class="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center border-2 border-violet-500/30">
                         <i class="fas fa-user text-2xl text-violet-400"></i>

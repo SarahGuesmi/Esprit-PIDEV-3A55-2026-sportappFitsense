@@ -56,6 +56,9 @@ class AuthController extends AbstractController
             $entityManager->persist($notification);
             $entityManager->flush();
 
+            // Set session flag to indicate this is a new sign-up
+            $request->getSession()->set('is_new_signup', true);
+
             // On laisse le LISTENER décider de la redirection
             // (pas de set target_path ici → sinon il override le listener)
 

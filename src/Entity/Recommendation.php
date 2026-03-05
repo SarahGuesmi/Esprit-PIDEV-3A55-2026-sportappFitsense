@@ -6,22 +6,30 @@ use App\Repository\RecommendationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
+use App\Trait\BlameableTrait;
+use App\Trait\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: RecommendationRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Recommendation
 {
+    use TimestampableTrait, BlameableTrait;
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(inversedBy: 'coachRecommendations')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $coach = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+
+    #[ORM\ManyToOne(inversedBy: 'userRecommendations')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
+
 
     #[ORM\OneToMany(mappedBy: 'recommendation', targetEntity: RecommendedExercise::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $recommendedExercises;
@@ -29,16 +37,14 @@ class Recommendation
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $notes = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+
 
     public function __construct()
     {
         $this->recommendedExercises = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -104,14 +110,5 @@ class Recommendation
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
 }

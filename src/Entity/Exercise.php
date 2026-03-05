@@ -6,17 +6,20 @@ use App\Repository\ExerciseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ExerciseRepository::class)]
 #[Vich\Uploadable]
 class Exercise
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private ?Uuid $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
@@ -36,10 +39,10 @@ class Exercise
     #[ORM\ManyToMany(targetEntity: Workout::class, mappedBy: 'exercises')]
     private Collection $workouts;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(name: '`sets`', type: 'integer', nullable: true)]
     private ?int $sets = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(name: '`reps`', type: 'integer', nullable: true)]
     private ?int $reps = null;
 
     public function __construct()
@@ -47,7 +50,7 @@ class Exercise
         $this->workouts = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -191,7 +194,7 @@ public function setYoutubeVideoId(?string $youtubeVideoId): static
         return $this->imageName;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    protected function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
         return $this;
