@@ -232,7 +232,7 @@ class WorkoutCoachController extends AbstractController
     //  EXERCISE DETAIL
     // ═══════════════════════════════════════════
 
-    #[Route('/exercises/{id}', name: 'coach_exercise_detail')]
+    #[Route('/exercises/{id}', name: 'coach_exercise_detail_db')]
     public function exerciseDetail(Exercise $exercise): Response
     {
         return $this->render('coach/exercise_detail.html.twig', [
@@ -252,5 +252,23 @@ class WorkoutCoachController extends AbstractController
 
         $this->addFlash('success', 'Exercise deleted successfully.');
         return $this->redirectToRoute('coach_exercise_list');
+    }
+
+    // ═══════════════════════════════════════════
+    //  YOUTUBE SEARCH API
+    // ═══════════════════════════════════════════
+
+    #[Route('/youtube-search', name: 'coach_youtube_search')]
+    public function youtubeSearch(Request $request, \App\Service\YouTubeService $youtubeService): Response
+    {
+        $query = $request->query->get('q', '');
+        
+        if (empty($query)) {
+            return $this->json([]);
+        }
+
+        $videos = $youtubeService->searchVideos($query, 5);
+        
+        return $this->json($videos);
     }
 }

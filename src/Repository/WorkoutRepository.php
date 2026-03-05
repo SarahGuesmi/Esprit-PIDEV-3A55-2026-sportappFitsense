@@ -83,17 +83,13 @@ class WorkoutRepository extends ServiceEntityRepository
      */
     public function findWithExercises(string $id): ?Workout
     {
-        // Use find() first to correctly resolve the UUID string to binary
-        $workout = $this->find($id);
-        if (!$workout) {
-            return null;
-        }
-
-        // Eagerly initialize the lazy collections
-        $workout->getExercises()->toArray();
-        $workout->getObjectifs()->toArray();
-
-        return $workout;
+        return $this->createQueryBuilder('w')
+            ->leftJoin('w.exercises', 'e')->addSelect('e')
+            ->leftJoin('w.objectifs', 'o')->addSelect('o')
+            ->where('w.id = :id')
+            ->setParameter('id', $id, 'uuid')
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     //    /**

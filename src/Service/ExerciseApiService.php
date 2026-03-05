@@ -1,135 +1,153 @@
 <?php
+
 namespace App\Service;
 
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class ExerciseApiService
 {
-    private HttpClientInterface $client;
-    private string $apiKey;
     private string $baseUrl = 'https://exercisedb.p.rapidapi.com';
-    private string $host = 'exercisedb.p.rapidapi.com';
+    private string $host    = 'exercisedb.p.rapidapi.com';
 
-    public function __construct(HttpClientInterface $client, string $apiKey)
+    public function __construct(
+        private readonly HttpClientInterface $client,
+        private readonly CacheInterface      $cache,
+        private readonly string              $apiKey
+    ) {}
+
+    // ==================== MÉTHODE CENTRALE ====================
+
+    private function request(string $endpoint, int $limit = 20, int $offset = 0): array
     {
-        $this->client = $client;
-        $this->apiKey = $apiKey;
+        // Clé de cache unique par endpoint + params
+        $cacheKey = 'exercise_' . md5($endpoint . $limit . $offset);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($endpoint, $limit, $offset) {
+            $item->expiresAfter(86400); // ✅ Cache 24h
+
+            $response = $this->client->request('GET', $this->baseUrl . $endpoint, [
+                'headers' => [
+                    'X-RapidAPI-Key'  => $this->apiKey,
+                    'X-RapidAPI-Host' => $this->host,
+                ],
+                'query' => [
+                    'limit'  => $limit,
+                    'offset' => $offset,
+                ],
+            ]);
+
+            $data = $response->toArray();
+
+            // L'API ne retourne plus gifUrl, il faut le construire
+            // Les GIFs sont maintenant sur v2.exercisedb.io
+            foreach ($data as &$exercise) {
+                if (is_array($exercise) && isset($exercise['id']) && !isset($exercise['gifUrl'])) {
+                    $exercise['gifUrl'] = 'https://v2.exercisedb.io/image/' . $exercise['id'];
+                }
+            }
+
+            return $data;
+        });
     }
 
-private function request(string $endpoint, int $limit = 20, int $offset = 0): array
-{
-    $response = $this->client->request('GET', $this->baseUrl . $endpoint, [
-        'headers' => [
-            'X-RapidAPI-Key'  => $this->apiKey,
-            'X-RapidAPI-Host' => $this->host,
-        ],
-        'query' => [
-            'limit'  => $limit,
-            'offset' => $offset,
-        ]
-    ]);
+    // ==================== MÉTHODE LISTE SIMPLE (sans pagination) ====================
 
-    $data = $response->toArray();
+    private function requestList(string $endpoint): array
+    {
+        $cacheKey = 'exercise_list_' . md5($endpoint);
 
-    // Ajouter gifUrl à chaque exercice
-    foreach ($data as &$exercise) {
-        if (is_array($exercise) && isset($exercise['id']) && !isset($exercise['gifUrl'])) {
-            $exercise['gifUrl'] = $this->baseUrl . '/image/' . $exercise['id'] . '.gif';
-        }
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($endpoint) {
+            $item->expiresAfter(86400); // ✅ Cache 24h
+
+            $response = $this->client->request('GET', $this->baseUrl . $endpoint, [
+                'headers' => [
+                    'X-RapidAPI-Key'  => $this->apiKey,
+                    'X-RapidAPI-Host' => $this->host,
+                ],
+            ]);
+
+            return $response->toArray();
+        });
     }
 
-    return $data;
-}
+    // ==================== TOUS LES EXERCICES ====================
 
-    // Tous les exercices (avec pagination)
     public function getExercises(int $limit = 20, int $offset = 0): array
     {
         return $this->request('/exercises', $limit, $offset);
     }
 
-    // Exercice par ID
-public function getExerciseById(string $id): array
-{
-    try {
-        $response = $this->client->request('GET', $this->baseUrl . '/exercises/exercise/' . $id, [
-            'headers' => [
-                'X-RapidAPI-Key'  => $this->apiKey,
-                'X-RapidAPI-Host' => $this->host,
-            ],
-        ]);
+    // ==================== EXERCICE PAR ID ====================
 
-        $data = $response->toArray();
+    public function getExerciseById(string $id): array
+    {
+        $cacheKey = 'exercise_id_' . $id;
 
-        if (!empty($data) && !isset($data['gifUrl'])) {
-            $data['gifUrl'] = 'https://exercisedb.p.rapidapi.com/image?exerciseId=' . $id . '&resolution=360&rapidapi-key=' . $this->apiKey;
-        }
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($id) {
+            $item->expiresAfter(86400); // ✅ Cache 24h
 
-        return $data;
+            try {
+                $response = $this->client->request('GET', $this->baseUrl . '/exercises/exercise/' . $id, [
+                    'headers' => [
+                        'X-RapidAPI-Key'  => $this->apiKey,
+                        'X-RapidAPI-Host' => $this->host,
+                    ],
+                ]);
 
-    } catch (\Exception $e) {
-        return [];
+                $data = $response->toArray();
+
+                // L'API ne retourne plus gifUrl, il faut le construire
+                // Les GIFs sont maintenant sur v2.exercisedb.io
+                if (!empty($data) && !isset($data['gifUrl']) && isset($data['id'])) {
+                    $data['gifUrl'] = 'https://v2.exercisedb.io/image/' . $data['id'];
+                }
+
+                return $data;
+
+            } catch (\Exception $e) {
+                return [];
+            }
+        });
     }
-}
 
+    // ==================== FILTRES ====================
 
-
-
-
-    // Par partie du corps (waist, chest, back, shoulders, upper arms...)
     public function getByBodyPart(string $bodyPart, int $limit = 20): array
     {
         return $this->request('/exercises/bodyPart/' . $bodyPart, $limit);
     }
 
-    // Par muscle cible (abs, biceps, glutes, hamstrings...)
     public function getByTarget(string $target, int $limit = 20): array
     {
         return $this->request('/exercises/target/' . $target, $limit);
     }
 
-    // Par équipement (body weight, dumbbell, barbell, cable...)
     public function getByEquipment(string $equipment, int $limit = 20): array
     {
         return $this->request('/exercises/equipment/' . $equipment, $limit);
     }
 
-    // Recherche par nom
     public function searchByName(string $name, int $limit = 20): array
     {
         return $this->request('/exercises/name/' . urlencode($name), $limit);
     }
 
-    // Listes des valeurs disponibles (pour faire des filtres)
+    // ==================== LISTES DE FILTRES ====================
+
     public function getBodyPartList(): array
     {
-        $response = $this->client->request('GET', $this->baseUrl . '/exercises/bodyPartList', [
-            'headers' => [
-                'X-RapidAPI-Key'  => $this->apiKey,
-                'X-RapidAPI-Host' => $this->host,
-            ]
-        ]);
-        return $response->toArray();
+        return $this->requestList('/exercises/bodyPartList');
     }
 
     public function getTargetList(): array
     {
-        $response = $this->client->request('GET', $this->baseUrl . '/exercises/targetList', [
-            'headers' => [
-                'X-RapidAPI-Key'  => $this->apiKey,
-                'X-RapidAPI-Host' => $this->host,
-            ]
-        ]);
-        return $response->toArray();
+        return $this->requestList('/exercises/targetList');
     }
 
     public function getEquipmentList(): array
     {
-        $response = $this->client->request('GET', $this->baseUrl . '/exercises/equipmentList', [
-            'headers' => [
-                'X-RapidAPI-Key'  => $this->apiKey,
-                'X-RapidAPI-Host' => $this->host,
-            ]
-        ]);
-        return $response->toArray();
+        return $this->requestList('/exercises/equipmentList');
     }
 }

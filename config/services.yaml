@@ -1,10 +1,10 @@
 # config/services.yaml
+
 parameters:
     consumption_upload_dir: '%kernel.project_dir%/public/uploads/consumption'
     recipes_upload_dir: '%kernel.project_dir%/public/uploads/recipes'
     rapidapi_key: '%env(RAPIDAPI_KEY)%'
     ipinfo_token: '%env(IPINFO_TOKEN)%'
-
 
 services:
     _defaults:
@@ -19,6 +19,10 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # ✅ Même niveau que App\, pas imbriqué dedans
+    App\Controller\CoachController:
+        arguments:
+            $rapidApiKey: '%rapidapi_key%'
 
     App\Service\IPInfoService:
         arguments:
@@ -29,7 +33,6 @@ services:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
 
-    # ⚠️ DOIT être après le bloc App\
     App\Service\ExerciseApiService:
         arguments:
             $apiKey: '%rapidapi_key%'
@@ -41,7 +44,6 @@ services:
     App\Service\FeedbackAnalysisService:
         arguments:
             $openaiApiKey: '%env(OPENAI_API_KEY)%'
-
 
     App\EventListener\AuthenticationSuccessListener:
         tags:

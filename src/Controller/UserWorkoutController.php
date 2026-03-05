@@ -33,6 +33,12 @@ class UserWorkoutController extends AbstractController
     ): Response {
         $user = $this->getUser();
 
+        // Check if user has a profile with objectives
+        if ($user->getProfilesPhysiques()->isEmpty()) {
+            $this->addFlash('info', 'Please complete your profile to see personalized workouts.');
+            return $this->redirectToRoute('profile_setup_height');
+        }
+
         $niveau   = $request->query->get('niveau');
         $dureeMax = $request->query->get('duree');
         $dureeMax = ($dureeMax !== null && $dureeMax !== '') ? (int) $dureeMax : null;
