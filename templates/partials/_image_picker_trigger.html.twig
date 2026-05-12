@@ -1,0 +1,39 @@
+{# ═══════════════════════════════════════════════════════
+   PIDEVASSETS IMAGE PICKER — Reusable trigger snippet
+   
+   Include this partial wherever you need the image picker.
+   Pass these variables:
+     - pidev_target_id  : ID of the hidden input that stores the selected filename
+     - pidev_preview_id : ID of the inline preview container
+     - pidev_btn_id     : (optional) unique ID for the trigger button
+   
+   Example:
+     {% include 'partials/_image_picker_trigger.html.twig' with {
+         pidev_target_id: 'exercisePidevImage',
+         pidev_preview_id: 'exercisePidevPreview',
+         pidev_btn_id: 'exercisePidevBtn'
+     } %}
+   ═══════════════════════════════════════════════════════ #}
+
+<div class="pidev-trigger-wrap">
+    <button type="button"
+            class="pidev-trigger-btn"
+            id="{{ pidev_btn_id|default('pidevTriggerBtn') }}"
+            data-pidev-target="{{ pidev_target_id }}"
+            data-pidev-preview="{{ pidev_preview_id }}">
+        <i class="fas fa-images"></i>
+        Choose from Gallery
+    </button>
+</div>
+
+{# Inline preview of the selected image #}
+<div class="pidev-selected-inline" id="{{ pidev_preview_id }}">
+    <img src="" alt="Selected">
+    <div class="pidev-selected-inline-info">
+        <div class="pidev-selected-inline-name">—</div>
+        <div class="pidev-selected-inline-hint">Image selected from gallery</div>
+    </div>
+    <button type="button" class="pidev-selected-inline-clear" data-pidev-target="{{ pidev_target_id }}">
+        <i class="fas fa-times"></i> Remove
+    </button>
+</div>

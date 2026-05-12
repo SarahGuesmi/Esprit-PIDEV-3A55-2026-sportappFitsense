@@ -68,6 +68,17 @@
             <!-- Edit Image -->
             <div class="edit-field mt-4 hidden">
               <label class="block text-xs font-bold text-gray-400 mb-1">Change Image</label>
+
+              {# Hidden input for pidevassets gallery selection #}
+              <input type="hidden" name="pidevassetsImage" id="modalRecipePidevImage">
+
+              {% include 'partials/_image_picker_trigger.html.twig' with {
+                  pidev_target_id: 'modalRecipePidevImage',
+                  pidev_preview_id: 'modalRecipePidevPreview',
+                  pidev_btn_id: 'modalRecipePidevBtn'
+              } %}
+
+              <p class="text-[10px] text-gray-500 mt-3 mb-2">— or upload from your device —</p>
               <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-gray-400">
               <div class="text-[10px] text-gray-500 mt-1">JPG / PNG / WEBP — max 3MB</div>
               <div class="errors text-red-500 text-xs mt-1" id="f-error-imageFile"></div>

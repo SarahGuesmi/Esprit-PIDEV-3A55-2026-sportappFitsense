@@ -1,0 +1,455 @@
+/* ═══════════════════════════════════════════════════════
+   PIDEVASSETS IMAGE PICKER — Dark Theme Modal
+   Matches the Java FitSense app UI
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Backdrop ── */
+.pidev-picker-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: pidevFadeIn 0.25s ease-out;
+}
+.pidev-picker-backdrop.active {
+    display: flex;
+}
+
+@keyframes pidevFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Modal Container ── */
+.pidev-picker-modal {
+    background: #1a1f2e;
+    border: 1px solid #2a3040;
+    border-radius: 16px;
+    width: 95%;
+    max-width: 900px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    animation: pidevSlideUp 0.3s ease-out;
+    overflow: hidden;
+}
+
+@keyframes pidevSlideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Header ── */
+.pidev-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid #2a3040;
+    background: #151928;
+}
+.pidev-picker-header h2 {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+.pidev-picker-header h2 i {
+    color: #22C55E;
+    font-size: 1.1rem;
+}
+.pidev-picker-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #2a3040;
+    background: #1e2336;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.pidev-picker-close:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+/* ── Toolbar (Search + Upload + Refresh) ── */
+.pidev-picker-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-bottom: 1px solid #2a3040;
+    background: #181d2c;
+}
+.pidev-picker-search {
+    flex: 1;
+    position: relative;
+}
+.pidev-picker-search i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4b5563;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+.pidev-picker-search input {
+    width: 100%;
+    padding: 10px 14px 10px 40px;
+    background: #0d1117;
+    border: 1px solid #2a3040;
+    border-radius: 10px;
+    color: #e5e7eb;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.pidev-picker-search input::placeholder {
+    color: #4b5563;
+}
+.pidev-picker-search input:focus {
+    outline: none;
+    border-color: #22C55E;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.pidev-picker-btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border: none;
+}
+.pidev-picker-btn-upload {
+    background: linear-gradient(135deg, #22C55E, #16a34a);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+.pidev-picker-btn-upload:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(34, 197, 94, 0.35);
+}
+.pidev-picker-btn-refresh {
+    background: #1e2336;
+    color: #9ca3af;
+    border: 1px solid #2a3040;
+}
+.pidev-picker-btn-refresh:hover {
+    color: #fff;
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+.pidev-picker-btn-refresh.spinning i {
+    animation: pidevSpin 0.6s linear infinite;
+}
+@keyframes pidevSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Grid ── */
+.pidev-picker-grid-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a3040 transparent;
+}
+.pidev-picker-grid-wrap::-webkit-scrollbar {
+    width: 6px;
+}
+.pidev-picker-grid-wrap::-webkit-scrollbar-track {
+    background: transparent;
+}
+.pidev-picker-grid-wrap::-webkit-scrollbar-thumb {
+    background: #2a3040;
+    border-radius: 3px;
+}
+
+.pidev-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+/* ── Image Card ── */
+.pidev-picker-card {
+    background: #151928;
+    border: 2px solid #2a3040;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+}
+.pidev-picker-card:hover {
+    border-color: rgba(34, 197, 94, 0.5);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.12);
+}
+.pidev-picker-card.selected {
+    border-color: #22C55E;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25), 0 8px 24px rgba(34, 197, 94, 0.15);
+}
+.pidev-picker-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    background: #22C55E;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 900;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+    z-index: 2;
+}
+.pidev-picker-card img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    display: block;
+    background: #0d1117;
+    transition: transform 0.3s;
+}
+.pidev-picker-card:hover img {
+    transform: scale(1.05);
+}
+.pidev-picker-card-name {
+    padding: 8px 10px;
+    font-size: 0.7rem;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    border-top: 1px solid #1e2336;
+}
+.pidev-picker-card.selected .pidev-picker-card-name {
+    color: #22C55E;
+    font-weight: 600;
+}
+
+/* ── Empty / Loading States ── */
+.pidev-picker-empty {
+    text-align: center;
+    padding: 48px 24px;
+    color: #4b5563;
+}
+.pidev-picker-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.5;
+}
+.pidev-picker-empty p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.pidev-picker-loading {
+    text-align: center;
+    padding: 48px 24px;
+    color: #6b7280;
+}
+.pidev-picker-loading .pidev-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #2a3040;
+    border-top-color: #22C55E;
+    border-radius: 50%;
+    animation: pidevSpin 0.7s linear infinite;
+    margin: 0 auto 12px;
+}
+
+/* ── Selected Preview Footer ── */
+.pidev-picker-footer {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    border-top: 1px solid #2a3040;
+    background: #151928;
+}
+.pidev-picker-footer.active {
+    display: flex;
+}
+.pidev-picker-footer img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #22C55E;
+    flex-shrink: 0;
+}
+.pidev-picker-footer-info {
+    flex: 1;
+    min-width: 0;
+}
+.pidev-picker-footer-name {
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pidev-picker-footer-hint {
+    color: #4b5563;
+    font-size: 0.72rem;
+    margin-top: 2px;
+}
+.pidev-picker-btn-select {
+    padding: 10px 24px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #22C55E, #16a34a);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+    flex-shrink: 0;
+}
+.pidev-picker-btn-select:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(34, 197, 94, 0.35);
+}
+
+/* ── Upload Hidden File Input ── */
+.pidev-upload-hidden {
+    display: none !important;
+}
+
+/* ── Trigger Button (replaces the native file input) ── */
+.pidev-trigger-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.pidev-trigger-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    color: #e5e7eb;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.pidev-trigger-btn:hover {
+    border-color: #22C55E;
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+    color: #22C55E;
+}
+.pidev-trigger-btn i {
+    font-size: 1rem;
+    color: #22C55E;
+}
+
+/* ── Selected Preview Inline ── */
+.pidev-selected-inline {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 12px;
+    margin-top: 10px;
+}
+.pidev-selected-inline.active {
+    display: flex;
+}
+.pidev-selected-inline img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #22C55E;
+    flex-shrink: 0;
+}
+.pidev-selected-inline-info {
+    flex: 1;
+    min-width: 0;
+}
+.pidev-selected-inline-name {
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pidev-selected-inline-hint {
+    color: #6b7280;
+    font-size: 0.7rem;
+}
+.pidev-selected-inline-clear {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    color: #f87171;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.pidev-selected-inline-clear:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .pidev-picker-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .pidev-picker-toolbar {
+        flex-wrap: wrap;
+    }
+    .pidev-picker-search {
+        min-width: 100%;
+    }
+}
+@media (max-width: 480px) {
+    .pidev-picker-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}

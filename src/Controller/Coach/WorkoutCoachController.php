@@ -190,6 +190,21 @@ class WorkoutCoachController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Handle pidevassets gallery image
+            $pidevImage = $request->request->get('pidevassetsImage');
+            if ($pidevImage) {
+                $srcPath = 'C:\\xampp2\\htdocs\\pidevassets' . DIRECTORY_SEPARATOR . $pidevImage;
+                if (file_exists($srcPath)) {
+                    $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/exercises';
+                    $ext = pathinfo($pidevImage, PATHINFO_EXTENSION) ?: 'jpg';
+                    $newFilename = uniqid('exercise_') . '.' . $ext;
+                    $destPath = $uploadDir . DIRECTORY_SEPARATOR . $newFilename;
+                    copy($srcPath, $destPath);
+                    $exercise->setImageName($newFilename);
+                    $exercise->setImageFile(null);
+                }
+            }
+
             $em->persist($exercise);
             $em->flush();
 
@@ -215,6 +230,21 @@ class WorkoutCoachController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Handle pidevassets gallery image
+            $pidevImage = $request->request->get('pidevassetsImage');
+            if ($pidevImage) {
+                $srcPath = 'C:\\xampp2\\htdocs\\pidevassets' . DIRECTORY_SEPARATOR . $pidevImage;
+                if (file_exists($srcPath)) {
+                    $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/exercises';
+                    $ext = pathinfo($pidevImage, PATHINFO_EXTENSION) ?: 'jpg';
+                    $newFilename = uniqid('exercise_') . '.' . $ext;
+                    $destPath = $uploadDir . DIRECTORY_SEPARATOR . $newFilename;
+                    copy($srcPath, $destPath);
+                    $exercise->setImageName($newFilename);
+                    $exercise->setImageFile(null);
+                }
+            }
+
             $em->flush();
 
             $this->addFlash('success', 'Exercise "' . $exercise->getNom() . '" updated successfully!');

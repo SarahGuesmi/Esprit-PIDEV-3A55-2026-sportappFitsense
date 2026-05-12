@@ -44,10 +44,22 @@ class RecetteCoachController extends AbstractController
                 $recette->setCoach($coach);
 
                 $imageFile = $form->get('imageFile')->getData();
+                $pidevImage = $request->request->get('pidevassetsImage');
+
                 if ($imageFile) {
                     $newFilename = uniqid('recipe_') . '.' . ($imageFile->guessExtension() ?: 'jpg');
                     $imageFile->move($this->getParameter('recipes_upload_dir'), $newFilename);
                     $recette->setImage($newFilename);
+                } elseif ($pidevImage) {
+                    // Copy from pidevassets gallery
+                    $srcPath = 'C:\\xampp2\\htdocs\\pidevassets' . DIRECTORY_SEPARATOR . $pidevImage;
+                    if (file_exists($srcPath)) {
+                        $ext = pathinfo($pidevImage, PATHINFO_EXTENSION) ?: 'jpg';
+                        $newFilename = uniqid('recipe_') . '.' . $ext;
+                        $destPath = $this->getParameter('recipes_upload_dir') . DIRECTORY_SEPARATOR . $newFilename;
+                        copy($srcPath, $destPath);
+                        $recette->setImage($newFilename);
+                    }
                 }
 
                 $em->persist($recette);
@@ -193,10 +205,22 @@ public function update(
 
     // ✅ Image
     $imageFile = $request->files->get('imageFile');
+    $pidevImage = $request->request->get('pidevassetsImage');
+
     if ($imageFile) {
         $newFilename = uniqid('recipe_') . '.' . ($imageFile->guessExtension() ?: 'jpg');
         $imageFile->move($this->getParameter('recipes_upload_dir'), $newFilename);
         $recette->setImage($newFilename);
+    } elseif ($pidevImage) {
+        // Copy from pidevassets gallery
+        $srcPath = 'C:\\xampp2\\htdocs\\pidevassets' . DIRECTORY_SEPARATOR . $pidevImage;
+        if (file_exists($srcPath)) {
+            $ext = pathinfo($pidevImage, PATHINFO_EXTENSION) ?: 'jpg';
+            $newFilename = uniqid('recipe_') . '.' . $ext;
+            $destPath = $this->getParameter('recipes_upload_dir') . DIRECTORY_SEPARATOR . $newFilename;
+            copy($srcPath, $destPath);
+            $recette->setImage($newFilename);
+        }
     }
 
     // ✅ Validation

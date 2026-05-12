@@ -35,13 +35,13 @@ class ChatController extends AbstractController
         }
 
         $contacts = $this->getContactsForCurrentUser();
-        $withId = $request->query->getInt('with', 0);
+        $withId = $request->query->get('with');
         $selectedUser = null;
         $messages = [];
         $unreadCounts = [];
 
         $conversationDeleted = false;
-        if ($withId > 0) {
+        if ($withId) {
             $selectedUser = $this->entityManager->getRepository(User::class)->find($withId);
             if ($selectedUser && $this->isAllowedContact($selectedUser)) {
                 if ($this->chatMessageRepository->isConversationDeletedForUser($me, $selectedUser)) {
@@ -57,7 +57,7 @@ class ChatController extends AbstractController
         }
 
         foreach ($contacts as $contact) {
-            $unreadCounts[$contact->getId()] = $this->chatMessageRepository->countUnreadFromUser($me, $contact);
+            $unreadCounts[(string) $contact->getId()] = $this->chatMessageRepository->countUnreadFromUser($me, $contact);
         }
 
         $baseTemplate = $this->getBaseTemplate();
@@ -94,8 +94,8 @@ class ChatController extends AbstractController
         }
 
         $content = trim((string) $request->request->get('content', ''));
-        $receiverId = $request->request->getInt('receiver', 0);
-        if (!$content || $receiverId <= 0) {
+        $receiverId = $request->request->get('receiver');
+        if (!$content || !$receiverId) {
             return new JsonResponse(['error' => 'Content and receiver are required'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -132,9 +132,9 @@ class ChatController extends AbstractController
             return new JsonResponse([], Response::HTTP_OK);
         }
 
-        $withId = $request->query->getInt('with', 0);
-        $lastId = $request->query->getInt('lastId', 0);
-        if ($withId <= 0) {
+        $withId = $request->query->get('with');
+        $lastId = $request->query->get('lastId');
+        if (!$withId) {
             return new JsonResponse([]);
         }
 
@@ -196,8 +196,8 @@ class ChatController extends AbstractController
             return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $otherId = $request->request->getInt('other', 0);
-        if ($otherId <= 0) {
+        $otherId = $request->request->get('other');
+        if (!$otherId) {
             return new JsonResponse(['error' => 'Invalid conversation'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -224,8 +224,8 @@ class ChatController extends AbstractController
             ->setParameter('me', $me->getId())
             ->andWhere('u.accountStatus = :status')
             ->setParameter('status', 'active')
-            ->orderBy('u.firstname', 'ASC')
-            ->addOrderBy('u.lastname', 'ASC');
+            ->orderBy('u.name.firstname', 'ASC')
+            ->addOrderBy('u.name.lastname', 'ASC');
 
         if ($this->isGranted('ROLE_ADMIN')) {
             $qb->andWhere('u.roles LIKE :role')->setParameter('role', '%ROLE_COACH%');

@@ -30,18 +30,18 @@ class RecetteConsommeeRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->select('NEW App\DTO\UserConsumptionStatsDTO(
                 IDENTITY(c.user),
-                u.firstname,
-                u.lastname,
-                u.email,
+                u.name.firstname,
+                u.name.lastname,
+                u.email.email,
                 SUM(c.kcal),
                 SUM(c.proteins),
                 COUNT(c.id)
             )')
             ->join('c.user', 'u')
             ->groupBy('c.user')
-            ->addGroupBy('u.firstname')
-            ->addGroupBy('u.lastname')
-            ->addGroupBy('u.email')
+            ->addGroupBy('u.name.firstname')
+            ->addGroupBy('u.name.lastname')
+            ->addGroupBy('u.email.email')
             ->orderBy('SUM(c.kcal)', 'DESC')
             ->getQuery()
             ->getResult();

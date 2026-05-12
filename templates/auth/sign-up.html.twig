@@ -10,11 +10,13 @@
     --violet-light: #A78BFA;
     --violet-dark: #6D28D9;
     --dark-bg: #030405;
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.12);
     --text-primary: #FFFFFF;
-    --text-secondary: #94A3B8;
+    --text-secondary: #9CAAC0;
     --gradient-main: linear-gradient(135deg, #8B5CF6, #D8B4FE);
+    --input-bg: rgba(15, 23, 42, 0.55);
+    --card-shadow: 0 40px 100px rgba(0,0,0,0.75);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,13 +25,13 @@ body {
     font-family: 'Inter', system-ui, sans-serif;
     background: var(--dark-bg);
     color: var(--text-primary);
-    min-height: 100vh;
+    height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow-x: hidden;
+    overflow: hidden;
     position: relative;
-    padding: 20px;
+    padding: 12px;
 }
 
 body::before {
@@ -38,15 +40,70 @@ body::before {
     width: 100%;
     height: 100%;
     background: 
-        radial-gradient(circle at 80% 10%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 10% 90%, rgba(216, 180, 254, 0.1) 0%, transparent 40%);
+        radial-gradient(circle at 78% 12%, rgba(139, 92, 246, 0.2) 0%, transparent 42%),
+        radial-gradient(circle at 12% 88%, rgba(216, 180, 254, 0.16) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 55%);
+    filter: saturate(115%);
     z-index: -1;
+}
+
+body::after {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background:
+        linear-gradient(115deg, transparent 20%, rgba(167, 139, 250, 0.09) 42%, transparent 64%),
+        linear-gradient(250deg, transparent 28%, rgba(56, 189, 248, 0.06) 52%, transparent 76%);
+    mix-blend-mode: screen;
+    animation: auroraShift 14s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.bg-orb {
+    position: fixed;
+    border-radius: 999px;
+    pointer-events: none;
+    filter: blur(50px);
+    opacity: 0.55;
+    z-index: -1;
+}
+
+.bg-orb-1 {
+    width: 320px;
+    height: 320px;
+    top: 9%;
+    left: 8%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.45) 0%, rgba(139, 92, 246, 0) 70%);
+    animation: orbFloatOne 11s ease-in-out infinite;
+}
+
+.bg-orb-2 {
+    width: 280px;
+    height: 280px;
+    right: 7%;
+    bottom: 10%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(56, 189, 248, 0) 72%);
+    animation: orbFloatTwo 12s ease-in-out infinite;
+}
+
+.bg-grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.12;
+    background-image:
+        linear-gradient(rgba(167, 139, 250, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(167, 139, 250, 0.12) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
 }
 
 .signup-wrapper {
     width: 95%;
-    max-width: 1000px;
-    min-height: 650px;
+    max-width: 980px;
+    height: min(92dvh, 720px);
     display: grid;
     grid-template-columns: 1fr 1.1fr;
     background: var(--glass-bg);
@@ -54,7 +111,7 @@ body::before {
     -webkit-backdrop-filter: blur(25px);
     border: 1px solid var(--glass-border);
     border-radius: 30px;
-    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    box-shadow: var(--card-shadow);
     overflow: hidden;
     animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -64,8 +121,26 @@ body::before {
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+@keyframes auroraShift {
+    0% { transform: translate(-2%, -1%) scale(1.02); }
+    50% { transform: translate(3%, 2%) scale(1.06); }
+    100% { transform: translate(1%, -2%) scale(1.03); }
+}
+
+@keyframes orbFloatOne {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(26px, -20px); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes orbFloatTwo {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(-22px, 18px); }
+    100% { transform: translate(0, 0); }
+}
+
 .signup-left {
-    padding: 60px;
+    padding: clamp(24px, 3.4vh, 42px);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -77,8 +152,8 @@ body::before {
 }
 
 .signup-left img.hero-img { 
-    width: 250px; 
-    margin-bottom: 35px; 
+    width: clamp(150px, 20vh, 210px); 
+    margin-bottom: clamp(12px, 1.8vh, 20px); 
     filter: drop-shadow(0 20px 40px rgba(139, 92, 246, 0.3));
     animation: float 4s ease-in-out infinite; 
 }
@@ -89,9 +164,9 @@ body::before {
 }
 
 .signup-left h1 { 
-    font-size: 34px; 
+    font-size: clamp(26px, 3.8vh, 34px); 
     font-weight: 900; 
-    margin-bottom: 15px; 
+    margin-bottom: 10px; 
     background: var(--gradient-main); 
     -webkit-background-clip: text; 
     -webkit-text-fill-color: transparent; 
@@ -99,10 +174,10 @@ body::before {
 }
 
 .signup-left p { 
-    font-size: 15px; 
+    font-size: 14px; 
     color: var(--text-secondary); 
     line-height: 1.6;
-    margin-bottom: 30px;
+    margin-bottom: 16px;
 }
 
 .features-list { text-align: left; width: 100%; max-width: 300px; }
@@ -113,7 +188,7 @@ body::before {
     font-size: 14px; 
     font-weight: 600; 
     color: #fff; 
-    margin-bottom: 12px; 
+    margin-bottom: 8px; 
     animation: fadeInUp 0.5s ease forwards;
     opacity: 0;
 }
@@ -142,15 +217,15 @@ body::before {
 }
 
 .signup-right { 
-    padding: 60px; 
+    padding: clamp(24px, 3.6vh, 44px); 
     display: flex; 
     flex-direction: column; 
     justify-content: center; 
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.28);
 }
 
 .form-header h2 { 
-    font-size: 34px; 
+    font-size: clamp(30px, 4vh, 34px); 
     font-weight: 800;
     margin-bottom: 8px; 
     letter-spacing: -1px;
@@ -158,11 +233,17 @@ body::before {
 
 .form-header p { 
     color: var(--text-secondary); 
-    margin-bottom: 30px; 
+    margin-bottom: 16px; 
     font-weight: 500;
 }
 
-.form-group { margin-bottom: 20px; }
+.form-group { margin-bottom: 14px; }
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
 
 .form-group label {
     display: block;
@@ -176,9 +257,9 @@ body::before {
 
 .form-group input {
     width: 100%;
-    padding: 14px 18px;
+    padding: 12px 16px;
     border-radius: 12px;
-    background: rgba(255,255,255,0.03);
+    background: var(--input-bg);
     border: 1px solid var(--glass-border);
     color: var(--text-primary);
     font-size: 15px;
@@ -194,6 +275,18 @@ body::before {
     transform: translateY(-1px);
 }
 
+.form-group input::placeholder {
+    color: rgba(255,255,255,0.25);
+}
+
+.form-group input:focus-visible,
+.btn-signup:focus-visible,
+.signin-link a:focus-visible,
+.back-home:focus-visible {
+    outline: 2px solid rgba(167, 139, 250, 0.8);
+    outline-offset: 2px;
+}
+
 .form-group ul li { 
     color: #fda4af; 
     font-size: 13px; 
@@ -204,18 +297,17 @@ body::before {
 
 .btn-signup {
     width: 100%;
-    padding: 16px;
-    margin-top: 20px;
+    padding: 13px;
+    margin-top: 6px;
     border-radius: 14px;
     border: none;
     background: var(--gradient-main);
     color: white;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.4px;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
     box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
 }
 
@@ -226,7 +318,7 @@ body::before {
 
 .signin-link { 
     text-align: center; 
-    margin-top: 25px; 
+    margin-top: 12px; 
     font-size: 14px; 
     color: var(--text-secondary);
 }
@@ -239,6 +331,12 @@ body::before {
     transition: all 0.3s ease;
 }
 .signin-link a:hover { color: #fff; text-shadow: 0 0 10px var(--violet-light); }
+
+.password-help {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin: -6px 0 10px;
+}
 
 .back-home {
     position: absolute;
@@ -266,18 +364,24 @@ body::before {
 }
 
 @media (max-width: 968px) {
-    .signup-wrapper { grid-template-columns: 1fr; height: auto; }
-    body { overflow: auto; }
-    .signup-left { padding: 40px 30px; }
+    .signup-wrapper { grid-template-columns: 1fr; height: min(94dvh, 760px); }
+    body { overflow: hidden; }
+    .signup-left { padding: 22px 22px; }
     .signup-left img.hero-img { width: 180px; margin-bottom: 18px; }
-    .signup-right { padding: 40px 30px; }
+    .signup-right { padding: 22px 22px; }
     .form-row { grid-template-columns: 1fr; }
+    .features-list { display: none; }
+    .bg-orb { opacity: 0.42; }
+    .bg-grid { opacity: 0.08; }
 }
 </style>
 {% endblock %}
 
 {% block header %}{% endblock %}
 {% block body %}
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+<div class="bg-orb bg-orb-2" aria-hidden="true"></div>
 <div class="signup-wrapper">
     <!-- LEFT HERO -->
     <div class="signup-left">
@@ -304,34 +408,37 @@ body::before {
     <div class="signup-right">
         <div class="form-header">
             <h2>Create Account</h2>
-            <p>Sign up and start your fitness journey today.</p>
+            <p>Create your profile and start your fitness journey today.</p>
         </div>
 
         {{ form_start(form, {'attr': {'class': 'signup-form', 'novalidate': 'novalidate'}}) }}
 
-        <div class="form-group">
-            {{ form_label(form.firstname, 'First Name') }}
-            {{ form_widget(form.firstname) }}
-            {{ form_errors(form.firstname) }}
-        </div>
+        <div class="form-row">
+            <div class="form-group">
+                {{ form_label(form.firstname, 'First Name') }}
+                {{ form_widget(form.firstname, {'attr': {'placeholder': 'First Name'}}) }}
+                {{ form_errors(form.firstname) }}
+            </div>
 
-        <div class="form-group">
-            {{ form_label(form.lastname, 'Last Name') }}
-            {{ form_widget(form.lastname) }}
-            {{ form_errors(form.lastname) }}
+            <div class="form-group">
+                {{ form_label(form.lastname, 'Last Name') }}
+                {{ form_widget(form.lastname, {'attr': {'placeholder': 'Last Name'}}) }}
+                {{ form_errors(form.lastname) }}
+            </div>
         </div>
 
         <div class="form-group">
             {{ form_label(form.email, 'Email') }}
-            {{ form_widget(form.email) }}
+            {{ form_widget(form.email, {'attr': {'placeholder': 'Email'}}) }}
             {{ form_errors(form.email) }}
         </div>
 
         <div class="form-group">
             {{ form_label(form.password, 'Password') }}
-            {{ form_widget(form.password) }}
+            {{ form_widget(form.password, {'attr': {'placeholder': 'Create a password'}}) }}
             {{ form_errors(form.password) }}
         </div>
+        <p class="password-help">Use at least 8 characters for a stronger password.</p>
 
         <button type="submit" class="btn-signup">Sign Up</button>
 

@@ -397,7 +397,7 @@ public function dashboard(
             ->orderBy('u.dateCreation', 'DESC');
 
         if (!empty($q)) {
-            $queryBuilder->andWhere('u.firstname LIKE :q OR u.lastname LIKE :q OR u.email LIKE :q')
+            $queryBuilder->andWhere('u.name.firstname LIKE :q OR u.name.lastname LIKE :q OR u.email.email LIKE :q')
                 ->setParameter('q', '%' . $q . '%');
         }
 
@@ -440,7 +440,7 @@ public function dashboard(
             ->orderBy('em.createdAt', 'DESC');
 
         if (!empty($q)) {
-            $queryBuilder->andWhere('u.firstname LIKE :q OR u.lastname LIKE :q')
+            $queryBuilder->andWhere('u.name.firstname LIKE :q OR u.name.lastname LIKE :q')
                 ->setParameter('q', '%' . $q . '%');
         }
 

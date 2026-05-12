@@ -427,8 +427,8 @@ class DashboardController extends AbstractController
         if ($q !== '') {
             $queryBuilder->andWhere(
                 $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->like('LOWER(u.firstname)', ':q'),
-                    $queryBuilder->expr()->like('LOWER(u.lastname)', ':q'),
+                    $queryBuilder->expr()->like('LOWER(u.name.firstname)', ':q'),
+                    $queryBuilder->expr()->like('LOWER(u.name.lastname)', ':q'),
                     $queryBuilder->expr()->like('LOWER(u.email.email)', ':q')
                 )
             )->setParameter('q', '%' . strtolower($q) . '%');

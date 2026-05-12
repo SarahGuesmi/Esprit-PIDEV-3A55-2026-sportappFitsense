@@ -5,6 +5,7 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('assets/css/coach_recette.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/pidevassets_picker.css') }}">
     <style>
         .page-header {
             display: flex;
@@ -74,6 +75,7 @@
 
 {% block scripts %}
     {{ parent() }}
+    <script src="{{ asset('assets/js/pidevassets_picker.js') }}"></script>
     <script src="{{ asset('assets/js/coach_recette.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

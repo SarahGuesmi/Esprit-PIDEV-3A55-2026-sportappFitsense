@@ -55,14 +55,22 @@ class ChatMessageRepository extends ServiceEntityRepository
      *
      * @return ChatMessage[]
      */
-    public function findNewMessagesInConversation(User $userA, User $userB, int $lastId): array
+    public function findNewMessagesInConversation(User $userA, User $userB, ?string $lastId): array
     {
         $qb = $this->createQueryBuilder('c')
-            ->andWhere('c.id > :lastId')
             ->andWhere('c.isDeleted = :isDeleted')
-            ->setParameter('lastId', $lastId)
             ->setParameter('isDeleted', false)
             ->orderBy('c.createdAt', 'ASC');
+
+        if ($lastId) {
+            $lastMsg = $this->find($lastId);
+            if ($lastMsg) {
+                $qb->andWhere('c.createdAt >= :after')
+                   ->setParameter('after', $lastMsg->getCreatedAt())
+                   ->andWhere('c.id != :lastId')
+                   ->setParameter('lastId', $lastId);
+            }
+        }
 
         $qb->andWhere(
             $qb->expr()->orX(

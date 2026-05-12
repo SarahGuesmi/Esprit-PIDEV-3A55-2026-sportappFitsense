@@ -741,14 +741,14 @@
     var $messages = $('#chatMessages');
     var $input = $('#messageInput');
     var $sendBtn = $('#sendBtn');
-    var currentUserId = {{ app.user.id }};
-    var otherUserId = {{ selectedUser.id }};
+    var currentUserId = '{{ app.user.id }}';
+    var otherUserId = '{{ selectedUser.id }}';
     var sendUrl = '{{ path('app_chat_send') }}';
     var fetchUrl = '{{ path('app_chat_fetch_new') }}';
     var unreadCountUrl = '{{ path('app_chat_unread_count') }}';
     var deleteMessageUrlTemplate = '{{ path('app_chat_delete', { id: '__ID__' }) }}';
     var deleteConversationUrl = '{{ path('app_chat_delete_conversation') }}';
-    var lastMessageId = {{ (messages|length > 0 and not conversationDeleted|default(false)) ? messages|last.id : 0 }};
+    var lastMessageId = '{{ (messages|length > 0 and not conversationDeleted|default(false)) ? messages|last.id : "" }}';
 
     function scrollToBottom() {
         if ($messages.length) $messages[0].scrollTop = $messages[0].scrollHeight;
@@ -797,7 +797,7 @@
                         window.location.reload();
                         return;
                     }
-                    lastMessageId = Math.max(lastMessageId, data.id);
+                    lastMessageId = data.id;
                     var delBtn = '<i class="fas fa-trash btn-delete-msg" data-msg-id="' + data.id + '"></i>';
                     var html = '<div class="chatroom-message mine" data-id="' + data.id + '">' +
                         '<div class="chatroom-message-meta">' +
@@ -822,7 +822,7 @@
     });
 
     function fetchNewMessages() {
-        if (otherUserId <= 0) return;
+        if (!otherUserId) return;
         $.ajax({
             url: fetchUrl,
             type: 'GET',
@@ -840,7 +840,7 @@
                             '<span class="chatroom-message-time">' + msg.createdAt + '</span>' + deleteBtn + '</div>' +
                             '<div class="chatroom-message-bubble">' + escapeHtml(msg.content) + '</div></div>';
                         $messages.append(html);
-                        lastMessageId = Math.max(lastMessageId, msg.id);
+                        lastMessageId = msg.id;
                     });
                     scrollToBottom();
                     clearContactUnread(otherUserId);

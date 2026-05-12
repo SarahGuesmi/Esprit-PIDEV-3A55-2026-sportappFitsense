@@ -31,6 +31,17 @@
 
     <div>
       {{ form_label(form.imageFile) }}
+
+      {# Hidden input for pidevassets gallery selection #}
+      <input type="hidden" name="pidevassetsImage" id="recipePidevImage">
+
+      {% include 'partials/_image_picker_trigger.html.twig' with {
+          pidev_target_id: 'recipePidevImage',
+          pidev_preview_id: 'recipePidevPreview',
+          pidev_btn_id: 'recipePidevBtn'
+      } %}
+
+      <p class="help" style="margin-top:10px;margin-bottom:6px;">— or upload from your device —</p>
       {{ form_widget(form.imageFile) }}
       <div class="help">JPG / PNG / WEBP — max 3MB</div>
       <div class="errors" id="error-imageFile">{{ form_errors(form.imageFile) }}</div>
